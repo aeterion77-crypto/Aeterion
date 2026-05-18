@@ -1007,6 +1007,7 @@
     #muro-acceso.visible { display: flex; }
 
     .muro-box {
+      position: relative;
       background: var(--negro2);
       border: 1px solid rgba(201,168,76,.25);
       border-radius: 6px;
@@ -1024,6 +1025,33 @@
       color: var(--oro);
       margin-bottom: 1.5rem;
     }
+    .muro-cerrar-btn {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 44px;
+      height: 44px;
+      background: var(--negro2);
+      border: 2px solid var(--oro);
+      border-radius: 50%;
+      color: var(--oro);
+      font-size: 1.2rem;
+      font-weight: bold;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      z-index: 2000;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    }
+    .muro-cerrar-btn:hover {
+      background: var(--oro);
+      color: var(--negro);
+      transform: scale(1.1);
+    }
+
     .muro-box h2 {
       font-size: 1.9rem;
       margin-bottom: .6rem;
@@ -3573,6 +3601,8 @@
      MURO DE ACCESO (aparece cuando no hay sesión)
 ============================================================ -->
 <div id="muro-acceso">
+  <!-- Botón X fijo en esquina superior derecha de la pantalla -->
+  <button class="muro-cerrar-btn" onclick="cerrarMuro()" title="Cerrar">✕</button>
   <div class="muro-box">
     <div class="muro-logo">AETERION</div>
 
@@ -3661,7 +3691,7 @@
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
       <h4>¡Acceso desbloqueado!</h4>
       <p>Ya tienes acceso completo a todo el contenido de Aeterion.</p>
-      <button class="btn" style="margin-top:1.5rem;" onclick="cerrarMuro()">Ver el contenido →</button>
+      <button class="btn" style="margin-top:1.5rem;" onclick="activarAcceso(usuarioActual ? usuarioActual.nombre : '', true)">Ver el contenido →</button>
     </div>
 
   </div>
@@ -3926,11 +3956,17 @@ document.addEventListener('DOMContentLoaded', function() {
 function mostrarMuro() {
   document.getElementById('muro-acceso').classList.add('visible');
   document.body.style.overflow = 'hidden';
+  // Mostrar botón X
+  const btn = document.querySelector('.muro-cerrar-btn');
+  if (btn) btn.style.display = 'flex';
 }
 
 function cerrarMuro() {
   document.getElementById('muro-acceso').classList.remove('visible');
   document.body.style.overflow = '';
+  // Ocultar botón X
+  const btn = document.querySelector('.muro-cerrar-btn');
+  if (btn) btn.style.display = 'none';
 }
 
 function activarAcceso(nombre, mostrarBanner = true) {
@@ -4023,12 +4059,13 @@ async function registrarseYAcceder() {
       objetivo
     });
 
-    // Guardar sesión local
+    // Guardar sesión y activar acceso
     const sesion = { nombre, contacto, tipo_contacto: modoContactoMuro };
     localStorage.setItem('aeterion_sesion', JSON.stringify(sesion));
     usuarioActual = sesion;
+    sesionActiva = true;
 
-    // Mostrar éxito
+    // Mostrar pantalla de éxito
     document.getElementById('muro-form-registro').style.display = 'none';
     document.getElementById('muro-exito').classList.add('visible');
 
@@ -4049,6 +4086,7 @@ async function iniciarSesion() {
       const sesion = { nombre: existe.nombre, contacto, tipo_contacto: existe.tipo_contacto };
       localStorage.setItem('aeterion_sesion', JSON.stringify(sesion));
       usuarioActual = sesion;
+      sesionActiva = true;
       activarAcceso(existe.nombre, true);
     } else {
       alert('No encontramos ese email o WhatsApp. ¿Quizás te registraste con otro? Si es tu primera vez, crea una cuenta.');
