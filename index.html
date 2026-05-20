@@ -2781,36 +2781,182 @@
       <p class="sub-seccion">Guía completa basada en meta-análisis y revisiones sistemáticas. Todo lo que impacta tu salud, explicado con honestidad y precisión.</p>
     </div>
 
-    <div class="salud-grid">
-      <div class="salud-card fade-up fade-up-d1">
-        <div class="salud-num">01</div>
-        <h4>Aceites y Grasas</h4>
-        <p>Los mejores y los peores. Los aceites de semillas refinados, las grasas trans y por qué la relación omega-6/omega-3 es la intervención antiinflamatoria más impactante.</p>
+    <!-- Aceites -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('salud-aceites')">
+        <div class="edu-header-left">
+          <span class="edu-num">01</span>
+          <div><h3>Aceites y Grasas</h3><p>Los mejores, los peores y la relación omega-6/omega-3</p></div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div class="salud-card fade-up fade-up-d2">
-        <div class="salud-num">02</div>
-        <h4>Ultraprocesados y Embutidos</h4>
-        <p>La clasificación NOVA, la evidencia del estudio NutriNet-Santé (100,000+ participantes) y por qué la OMS clasifica las carnes procesadas en el Grupo 1 de carcinógenos.</p>
+      <div class="edu-contenido" id="salud-aceites">
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Los mejores aceites</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🫒</span><div><strong>Aceite de oliva virgen extra</strong><p>El aceite con mayor evidencia cardiovascular. Rico en ácido oleico y polifenoles antiinflamatorios. El estudio PREDIMED (7,447 participantes) demostró reducción del 30% en eventos cardiovasculares. Usar en frío o a baja temperatura para preservar los polifenoles.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🥥</span><div><strong>Aceite de coco virgen</strong><p>Rico en triglicéridos de cadena media (MCT). Estable a altas temperaturas — bueno para cocinar. El debate sobre su impacto en el LDL sigue abierto. Usar con moderación como complemento, no como base.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🥑</span><div><strong>Aguacate</strong><p>Rico en ácido oleico, fibra, potasio y vitamina E. Uno de los alimentos con mejor perfil de grasas saludables completo. Aumenta la absorción de carotenoides de otros alimentos cuando se come junto a ellos.</p></div></div>
+            <h4 style="margin-top:1.5rem;">La relación omega-6/omega-3</h4>
+            <div class="edu-causa"><span class="edu-causa-num">!</span><div><strong>El problema real</strong><p>La dieta occidental moderna tiene una relación omega-6/omega-3 de 15:1 a 20:1. La relación óptima es 4:1 o menos. El exceso de omega-6 (aceites de girasol, maíz, soja) compite con el omega-3 en las mismas vías metabólicas y promueve la inflamación crónica.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">→</span><div><strong>La solución práctica</strong><p>Reducir aceites de semillas refinados (girasol, maíz, soja, canola) · Aumentar omega-3 (pescado azul 2–3 veces/semana, nueces, semillas de chía/lino) · Suplementar con omega-3 si la dieta no lo permite.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Aceites y grasas a evitar</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">⚠️</span><div><strong>Grasas trans industriales</strong><p>Las más dañinas. Se forman por hidrogenación parcial de aceites vegetales. Aumentan el LDL, disminuyen el HDL y promueven la inflamación. La OMS estableció el objetivo de eliminarlas globalmente para 2023. Buscar "aceite vegetal parcialmente hidrogenado" en etiquetas.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">⚠️</span><div><strong>Aceites de semillas refinados a alta temperatura</strong><p>El aceite de girasol, maíz y soja a altas temperaturas produce aldehídos y compuestos oxidados. Para cocinar a alta temperatura: aceite de aguacate (punto de humo 270°C), ghee o aceite de coco. Para ensaladas: oliva virgen extra.</p></div></div>
+            <div class="edu-aviso">⚑ La margarina clásica contiene grasas trans. Las versiones modernas "sin trans" usan aceites interesterificados — mejor que las trans, pero no equivalente al aceite de oliva. No es una mejora de salud real.</div>
+          </div>
+        </div>
       </div>
-      <div class="salud-card fade-up fade-up-d3">
-        <div class="salud-num">03</div>
-        <h4>Sueño y Recuperación</h4>
-        <p>Sistema glinfático, cortisol, melatonina e higiene del sueño con evidencia real. Lo que pasa en el cerebro durante el sueño profundo y cómo optimizarlo.</p>
+    </div>
+
+    <!-- Ultraprocesados -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('salud-ultraprocesados')">
+        <div class="edu-header-left">
+          <span class="edu-num">02</span>
+          <div><h3>Ultraprocesados y Embutidos</h3><p>La clasificación NOVA y lo que dice la evidencia real</p></div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div class="salud-card fade-up fade-up-d4">
-        <div class="salud-num">04</div>
-        <h4>Microbioma Intestinal</h4>
-        <p>El eje intestino-cerebro, la permeabilidad intestinal, los probióticos y prebióticos con mayor evidencia y cómo la dieta determina la diversidad microbiana.</p>
+      <div class="edu-contenido" id="salud-ultraprocesados">
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>La clasificación NOVA</h4>
+            <div class="edu-causa"><span class="edu-causa-num">G1</span><div><strong>Alimentos sin procesar o mínimamente procesados</strong><p>Frutas, verduras, carne fresca, huevos, leche, legumbres, granos enteros. Base de cualquier dieta saludable.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">G2</span><div><strong>Ingredientes culinarios procesados</strong><p>Aceites, mantequilla, sal, azúcar, harina. No se consumen solos — se usan para preparar G1.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">G3</span><div><strong>Alimentos procesados</strong><p>Conservas, quesos, embutidos artesanales, pan de masa madre. Procesados para conservación. Aceptables con moderación.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">G4</span><div><strong>Ultraprocesados — NOVA 4</strong><p>Formulaciones industriales con 5+ ingredientes, incluyendo sustancias sin equivalente doméstico: emulsionantes, saborizantes artificiales, colorantes, conservadores, edulcorantes intensos. El 60–70% de las calorías en dietas occidentales vienen de aquí.</p></div></div>
+            <div class="edu-aviso">⚑ El estudio NutriNet-Santé (100,000+ participantes, Francia) encontró que un aumento del 10% en el consumo de ultraprocesados se asocia con un aumento del 12% en el riesgo de cáncer total y del 11% en cáncer de mama.</div>
+          </div>
+          <div class="edu-col">
+            <h4>Embutidos y carnes procesadas</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🔴</span><div><strong>Grupo 1 IARC — Carcinógenos confirmados</strong><p>La OMS/IARC clasifica las carnes procesadas (salchichas, jamón, tocino, salami) en el Grupo 1 de carcinógenos — la misma categoría que el tabaco y el alcohol. Esto no significa que sean igual de peligrosas, sino que la evidencia causal es suficientemente sólida. Cada 50g/día aumenta el riesgo de cáncer colorrectal un 18%.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🟠</span><div><strong>Grupo 2A — Probablemente carcinogénicas</strong><p>Las carnes rojas sin procesar (res, cerdo, cordero) están en el Grupo 2A. La evidencia es más limitada. El problema no es consumirlas — es consumirlas diariamente en grandes cantidades sin suficiente fibra, vegetales y antioxidantes que modulen el efecto.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">✅</span><div><strong>La regla práctica</strong><p>Carnes procesadas: ocasionalmente, no como base de la dieta. Carnes rojas sin procesar: máximo 3–4 veces/semana. Priorizar: pescado, aves de corral, legumbres y huevos como fuentes proteicas principales. La forma de cocción importa: hervido o al horno mejor que a la plancha quemada o BBQ.</p></div></div>
+          </div>
+        </div>
       </div>
-      <div class="salud-card fade-up fade-up-d1">
-        <div class="salud-num">05</div>
-        <h4>Ayuno Intermitente</h4>
-        <p>Autofagia, sensibilidad a la insulina, pérdida de grasa y los protocolos más estudiados (16:8, 5:2). Cuándo funciona y cuándo no tiene sentido.</p>
+    </div>
+
+    <!-- Sueño -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('salud-sueno')">
+        <div class="edu-header-left">
+          <span class="edu-num">03</span>
+          <div><h3>Sueño y Recuperación</h3><p>Sistema glinfático, cortisol y cómo optimizar el sueño profundo</p></div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div class="salud-card fade-up fade-up-d2">
-        <div class="salud-num">06</div>
-        <h4>Tóxicos del Hogar</h4>
-        <p>Disruptores endocrinos en plásticos, cosméticos y productos de limpieza. Evidencia real sobre BPA, ftalatos y PFAS. Qué cambiar primero.</p>
+      <div class="edu-contenido" id="salud-sueno">
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Lo que pasa mientras duermes</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🧠</span><div><strong>Sistema glinfático — la limpieza nocturna del cerebro</strong><p>Durante el sueño profundo, el sistema glinfático elimina los residuos metabólicos del cerebro, incluyendo amiloide-beta y tau — las proteínas que se acumulan en el Alzheimer. Este proceso ocurre casi exclusivamente durante el sueño. Una noche mal dormida acumula más amiloide que una noche completa.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">💪</span><div><strong>Síntesis de proteínas musculares</strong><p>La mayor parte de la síntesis proteica y la liberación de hormona de crecimiento (GH) ocurre durante las primeras horas de sueño profundo. Sin sueño adecuado, el entrenamiento produce menos adaptación muscular independientemente de la nutrición.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">⚖️</span><div><strong>Regulación del apetito</strong><p>El sueño insuficiente aumenta la ghrelina (hormona del hambre) y reduce la leptina (hormona de la saciedad). Dormir menos de 6h/noche aumenta el consumo calórico espontáneo en 300–500 kcal al día — equivalente a un snack completo.</p></div></div>
+            <h4 style="margin-top:1.5rem;">Protocolo de higiene del sueño</h4>
+            <div class="edu-causa"><span class="edu-causa-num">1</span><div><strong>Temperatura ambiental 16–19°C</strong><p>La temperatura corporal debe bajar 1–2°C para iniciar el sueño. Una habitación fresca acelera este proceso. Es la intervención de higiene del sueño con mayor impacto.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">2</span><div><strong>Sin pantallas 60–90 min antes</strong><p>La luz azul suprime la melatonina hasta 3 horas. Si no es posible, filtros de luz azul o modo nocturno al máximo. Lo ideal: lectura física, meditación o conversación tranquila.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">3</span><div><strong>Misma hora todos los días</strong><p>La consistencia circadiana es más importante que el número de horas. Levantarse a la misma hora todos los días — incluyendo fines de semana — es la palanca más poderosa para mejorar la calidad del sueño.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <div class="edu-causa"><span class="edu-causa-num">4</span><div><strong>Sin cafeína después de las 2pm</strong><p>La vida media de la cafeína es de 5–7 horas. Un café a las 4pm significa que a las 11pm aún tienes el 50% de la cafeína activa en sangre. Afecta la arquitectura del sueño profundo incluso si te quedas dormido.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">5</span><div><strong>Sin alcohol como "ayuda para dormir"</strong><p>El alcohol reduce la latencia (te quedas dormido antes) pero destruye el sueño REM en la segunda mitad de la noche. Resultado: duermes más horas pero con peor calidad. El sueño con alcohol no es sueño reparador.</p></div></div>
+            <h4 style="margin-top:1rem;">Suplementos con evidencia para el sueño</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🌙</span><div><strong>Magnesio glicinato 200–400mg</strong><p>Activa el sistema GABA (inhibitorio) y reduce el cortisol nocturno. Tomar 30–60 min antes de dormir. El glicinato es la forma mejor tolerada — no causa el efecto laxante del magnesio óxido.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">💤</span><div><strong>Melatonina 0.5–1mg</strong><p>Dosis bajas (0.5mg) son igual de efectivas que dosis altas para inducir el sueño, con menos efecto de resaca. Más útil para jet lag y turnos nocturnos que para insomnio crónico. No es una ayuda a largo plazo — es una señal circadiana.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🌿</span><div><strong>Ashwagandha KSM-66 300mg</strong><p>Evidencia para reducir el cortisol nocturno y mejorar la calidad subjetiva del sueño. Funciona mejor como adaptógeno acumulativo — tomar 8–12 semanas para ver efecto completo.</p></div></div>
+            <div class="edu-aviso">⚑ El magnesio glicinato de Aeterion (400mg/dosis) es el suplemento con mayor impacto directo en la calidad del sueño de los tres que ofrecemos. La glicina tiene efecto termorregulador adicional que facilita la bajada de temperatura corporal necesaria para el sueño profundo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Microbioma -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('salud-microbioma')">
+        <div class="edu-header-left">
+          <span class="edu-num">04</span>
+          <div><h3>Microbioma Intestinal</h3><p>El eje intestino-cerebro y cómo mejorar tu microbiota</p></div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="salud-microbioma">
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>El eje intestino-cerebro</h4>
+            <div class="edu-intro-box"><p>El intestino contiene más de 100 millones de neuronas — más que la médula espinal. El 90% de la serotonina del cuerpo se produce en el intestino. El nervio vago conecta directamente el intestino con el cerebro. Lo que pasa en tu intestino afecta tu estado de ánimo, cognición e incluso comportamiento.</p></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🦠</span><div><strong>Diversidad = salud</strong><p>Los estudios del Proyecto del Microbioma Humano (HMP) confirman que la diversidad microbiana es el mejor predictor de salud intestinal. La dieta occidental moderna reduce la diversidad drásticamente. El mejor indicador: cuántos tipos diferentes de plantas comes por semana. Meta: 30+ variedades diferentes.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🌾</span><div><strong>Fibra — el nutriente que olvidamos</strong><p>La fibra es el alimento del microbioma. Las bacterias la fermentan y producen ácidos grasos de cadena corta (especialmente butirato) — el principal combustible de las células del intestino. 25–35g/día de fibra diversa. La mayoría de adultos consume menos de 15g.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Intervenciones con evidencia</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🥛</span><div><strong>Fermentados sin pasteurizar</strong><p>Yogur con cultivos vivos, kéfir, kimchi, chucrut, miso. Aportan bacterias vivas y compuestos bioactivos. El estudio de Stanford (Wastyk et al., Cell, 2021) demostró que una dieta alta en fermentados aumenta la diversidad microbiana más que una dieta alta en fibra sola.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">💊</span><div><strong>Probióticos — cuándo sí</strong><p>Evidencia sólida para: diarrea asociada a antibióticos (L. rhamnosus GG), SII (B. infantis, L. plantarum), infecciones vaginales recurrentes. Para la población general sana sin síntomas específicos, el impacto es modesto. Mejor invertir en fermentados naturales.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🌱</span><div><strong>Lo que destruye el microbioma</strong><p>Antibióticos (necesarios cuando son necesarios, pero devastadores para la diversidad) · Dieta ultraprocesada · Estrés crónico · Falta de sueño · Exceso de alcohol · Cloro del agua del grifo en exceso. Después de antibióticos: 2–4 semanas de fermentados y fibra diversa para recuperar.</p></div></div>
+            <div class="edu-aviso">⚑ El magnesio glicinato mejora la motilidad intestinal al relajar el músculo liso intestinal. Es parte de por qué muchas personas con estreñimiento crónico reportan mejoría con la suplementación de magnesio.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ayuno -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('salud-ayuno')">
+        <div class="edu-header-left">
+          <span class="edu-num">05</span>
+          <div><h3>Ayuno Intermitente</h3><p>Autofagia, sensibilidad a la insulina y cuándo no tiene sentido</p></div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="salud-ayuno">
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Lo que dice la evidencia real</h4>
+            <div class="edu-causa"><span class="edu-causa-num">✓</span><div><strong>Pérdida de grasa</strong><p>El ayuno intermitente produce pérdida de grasa equivalente a la restricción calórica continua cuando las calorías totales son iguales. El beneficio principal no es metabólico — es conductual: muchas personas comen menos sin contarlas activamente.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">✓</span><div><strong>Sensibilidad a la insulina</strong><p>Las ventanas de ayuno mejoran la sensibilidad a la insulina, especialmente en personas con resistencia subclínica. El protocolo 16:8 (16h ayuno, 8h alimentación) es el más estudiado y el más sostenible.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">✓</span><div><strong>Autofagia</strong><p>El proceso de limpieza celular se activa después de 14–18h de ayuno. El Nobel de Medicina 2016 (Yoshinori Ohsumi) fue por descubrir los mecanismos de la autofagia. Asociada a longevidad y reducción del riesgo de enfermedades degenerativas.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">✗</span><div><strong>Cuándo NO tiene sentido</strong><p>Si provoca atracones en la ventana de alimentación · Si genera ansiedad o relación negativa con la comida · Si entrenas en ayunas y el rendimiento se deteriora · En personas con historial de trastornos alimentarios · En mujeres con ciclo menstrual irregular (el ayuno prolongado puede alterar el eje hormonal femenino más que el masculino).</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Protocolos más estudiados</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">⏱</span><div><strong>16:8 — El más sostenible</strong><p>16 horas de ayuno, 8 horas de alimentación. Ejemplo: última comida a las 8pm, primera a las 12pm. Se puede entrenar en ayunas o no según preferencia y tolerancia. El más fácil de mantener a largo plazo.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">📅</span><div><strong>5:2 — Para los que prefieren comer normal 5 días</strong><p>5 días de alimentación normal, 2 días no consecutivos de restricción (500–600 kcal). Más flexible pero más difícil de mantener para quienes tienen hambre intensa en los días restringidos.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">⚠️</span><div><strong>Lo que NO rompe el ayuno</strong><p>Agua, café negro sin azúcar ni leche, té sin azúcar, electrolitos sin calorías. Lo que SÍ rompe el ayuno (cualquier ingesta calórica): leche, crema, aceite de coco en el café, gomitas de colágeno, aminoácidos.</p></div></div>
+            <div class="edu-aviso">⚑ La creatina monohidratada de Aeterion puede tomarse en cualquier momento del día — dentro o fuera de la ventana de alimentación. No rompe el ayuno en términos de insulina (no es calórica en el sentido metabólico relevante para el ayuno).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tóxicos -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('salud-toxicos')">
+        <div class="edu-header-left">
+          <span class="edu-num">06</span>
+          <div><h3>Tóxicos del Hogar y Disruptores Endocrinos</h3><p>BPA, ftalatos, PFAS — qué cambiar primero</p></div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="salud-toxicos">
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Los disruptores endocrinos más comunes</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🧴</span><div><strong>BPA (Bisfenol A)</strong><p>Presente en plásticos duros (policarbonato), recubrimiento de latas y tickets de caja. Imita al estrógeno — interfiere con el sistema hormonal. Buscar plásticos "BPA free" pero con cautela: BPS y BPF (sustitutos) tienen efectos similares. Mejor: vidrio, acero inoxidable o cerámica para agua y comida.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🧪</span><div><strong>Ftalatos</strong><p>En plásticos flexibles (PVC), cosméticos, fragancias, envases de comida. Interfieren con la producción de testosterona y se asocian a reducción del recuento espermático. Evitar: recipientes de plástico blando para calentar comida, cosméticos con "fragrance" en la lista de ingredientes.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🍳</span><div><strong>PFAS (teflón y similares)</strong><p>En sartenes antiadherentes, envases de comida rápida y ropa impermeable. Se acumulan en el cuerpo — vida media de años. Se asocian a disfunción tiroidea y reducción de la fertilidad. Cambiar a acero inoxidable, hierro fundido o cerámica sin recubrimiento sintético.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Cambios con mayor impacto por orden de prioridad</h4>
+            <div class="edu-causa"><span class="edu-causa-num">1</span><div><strong>Agua filtrada</strong><p>Filtro de carbón activado elimina cloro, trihalometanos y parte de los PFAS. Filtro de ósmosis inversa elimina prácticamente todo. Evitar botellas de plástico de un solo uso — especialmente si han estado al sol o en el coche caliente.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">2</span><div><strong>Recipientes de comida</strong><p>Vidrio o acero inoxidable para guardar comida. NUNCA calentar comida en recipientes de plástico, aunque digan "microondas seguro". El calor acelera la migración de plásticos a la comida.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">3</span><div><strong>Cosméticos limpios</strong><p>Revisar ingredientes en apps como Yuka o EWG Skin Deep. Priorizar: desodorante, crema corporal y protector solar — los que más superficie cubren por más tiempo. Eliminar fragancias sintéticas como primer paso.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">4</span><div><strong>Productos de limpieza</strong><p>Vinagre blanco + bicarbonato + jabón de Castilla resuelven el 90% de las necesidades de limpieza doméstica sin disruptores endocrinos. Los productos de limpieza con aromas fuertes son señal de compuestos volátiles que se inhalan.</p></div></div>
+            <div class="edu-aviso">⚑ No es necesario hacerlo todo a la vez. Prioriza por exposición: lo que toca tu boca/piel a diario primero (agua, cosméticos, recipientes). Lo decorativo o de uso ocasional puede esperar.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2975,52 +3121,52 @@
         </div>
         <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div class="edu-contenido" id="edu-habitos">
+      <div class="edu-contenido" id="edu-suplementos">
         <div class="edu-intro-box">
-          <p>No necesitas un protocolo de biohacking de 47 pasos. No necesitas 15 suplementos. Necesitas hacer bien las cosas básicas, de forma consistente. Eso produce el 80% de los resultados. Basado en los estudios de longevidad de Okinawa, las Zonas Azules, el estudio de Framingham y los análisis del UK Biobank con más de 500,000 participantes.</p>
+          <p>El mercado global de suplementos supera los 200,000 millones de dólares anuales. La mayor parte se gasta en productos que no producen ningún efecto medible. Esto no significa que todos sean inútiles — significa que hay que distinguir los que tienen evidencia real de los que tienen marketing real.</p>
         </div>
-        <div class="cinco-habitos">
-          <div class="habito-card fade-up fade-up-d1">
-            <div class="habito-num">01</div>
-            <h4>Sueño 7–9 horas de calidad</h4>
-            <p>No hay ningún sistema biológico que no se deteriore con sueño insuficiente. La síntesis de proteínas musculares, la regulación hormonal, la consolidación de la memoria, la función inmune y la salud cardiovascular dependen del sueño.</p>
-            <div class="habito-implementacion"><strong>Implementación:</strong> misma hora de acostarse y levantarse todos los días, incluyendo fines de semana. La consistencia circadiana es más importante que el número total de horas.</div>
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Suplementos con mayor evidencia real</h4>
+            <p style="font-size:13px; color:var(--gris); margin-bottom:1rem;">Estos han superado el filtro: RCTs en humanos, meta-análisis con resultados consistentes y perfil de seguridad sólido.</p>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🏆</span><div><strong>Creatina Monohidratada — Evidencia A+</strong><p>El suplemento más estudiado de la historia. +500 estudios publicados. El ISSN la clasifica como el suplemento ergogénico más efectivo y seguro disponible. 3–5g/día. Sin necesidad de carga. Beneficios: fuerza, masa muscular, recuperación y función cognitiva (meta-análisis 2024).</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">☀️</span><div><strong>Vitamina D3 — Evidencia A</strong><p>El 40–80% de la población urbana tiene déficit. Actúa como hormona esteroide. Regula la función inmune, muscular, el estado de ánimo y la producción de testosterona. 1,000–4,000 UI/día según análítica. Combinada con vitamina K2 para mejor absorción ósea.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🌙</span><div><strong>Magnesio Glicinato — Evidencia A</strong><p>Cofactor de más de 300 reacciones enzimáticas. El 60–70% de la población no llega al mínimo recomendado. Glicinato es la forma más biodisponible y mejor tolerada. 200–400mg/noche. Mejora sueño, reduce cortisol, mejora la sensibilidad a la insulina y reduce la SHBG (aumenta testosterona libre).</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🐟</span><div><strong>Omega-3 (EPA+DHA) — Evidencia A</strong><p>Los únicos suplementos con reducción demostrada de eventos cardiovasculares en RCTs grandes (REDUCE-IT, 2018). 2–4g/día de EPA+DHA. Antiinflamatorio, mejora composición corporal, función cerebral y salud articular. Algas para veganos.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">⚡</span><div><strong>Cafeína — Evidencia A</strong><p>La sustancia ergogénica más consumida del mundo. 3–6mg/kg de peso 45–60 min antes del entrenamiento. Mejora rendimiento aeróbico, fuerza y concentración. Tolerancia: ciclar cada 4–6 semanas. Evitar después de las 2pm para no afectar el sueño.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">💊</span><div><strong>Proteína en polvo (whey/vegetal) — Evidencia A</strong><p>No es un suplemento mágico — es comida concentrada. Útil cuando no se alcanza 1.6–2.2g/kg/día de proteína total con la dieta. Whey isolate para intolerantes a la lactosa. Proteína de guisante + arroz para veganos. El momento de ingesta importa menos que el total diario.</p></div></div>
+
           </div>
-          <div class="habito-card fade-up fade-up-d2">
-            <div class="habito-num">02</div>
-            <h4>Movimiento diario</h4>
-            <p>150–200 minutos semanales de actividad física moderada es el umbral con mayor impacto en longevidad (UK Biobank, Lancet, 2016). Equivale a 20–30 minutos de caminata rápida diaria. No tiene que ser intenso — tiene que ser consistente.</p>
-            <div class="habito-implementacion"><strong>Implementación:</strong> caminar 20–30 minutos al día como hábito no negociable. El gym es complementario — valiosísimo, pero no es lo único que cuenta.</div>
-          </div>
-          <div class="habito-card fade-up fade-up-d3">
-            <div class="habito-num">03</div>
-            <h4>Alimentación real</h4>
-            <p>La regla que la ciencia respalda: "Come comida real, no demasiado, principalmente plantas" (Pollan). Los ultraprocesados se asocian con mayor mortalidad, cáncer, diabetes y depresión. No tienes que comer perfecto — tienes que comer bien la mayoría del tiempo.</p>
-            <div class="habito-implementacion"><strong>Implementación:</strong> si tiene más de 5 ingredientes y no reconoces alguno, es ultraprocesado. El 80% de las veces bien supera al 20% perfecto esporádico.</div>
-          </div>
-          <div class="habito-card fade-up fade-up-d1">
-            <div class="habito-num">04</div>
-            <h4>Hidratación adecuada</h4>
-            <p>35ml/kg de peso corporal al día. La deshidratación crónica es silenciosa — la mayoría de adultos llega deshidratada a la tarde. El cuerpo confunde frecuentemente sed con hambre.</p>
-            <div class="habito-implementacion"><strong>Implementación:</strong> un vaso de agua nada más despertar. Llevar siempre agua. La orina debe ser amarillo paja — no oscura, no completamente transparente.</div>
-          </div>
-          <div class="habito-card fade-up fade-up-d2">
-            <div class="habito-num">05</div>
-            <h4>Gestión activa del estrés</h4>
-            <p>El cortisol crónicamente elevado suprime la testosterona, reduce la síntesis muscular, deteriora el sueño, inflama el intestino y acelera el envejecimiento celular. La gestión del estrés no es opcional — es mantenimiento del sistema nervioso.</p>
-            <div class="habito-implementacion"><strong>Implementación:</strong> 5–10 minutos diarios de práctica parasimpática — respiración diafragmática, meditación, caminata en naturaleza. Como parte fija del día, no como extra.</div>
-          </div>
-        </div>
-        <div class="habitos-ciencia" style="margin-top:2.5rem;">
-          <h4 style="font-family:var(--font-ui); font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--oro); margin-bottom:1.5rem;">Por qué los hábitos se rompen — y cómo evitarlo</h4>
-          <div class="edu-grid">
-            <div class="edu-col">
-              <div class="edu-tip"><span class="edu-tip-icono">🔁</span><div><strong>El loop del hábito (Duhigg)</strong><p>Todo hábito tiene tres componentes: señal → rutina → recompensa. Para crear un hábito nuevo, hay que diseñar deliberadamente los tres. El entorno tiene más poder sobre la conducta que la determinación (Wood & Neal, Annual Review of Psychology, 2016).</p></div></div>
-              <div class="edu-tip"><span class="edu-tip-icono">📅</span><div><strong>¿Cuánto tarda un hábito?</strong><p>El mito dice 21 días. La investigación real (Lally et al., 2010, con 96 participantes) encontró que el tiempo promedio es 66 días, con un rango de 18 a 254. Si a las 6 semanas no se siente automático, es normalidad estadística — no fracaso.</p></div></div>
+          <div class="edu-col">
+            <h4>Evidencia moderada — funcionan en contextos específicos</h4>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🌿</span><div><strong>Ashwagandha (KSM-66) — Evidencia B+</strong><p>El adaptógeno más estudiado. Meta-análisis 2021: reducción significativa de cortisol y aumento de testosterona en hombres con estrés crónico. 300–600mg/día del extracto KSM-66 o Sensoril. Resultados en 8–12 semanas. No funciona igual si el estrés no es el problema de base.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">💪</span><div><strong>Beta-Alanina — Evidencia B+</strong><p>Aumenta los niveles de carnosina muscular. Retrasa la fatiga en esfuerzos de 1–4 minutos (natación, CrossFit, ciclismo de alta intensidad). 3.2–6.4g/día. El hormigueo (parestesia) es inofensivo — se minimiza dividiendo la dosis. No útil para esfuerzos muy cortos o muy largos.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🩸</span><div><strong>Citrulina Malato — Evidencia B+</strong><p>Precursor del óxido nítrico. Mejora el flujo sanguíneo, reduce la fatiga muscular y mejora la recuperación entre series. 6–8g 30–60 min antes. Más efectivo que la arginina directa. Beneficios modestos pero consistentes en múltiples meta-análisis.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🧠</span><div><strong>Rhodiola Rosea — Evidencia B</strong><p>Adaptógeno con evidencia para reducir fatiga mental y física en situaciones de estrés agudo. 200–600mg/día del extracto estandarizado (3% rosavinas, 1% salidrosida). Útil en periodos de alta carga laboral o académica. No es un estimulante — es modulador del estrés.</p></div></div>
+
+            <div class="edu-tip"><span class="edu-tip-icono">🦴</span><div><strong>Zinc — Evidencia B</strong><p>Cofactor de la síntesis de testosterona y del sistema inmune. Suplementar SOLO si hay déficit documentado (análítica). El exceso de zinc causa deficiencia de cobre. 15–30mg/día de zinc bisglicinato o gluconato. Frecuente en vegetarianos y atletas de alta intensidad.</p></div></div>
+
+            <h4 style="margin-top:1.5rem;">Los 5 suplementos más sobrevendidos</h4>
+            <div class="edu-aviso">
+              <strong>Biotina</strong> — solo sirve si hay deficiencia real (rarísima). No hace crecer el cabello en personas sin déficit.<br><br>
+              <strong>Colágeno hidrolizado</strong> — el cuerpo lo descompone en aminoácidos. Tomar con vitamina C y antes del entrenamiento si se usa.<br><br>
+              <strong>BCAA</strong> — innecesarios si se consume suficiente proteína total. El marketing supera ampliamente la evidencia.<br><br>
+              <strong>Glutamina</strong> — útil en contextos clínicos de catabolismo severo. Para la población general sin déficit, el impacto es mínimo.<br><br>
+              <strong>Pre-entrenos con "blend propietario"</strong> — ocultan que cada ingrediente está a una fracción de la dosis efectiva. La cafeína es lo que funciona.
             </div>
-            <div class="edu-col">
-              <div class="edu-tip"><span class="edu-tip-icono">🧱</span><div><strong>Apilamiento de hábitos (James Clear)</strong><p>La estrategia más efectiva: vincular hábitos nuevos a hábitos ya automatizados. "Después de prepararme el café, saldré 10 min a recibir luz solar." "Después de cenar, tomaré el magnesio." El contexto ya existente dispara el nuevo hábito automáticamente.</p></div></div>
-              <div class="edu-tip"><span class="edu-tip-icono">⚡</span><div><strong>La regla de nunca fallar dos veces seguidas</strong><p>Un día malo no rompe un hábito. Dos días malos seguidos empiezan a erosionar el patrón. La consistencia al 80% durante un año produce exponencialmente más resultado que la perfección al 100% durante dos semanas seguida de abandono.</p></div></div>
+
+            <div class="edu-intro-box" style="margin-top:1rem;">
+              <p><strong>Checklist antes de comprar cualquier suplemento:</strong> ¿Hay RCTs en humanos? ¿La forma es la más biodisponible? ¿La dosis coincide con los estudios? ¿Tiene certificación de terceros (NSF, Informed Sport, USP)? ¿Tengo una razón real para tomarlo?</p>
             </div>
           </div>
         </div>
