@@ -1043,7 +1043,7 @@
       align-items: center;
       justify-content: center;
       transition: all .2s;
-      z-index: 2000;
+      z-index: 9999;
       box-shadow: 0 4px 20px rgba(0,0,0,.5);
     }
     .muro-cerrar-btn:hover {
@@ -2582,70 +2582,70 @@
 
     <!-- PANEL: RUTINAS -->
     <div class="guias-panel activo" id="tab-rutinas">
+      <!-- GYM Hombre 5 días -->
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 6.5h11M6.5 12h11M6.5 17.5h11"/><circle cx="3" cy="6.5" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="17.5" r="1"/></svg></div>
         <h4>GYM — Hombre 5 Días</h4>
         <p>Push/Pull/Legs + Upper + Legs&Arms. Hipertrofia con periodización ondulante, doble progresión y calculador de nivel integrado.</p>
-        <div class="guia-meta"><span>💪 Hipertrofia</span><span>📊 Excel interactivo</span></div>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>💪 Hipertrofia</span><span>📊 Excel interactivo</span></div>
+        <button onclick="descargarArchivo('AETERION_GYM_v3.xlsx', 'AETERION_GYM_v3.xlsx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel</button>
       </div>
+      <!-- GYM Hombre 3 días -->
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 6.5h11M6.5 12h11M6.5 17.5h11"/><circle cx="3" cy="6.5" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="17.5" r="1"/></svg></div>
         <h4>GYM — Hombre 3 Días</h4>
         <p>Full Body + Superior + Inferior. Ideal para quienes no pueden comprometer 5 días. Misma base de evidencia, diferente frecuencia.</p>
-        <div class="guia-meta"><span>💪 Hipertrofia</span><span>📊 Excel interactivo</span></div>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>💪 Hipertrofia</span><span>📊 Excel interactivo</span></div>
+        <button onclick="descargarArchivo('AETERION_GYM_v3.xlsx', 'AETERION_GYM_v3.xlsx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel</button>
       </div>
+      <!-- GYM Mujer -->
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 6.5h11M6.5 12h11M6.5 17.5h11"/><circle cx="3" cy="6.5" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="17.5" r="1"/></svg></div>
         <h4>GYM — Mujer 5 Días</h4>
         <p>Programa específico para mujer con enfoque en glúteos, core y patrones de fuerza adaptados a la fisiología femenina.</p>
-        <div class="guia-meta"><span>💪 Hipertrofia</span><span>📊 Excel interactivo</span></div>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>💪 Hipertrofia</span><span>📊 Excel interactivo</span></div>
+        <button onclick="descargarArchivo('AETERION_GYM_v3.xlsx', 'AETERION_GYM_v3.xlsx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel</button>
       </div>
+      <!-- MMA -->
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l4-4 4 4M12 8v8"/></svg></div>
         <h4>Programa MMA — Élite</h4>
-        <p>Sistema integral de 12 meses · 3 niveles. Fuerza máxima, explosiva, pliometría, isométricos de élite y periodización por bloques (Issurin).</p>
-        <div class="guia-meta"><span>🥊 MMA</span><span>📄 Programa completo</span></div>
-      </div>
-      <div class="guia-card">
-        <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <h4>Movilidad + Core + Respiración</h4>
-        <p>Protocolos de movilidad articular, activación de core profundo, Kegel y técnicas de respiración diafragmática con base científica.</p>
-        <div class="guia-meta"><span>🧘 Movilidad</span><span>📊 Excel interactivo</span></div>
+        <p>Sistema integral de 12 meses · 3 niveles. Fuerza máxima, explosiva, pliometría, isométricos de élite y periodización por bloques.</p>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🥊 MMA</span><span>📄 Word completo</span></div>
+        <button onclick="descargarArchivo('AETERION_MMA_PROGRAMA_FINAL.docx', 'AETERION_MMA_PROGRAMA_FINAL.docx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Word</button>
       </div>
     </div>
-
-    <!-- PANEL: NUTRICIÓN -->
-    <div class="guias-panel" id="tab-nutricion">
+<div class="guias-panel" id="tab-nutricion">
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg></div>
         <h4>Plan Nutricional Total Sano</h4>
-        <p>Sistema personalizable de macros basado en evidencia clínica (AMA, WHO). Ingresa tus datos y obtén tu plan ajustado: pérdida de grasa, mantenimiento o ganancia muscular. Incluye guía alimentaria completa y equivalencias de carbohidratos.</p>
-        <div class="guia-meta"><span>🥗 General</span><span>📊 Excel calculador</span></div>
+        <p>Sistema personalizable de macros. Ingresa tus datos y obtén tu plan ajustado a pérdida de grasa, mantenimiento o ganancia muscular. Incluye guía alimentaria y equivalencias.</p>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🥗 General</span><span>📊 Excel calculador</span></div>
+        <button onclick="descargarArchivo('AETERION_TOTAL_SANO_Recuperado_automáticamente_.xlsx', 'AETERION_TOTAL_SANO_Recuperado_automáticamente_.xlsx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel</button>
       </div>
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/></svg></div>
         <h4>Plan para Diabetes</h4>
-        <p>Protocolo nutricional especializado para control glucémico. Macros calculados según evidencia de la American Diabetes Association. Incluye equivalencias de carbohidratos y guía alimentaria detallada.</p>
-        <div class="guia-meta"><span>🩺 Especializado</span><span>📊 Excel calculador</span></div>
+        <p>Protocolo nutricional para control glucémico basado en la American Diabetes Association. Equivalencias de carbohidratos y guía alimentaria detallada.</p>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🩺 Especializado</span><span>📊 Excel calculador</span></div>
+        <button onclick="descargarArchivo('AETERION_DIABETES_CIENCIA_ACTUALIZADO__1_.xlsx', 'AETERION_DIABETES_CIENCIA_ACTUALIZADO__1_.xlsx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel</button>
       </div>
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+        <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
         <h4>Plan SII — Low FODMAP</h4>
-        <p>Protocolo nutricional basado en la dieta Low FODMAP para síndrome de intestino irritable. Incluye listas de alimentos permitidos, equivalencias y guía de reintroducción gradual.</p>
-        <div class="guia-meta"><span>🩺 Especializado</span><span>📊 Excel calculador</span></div>
+        <p>Protocolo basado en la dieta Low FODMAP para síndrome de intestino irritable. Listas de alimentos permitidos y guía de reintroducción gradual.</p>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🩺 Especializado</span><span>📊 Excel calculador</span></div>
+        <button onclick="descargarArchivo('AETERION_SII_FINAL_COMPLETO.xlsx', 'AETERION_SII_FINAL_COMPLETO.xlsx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel</button>
       </div>
     </div>
-
-    <!-- PANEL: PROTOCOLOS -->
-    <div class="guias-panel" id="tab-protocolos">
+<div class="guias-panel" id="tab-protocolos">
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
@@ -2675,13 +2675,12 @@
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <h4>Cuaderno de Bienestar Mental</h4>
-        <p>70+ actividades prácticas con evidencia científica (TCC, DBT, mindfulness). Herramientas de regulación emocional, diarios reflexivos, retos de 21 días y mucho más.</p>
-        <div class="guia-meta"><span>🧠 Psicología</span><span>📄 Cuaderno completo</span></div>
+        <p>70+ actividades prácticas con evidencia científica (TCC, DBT, mindfulness). Herramientas de regulación emocional, diarios reflexivos y retos de 21 días.</p>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🧠 Psicología</span><span>📄 Word completo</span></div>
+        <button onclick="descargarArchivo('Mi_Camino_Bienestar.docx', 'Mi_Camino_Bienestar.docx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Word</button>
       </div>
     </div>
-
-    <!-- PANEL: SALUD -->
-    <div class="guias-panel" id="tab-salud">
+<div class="guias-panel" id="tab-salud">
       <div class="guia-card">
         <div class="guia-lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/></svg></div>
@@ -2715,88 +2714,60 @@
     </div>
 
     <div class="recetas-grid">
-
-      <div class="receta-card fade-up fade-up-d1">
+      <div class="receta-card fade-up fade-up-d1" style="cursor:pointer;" onclick="descargarArchivo('20_recetas_de_Cocina_Mexicana_compressed.pdf','20 Recetas Mexicanas.pdf')">
         <div class="receta-cat">🇲🇽 Cocina Mexicana</div>
         <div class="receta-body">
-          <h4>Huevos a la Mexicana</h4>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;"><h4>Huevos a la Mexicana</h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--oro-dim)" stroke-width="1.5" style="flex-shrink:0;margin-top:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <p>Clásico nutritivo con tomate, cebolla y chiles serranos. Rápido, sabroso y lleno de proteína.</p>
-          <div class="receta-macro">
-            <span><b>283</b>kcal</span>
-            <span><b>13g</b>proteína</span>
-            <span><b>4.8g</b>carbs</span>
-          </div>
+          <div class="receta-macro"><span><b>283</b>kcal</span><span><b>13g</b>proteína</span><span><b>4.8g</b>carbs</span></div>
         </div>
       </div>
-
-      <div class="receta-card fade-up fade-up-d2">
+      <div class="receta-card fade-up fade-up-d2" style="cursor:pointer;" onclick="descargarArchivo('Mis_15_Ensaladas.pdf','15 Ensaladas.pdf')">
         <div class="receta-cat">🥗 Ensaladas</div>
         <div class="receta-body">
-          <h4>Ensalada de Quinoa y Garbanzos</h4>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;"><h4>Ensalada de Quinoa y Garbanzos</h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--oro-dim)" stroke-width="1.5" style="flex-shrink:0;margin-top:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <p>Proteína completa, fibra y grasas saludables. Perfecta como plato principal o acompañamiento.</p>
-          <div class="receta-macro">
-            <span><b>Alta</b>proteína</span>
-            <span><b>Baja</b>glucemia</span>
-          </div>
+          <div class="receta-macro"><span><b>Alta</b>proteína</span><span><b>Baja</b>glucemia</span></div>
         </div>
       </div>
-
-      <div class="receta-card fade-up fade-up-d3">
+      <div class="receta-card fade-up fade-up-d3" style="cursor:pointer;" onclick="descargarArchivo('Mis_15_Ensaladas.pdf','15 Ensaladas.pdf')">
         <div class="receta-cat">🥗 Ensaladas</div>
         <div class="receta-body">
-          <h4>Ensalada Mediterránea de Lentejas</h4>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;"><h4>Ensalada Mediterránea de Lentejas</h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--oro-dim)" stroke-width="1.5" style="flex-shrink:0;margin-top:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <p>Lentejas cocidas, jitomates cherry, aceitunas kalamata y pepino con aderezo de limón y oliva.</p>
-          <div class="receta-macro">
-            <span><b>Alta</b>fibra</span>
-            <span><b>Rica</b>en hierro</span>
-          </div>
+          <div class="receta-macro"><span><b>Alta</b>fibra</span><span><b>Rica</b>en hierro</span></div>
         </div>
       </div>
-
-      <div class="receta-card fade-up fade-up-d1">
+      <div class="receta-card fade-up fade-up-d1" style="cursor:pointer;" onclick="descargarArchivo('20_recetas_de_Cocina_Mexicana_compressed.pdf','20 Recetas Mexicanas.pdf')">
         <div class="receta-cat">🌮 Cocina Mexicana</div>
         <div class="receta-body">
-          <h4>Ceviche de Camarón</h4>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;"><h4>Ceviche de Camarón</h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--oro-dim)" stroke-width="1.5" style="flex-shrink:0;margin-top:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <p>Camarones cocidos en limón, tomate, pepino y pico de gallo. Alto en proteína, bajo en grasa.</p>
-          <div class="receta-macro">
-            <span><b>143</b>kcal</span>
-            <span><b>23.8g</b>proteína</span>
-            <span><b>1.5g</b>grasa</span>
-          </div>
+          <div class="receta-macro"><span><b>143</b>kcal</span><span><b>23.8g</b>proteína</span><span><b>1.5g</b>grasa</span></div>
         </div>
       </div>
-
-      <div class="receta-card fade-up fade-up-d2">
+      <div class="receta-card fade-up fade-up-d2" style="cursor:pointer;" onclick="descargarArchivo('60_Snacks_Saludables.pdf','60 Snacks Saludables.pdf')">
         <div class="receta-cat">🥜 Snacks Saludables</div>
         <div class="receta-body">
-          <h4>60 Snacks Saludables</h4>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;"><h4>60 Snacks Saludables</h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--oro-dim)" stroke-width="1.5" style="flex-shrink:0;margin-top:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <p>Guía completa de snacks con macros. Para entre comidas, pre o post entreno, sin culpa.</p>
-          <div class="receta-macro">
-            <span><b>60</b>opciones</span>
-            <span><b>Con</b>macros</span>
-          </div>
+          <div class="receta-macro"><span><b>60</b>opciones</span><span><b>Con</b>macros</span></div>
         </div>
       </div>
-
-      <div class="receta-card fade-up fade-up-d3">
+      <div class="receta-card fade-up fade-up-d3" style="cursor:pointer;" onclick="descargarArchivo('https://drive.google.com/uc?export=download&id=1IuhLvwDFmyXQlmbxKOr4dxYgrno628wt','300 Recetas Saludables.pdf')">
         <div class="receta-cat">🍽 Recetas Saludables</div>
         <div class="receta-body">
-          <h4>300 Recetas Saludables</h4>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;"><h4>300 Recetas Saludables</h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--oro-dim)" stroke-width="1.5" style="flex-shrink:0;margin-top:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <p>La biblioteca completa. Desayunos, comidas, cenas y postres con información nutricional detallada.</p>
-          <div class="receta-macro">
-            <span><b>300</b>recetas</span>
-            <span><b>Info</b>nutricional</span>
-          </div>
+          <div class="receta-macro"><span><b>300</b>recetas</span><span><b>Info</b>nutricional</span></div>
         </div>
       </div>
-
     </div>
-
     <div class="recetas-ver-mas fade-up">
+      <p style="font-size:13px; color:var(--gris); margin-bottom:1.5rem;">Regístrate gratis para acceder y descargar todas las colecciones.</p>
       <button class="btn" onclick="abrirModal('registro')">Acceder a todas las recetas</button>
     </div>
-  </div>
-</section>
+  </section>
 
 <!-- ============================================================
      SALUD & BIOHACKING — preview
@@ -3169,7 +3140,7 @@
       <span class="etiqueta">Protocolos Avanzados</span>
       <div class="linea-oro"></div>
       <h2 class="h-seccion">Evidencia de<br><em>máxima jerarquía.</em></h2>
-      <p class="sub-seccion" style="margin:0 auto;">RCTs · Meta-análisis · Revisiones sistemáticas. Protocolos para intestino, testosterona, salud sexual, rejuvenecimiento, longevidad y células madre.</p>
+      <p class="sub-seccion" style="margin:0 auto;">Intestino · Testosterona · Salud sexual · Rejuvenecimiento · Longevidad · Células madre · Belleza. RCTs · Meta-análisis · Revisiones sistemáticas.</p>
     </div>
 
     <!-- PROTOCOLO: ERECCIÓN / SALUD SEXUAL -->
@@ -3284,6 +3255,194 @@
       </div>
     </div>
 
+
+    <!-- PROTOCOLO: INTESTINAL -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('prot-intestinal')">
+        <div class="edu-header-left">
+          <span class="edu-num">01</span>
+          <div>
+            <h3>Reparación intestinal y distensión abdominal</h3>
+            <p>Protocolo de 60–90 días basado en evidencia de alta jerarquía</p>
+          </div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="prot-intestinal">
+        <div class="edu-intro-box"><p>El intestino tiene una sola capa de células epiteliales conectadas por "uniones estrechas". Cuando estas uniones se aflojan, bacterias, toxinas y fragmentos alimentarios pasan al torrente sanguíneo — lo que se conoce como permeabilidad intestinal aumentada. La evidencia actual es clara: este fenómeno está en la base de múltiples condiciones inflamatorias crónicas.</p></div>
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Principales causas de permeabilidad intestinal</h4>
+            <div class="edu-causa"><span class="edu-causa-num">1</span><div><strong>Disbiosis del microbioma</strong><p>Desequilibrio de bacterias beneficiosas y perjudiciales. La base de la mayoría de los problemas intestinales crónicos.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">2</span><div><strong>Estrés crónico elevado</strong><p>El cortisol alto aumenta directamente la permeabilidad intestinal — el estrés no es solo mental, daña físicamente el intestino.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">3</span><div><strong>Antiinflamatorios frecuentes</strong><p>Ibuprofeno y aspirina alteran la mucosa intestinal incluso a dosis habituales. Compare et al. (Digestive Diseases, 2024).</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">4</span><div><strong>Alcohol en exceso</strong><p>Suprime la producción de proteínas de las uniones estrechas. 4 semanas sin alcohol permite una recuperación significativa.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">5</span><div><strong>Dieta pobre en fibra</strong><p>Elimina bacterias productoras de butirato — el principal combustible de las células del intestino grueso.</p></div></div>
+            <h4 style="margin-top:1.5rem;">Protocolo 3 fases (60–90 días)</h4>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.85rem;">F1</span><div><strong>Eliminar disruptores (Semanas 1–4)</strong><p>Retirar temporalmente: gluten (en sensibles), lácteos, alcohol, azúcar añadida, aceites de semillas refinados. Reducir AINEs si es posible — consultar médico. Gestión activa del estrés.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.85rem;">F2</span><div><strong>Aportar materiales de reparación (Semanas 3–8)</strong><p>L-glutamina (5g/día): el aminoácido preferente de los enterocitos. Zinc carnosina: protege y repara la mucosa. Colágeno hidrolizado: aporta glicina y prolina para la reparación tisular.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.85rem;">F3</span><div><strong>Repoblar el microbioma (Semanas 5–12)</strong><p>Prebióticos primero (inulina, FOS, almidón resistente). Postbióticos: fermentados sin pasteurizar. Probióticos selectivos si hay disbiosis documentada (L. rhamnosus GG, B. longum). Fibra diversa 25–35g/día.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Protocolo para distensión abdominal y SIBO</h4>
+            <div class="edu-intro-box"><p>La distensión abdominal tiene múltiples causas. Es fundamental identificar la causa antes de tratar. Las más frecuentes: SIBO (sobrecrecimiento bacteriano), SII, intolerancia a la lactosa, sensibilidad al gluten no celíaca, aerofagia.</p></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🔬</span><div><strong>SIBO — La causa más subestimada</strong><p>El SIBO se diagnostica con una prueba de aliento (test de hidrógeno y metano). Si la distensión es persistente, especialmente postprandial y con gases, es fundamental descartarlo antes de tratar con probióticos — que pueden empeorar el SIBO.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">⚠️</span><div><strong>No tomar probióticos sin diagnóstico</strong><p>En casos de SIBO, los probióticos pueden empeorar la situación. Primero diagnóstico, después tratamiento. El protocolo varía completamente según la causa.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🥗</span><div><strong>Dieta de eliminación diagnóstica</strong><p>4 semanas sin lactosa + 4 semanas sin gluten (por separado) permite identificar si hay intolerancia alimentaria como causa principal. Hacerlo simultáneamente no permite identificar cuál es el responsable.</p></div></div>
+            <div class="edu-aviso">⚑ El magnesio glicinato a dosis adecuadas (200–400mg/noche) mejora la motilidad intestinal y puede reducir la distensión crónica. Es parte del protocolo de Aeterion.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTOCOLO: TESTOSTERONA -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('prot-testosterona')">
+        <div class="edu-header-left">
+          <span class="edu-num">02</span>
+          <div>
+            <h3>Optimización de testosterona de forma natural</h3>
+            <p>Jerarquía de intervenciones basada en RCTs y meta-análisis</p>
+          </div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="prot-testosterona">
+        <div class="edu-intro-box"><p>La testosterona en hombres ha disminuido un 1% por año desde los años 80 en la población occidental (Travison et al., JCEM, 2007). Rango normal: 300–1000 ng/dL. La medicina funcional optimiza hacia 600–800 ng/dL para hombres mayores de 40 con síntomas. Antes de intervenciones farmacológicas: corregir las causas básicas puede aumentar la testosterona significativamente.</p></div>
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Jerarquía de intervenciones</h4>
+            <div class="edu-causa"><span class="edu-causa-num">N1</span><div><strong>PRIMER NIVEL — Sin ellos, nada funciona</strong><p>Sueño 7–9h de calidad (la mayor parte de la testosterona se produce durante el sueño profundo). Reducir grasa corporal (la grasa convierte testosterona en estrógeno vía aromatasa). Gestión del estrés crónico (el cortisol suprime directamente la producción de testosterona).</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">N2</span><div><strong>SEGUNDO NIVEL — Micronutrientes con mayor evidencia</strong><p>Zinc (cofactor de la síntesis de testosterona — deficiencia = hipogonadismo). Vitamina D (actúa como hormona esteroide, regula la producción de testosterona). Magnesio (reduce la SHBG, aumentando la testosterona libre funcionalmente activa).</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">N3</span><div><strong>TERCER NIVEL — Suplementos con evidencia moderada</strong><p>Ashwagandha (KSM-66): reduce cortisol y aumenta testosterona en hombres con estrés crónico. Meta-análisis 2021 confirma efecto significativo. Fenugreek: evidencia moderada para testosterona libre. Boron: 10mg/día reduce SHBG significativamente en algunos estudios.</p></div></div>
+            <h4 style="margin-top:1.5rem;">Nutrición específica</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🥑</span><div><strong>Grasas saludables</strong><p>La testosterona se sintetiza desde el colesterol. Las dietas extremadamente bajas en grasas reducen la testosterona. Aguacate, huevos enteros, carne de pasto, aceite de oliva.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🥦</span><div><strong>Crucíferas</strong><p>Brócoli, coliflor, col contienen indol-3-carbinol que modula el metabolismo de estrógenos, favoreciendo la ratio testosterona/estrógeno.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Ejercicio para la testosterona</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">🏋️</span><div><strong>Entrenamiento de fuerza compuesto</strong><p>Sentadilla, peso muerto, press banca producen el mayor aumento agudo de testosterona de cualquier intervención de estilo de vida. 3–4 días/semana de entrenamiento de fuerza es el protocolo óptimo.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">⚡</span><div><strong>HIIT</strong><p>Los intervalos de alta intensidad aumentan más la testosterona que el cardio de larga duración. 2–3 sesiones de HIIT/semana son suficientes.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">⚠️</span><div><strong>Cardio excesivo — contraproducente</strong><p>Más de 2h diarias de cardio aeróbico de alta intensidad puede elevar el cortisol y suprimir la testosterona. El punto óptimo es el ejercicio moderado-intenso con recuperación adecuada.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🚫</span><div><strong>Disruptores endocrinos</strong><p>BPA en plásticos, pesticidas, ftalatos en cosméticos, herbicidas reducen la testosterona. Minimizar la exposición es parte del protocolo — agua filtrada, recipientes de vidrio, cosméticos limpios.</p></div></div>
+            <div class="edu-aviso">⚑ La creatina monohidratada de Aeterion inhibe la 5-alfa reductasa de forma modesta, lo que puede favorecer la ratio testosterona libre/DHT en algunos estudios. No es su mecanismo principal pero es un beneficio adicional documentado.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTOCOLO: REJUVENECIMIENTO -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('prot-rejuvenecimiento')">
+        <div class="edu-header-left">
+          <span class="edu-num">04</span>
+          <div>
+            <h3>Rejuvenecimiento de órganos</h3>
+            <p>Suplementos, hábitos y evidencia actualizada 2025</p>
+          </div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="prot-rejuvenecimiento">
+        <div class="edu-intro-box"><p>La edad biológica (medible con relojes epigenéticos como el de Horvath) puede diferir hasta 20 años de la edad cronológica. Tus hábitos determinan a qué velocidad envejecen tus órganos. La medicina de longevidad optimiza la edad biológica, no solo la cronológica.</p></div>
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Cerebro</h4>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Ejercicio aeróbico</strong><p>Mayor estimulador de BDNF y neurogénesis en el hipocampo. 150 min/semana de zona 2 aumenta el volumen del hipocampo (Erickson et al., PNAS, 2011).</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Sueño de calidad</strong><p>Durante el sueño, el sistema glinfático elimina amiloide-beta y tau — las proteínas que se acumulan en el Alzheimer. Es la limpieza nocturna del cerebro.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Creatina 5g/día</strong><p>Evidencia creciente (2024) para función cognitiva y neuroprotección, especialmente en personas mayores y bajo estrés cognitivo.</p></div></div>
+            <h4 style="margin-top:1.5rem;">Hígado</h4>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>NAC (N-acetilcisteína)</strong><p>Precursor del glutatión, el principal antioxidante hepático. 600–1200mg/día. Evidencia sólida para protección y regeneración hepática.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Cardo mariano (Silymarina)</strong><p>El suplemento hepático más estudiado. 140mg 3 veces/día del extracto estandarizado. La silibina protege los hepatocitos y estimula su regeneración.</p></div></div>
+            <h4 style="margin-top:1.5rem;">Corazón y sistema cardiovascular</h4>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Omega-3</strong><p>Los únicos suplementos con reducción demostrada de eventos cardiovasculares en ensayos clínicos grandes (REDUCE-IT, 2018). 4g/día de EPA en personas con triglicéridos elevados.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Magnesio 400mg/día</strong><p>Reduce la presión arterial, mejora la función endotelial y reduce el riesgo de arritmias.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>5 sustancias que frenan el envejecimiento</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">💊</span><div><strong>1 — Metformina (prescripción)</strong><p>La evidencia más sólida de todas. Activa AMPK, inhibe mTOR. El ensayo TAME (2025) es el primer ensayo clínico oficial para un fármaco anti-envejecimiento en humanos sanos. NO para automedicación.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">💊</span><div><strong>2 — NMN/NR (precursores de NAD+)</strong><p>El NAD+ decrece con la edad. NMN 500mg/día mejora la capacidad aeróbica en adultos mayores (Yoshino et al., Cell Metabolism, 2021). El marketing supera la evidencia actual para "longevidad" en humanos.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">💊</span><div><strong>3 — Quercetina (senolítico natural)</strong><p>Elimina células senescentes ("células zombi"). 500–1000mg/día con grasa. Presente en cebolla, alcaparras, manzanas. El senolítico natural más estudiado y accesible.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🍵</span><div><strong>4 — EGCG (té verde / matcha)</strong><p>Activa la autofagia, tiene efectos antiinflamatorios y posibles efectos senolíticos. 400–800mg/día del extracto. Matcha es la fuente más concentrada.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🍇</span><div><strong>5 — Resveratrol (trans-resveratrol)</strong><p>Activa SIRT1. 500mg/día de trans-resveratrol es la forma más biodisponible. Los estudios en humanos han sido mixtos — la evidencia mecanística supera a la clínica.</p></div></div>
+            <div class="edu-aviso">⚑ La consistencia en hábitos básicos durante 10 años produce más impacto en la longevidad que cualquier molécula de longevidad. La ciencia respalda esto de forma inequívoca.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTOCOLO: LONGEVIDAD -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('prot-longevidad')">
+        <div class="edu-header-left">
+          <span class="edu-num">05</span>
+          <div>
+            <h3>Longevidad y antienvejecimiento</h3>
+            <p>La jerarquía real de intervenciones con mayor impacto demostrado</p>
+          </div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="prot-longevidad">
+        <div class="edu-intro-box"><p>Los estudios de las Zonas Azules (Okinawa, Cerdeña, Nicoya, Ikaria, Loma Linda) y el estudio de Framingham con más de 500,000 participantes convergen en los mismos factores. No son tecnología avanzada ni suplementos exóticos. Son hábitos consistentes a lo largo del tiempo.</p></div>
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>La jerarquía final — de mayor a menor impacto</h4>
+            <div class="edu-causa"><span class="edu-causa-num">1</span><div><strong>No fumar</strong><p>El factor de riesgo modificable con mayor impacto en la mortalidad prematura. Ninguna intervención de longevidad compensa el daño del tabaco.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">2</span><div><strong>Actividad física regular</strong><p>150–300 min/semana de actividad moderada. El sedentarismo es un factor de riesgo independiente incluso en personas que hacen ejercicio regularmente.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">3</span><div><strong>Dieta basada en alimentos reales</strong><p>Alta en plantas, legumbres, aceite de oliva, pescado graso, frutos secos. Baja en ultraprocesados, azúcar añadida y carnes procesadas.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">4</span><div><strong>Sueño 7–9 horas</strong><p>La privación crónica de sueño acelera el envejecimiento biológico, aumenta el riesgo cardiovascular y deteriora todos los sistemas de reparación.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">5</span><div><strong>Vínculos sociales sólidos</strong><p>Uno de los predictores más robustos de longevidad en todos los estudios. El aislamiento social equivale en riesgo a fumar 15 cigarrillos al día (Holt-Lunstad, 2015).</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num">6</span><div><strong>Propósito de vida</strong><p>El "ikigai" en Okinawa, el "plan de vida" en Nicoya. Tener razones para levantarse reduce el riesgo de muerte prematura un 15% en estudios longitudinales.</p></div></div>
+          </div>
+          <div class="edu-col">
+            <h4>Intervenciones avanzadas con evidencia creciente</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">⏱</span><div><strong>Ayuno intermitente (16:8)</strong><p>Activa la autofagia — el proceso de limpieza celular. Mejora la sensibilidad a la insulina. La restricción calórica es la intervención con mayor evidencia de extensión de vida en organismos modelo.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🧊</span><div><strong>Exposición al frío</strong><p>Activa el tejido adiposo pardo, aumenta la norepinefrina, mejora la sensibilidad a la insulina. 11 minutos/semana de exposición al frío (Søberg et al., Cell Reports Medicine, 2021) produce beneficios metabólicos significativos.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🔥</span><div><strong>Sauna</strong><p>4 sesiones/semana de sauna: reducción del 65% del riesgo de Alzheimer en estudio finlandés de 20 años (Laukkanen et al., 2017). Mejora la función cardiovascular y reduce marcadores inflamatorios.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">📊</span><div><strong>Monitoreo de biomarcadores</strong><p>Analítica anual completa: glucosa, HbA1c, insulina en ayunas, colesterol (LDL-p, no solo LDL total), proteína C reactiva ultrasensible, homocisteína, ferritina, vitamina D, TSH. Lo que no se mide no se puede optimizar.</p></div></div>
+            <div class="edu-aviso">⚑ La vitamina D de Aeterion (2100 UI/3 gotas) y el magnesio glicinato son dos de los suplementos con mayor evidencia de impacto en longevidad: la vitamina D reduce mortalidad por todas las causas (meta-análisis 2022, Lancet) y el magnesio está asociado a mayor longitud telomérica.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTOCOLO: BELLEZA -->
+    <div class="edu-bloque fade-up">
+      <div class="edu-header" onclick="toggleEdu('prot-belleza')">
+        <div class="edu-header-left">
+          <span class="edu-num">07</span>
+          <div>
+            <h3>La belleza depende de tus hábitos</h3>
+            <p>Piel, cabello y composición corporal — evidencia real</p>
+          </div>
+        </div>
+        <svg class="edu-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="edu-contenido" id="prot-belleza">
+        <div class="edu-intro-box"><p>La belleza exterior es el reflejo de la salud interior. Lo que aparece en tu piel, cabello, uñas y composición corporal es el resultado directo de tu biología interna. No hay producto cosmético que compense el daño de malos hábitos — pero los buenos hábitos mejoran la apariencia de formas que ningún producto puede replicar.</p></div>
+        <div class="edu-grid">
+          <div class="edu-col">
+            <h4>Piel — los factores con mayor evidencia</h4>
+            <div class="edu-tip"><span class="edu-tip-icono">☀️</span><div><strong>Protección solar diaria</strong><p>El 80% del envejecimiento cutáneo visible es fotoenvejecimiento. SPF 30–50 aplicado correctamente es la intervención antiaging más efectiva disponible, por encima de cualquier crema o suplemento.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">💧</span><div><strong>Hidratación</strong><p>35ml/kg/día. La piel deshidratada acentúa las arrugas y pierde elasticidad. El colágeno necesita agua para mantener su estructura tridimensional.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🐟</span><div><strong>Omega-3</strong><p>Mantiene la barrera cutánea, reduce la inflamación que acelera el envejecimiento de la piel y mejora la hidratación desde dentro. 2g/día de EPA+DHA.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">🥩</span><div><strong>Colágeno hidrolizado + Vitamina C</strong><p>10–15g de colágeno + 1g vitamina C 30–60 min antes del entrenamiento. La vitamina C es cofactor esencial de la síntesis de colágeno. Meta-análisis 2019: mejora la elasticidad y reduce arrugas.</p></div></div>
+            <h4 style="margin-top:1.5rem;">Lo que envejece la piel prematuramente</h4>
+            <div class="edu-aviso">Tabaco (vasoconstricción + radicales libres) · Alcohol crónico (deshidratación + inflamación) · Estrés crónico (cortisol degrada el colágeno) · Sueño insuficiente (el colágeno se sintetiza principalmente de noche) · Azúcar en exceso (glicación del colágeno — lo hace rígido y pierde elasticidad)</div>
+          </div>
+          <div class="edu-col">
+            <h4>Cabello — causas reales de caída</h4>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Ferropenia — la causa más frecuente en mujeres</strong><p>Verificar ferritina — no solo hemoglobina. Ferritina óptima para el cabello: >70 ng/mL. Muchas mujeres tienen hemoglobina normal pero ferritina baja que causa caída.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Proteína insuficiente</strong><p>El cabello es queratina. La caída aumenta en dietas hipocalóricas o con proteína insuficiente. 1.6–2g/kg/día mínimo para mantener el cabello.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Zinc</strong><p>La deficiencia de zinc causa caída y calvicie prematura. Suplementar solo si hay deficiencia documentada — el exceso de zinc puede causar deficiencia de cobre.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Saw Palmetto</strong><p>Inhibidor natural de la 5-alfa-reductasa (la enzima que convierte testosterona en DHT — el andrógeno que daña los folículos). 320mg/día del extracto. Evidencia en alopecia androgénica.</p></div></div>
+            <div class="edu-causa"><span class="edu-causa-num" style="font-size:.8rem;">→</span><div><strong>Masaje del cuero cabelludo</strong><p>4 minutos/día durante 24 semanas aumentó el grosor del cabello significativamente (estudio japonés, 2016). Sin costo, sin efectos secundarios.</p></div></div>
+            <div class="edu-tip"><span class="edu-tip-icono">❌</span><div><strong>Biotina — el suplemento más sobrevendido</strong><p>Solo tiene efecto si hay deficiencia real (extremadamente rara). La industria cosmética la promociona sin base sólida para la población general. No gastar dinero en biotina si no hay deficiencia documentada.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -3656,6 +3815,22 @@
         </select>
       </div>
 
+      <div class="campo">
+        <label>¿Cómo nos conociste?</label>
+        <select id="muro_fuente" onchange="toggleOtraFuente(this.value)">
+          <option value="">Selecciona</option>
+          <option value="tiktok">TikTok</option>
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="gym">Distribuidor certificado — Gym</option>
+          <option value="comunidad">Distribuidor certificado — Comunidad fitness</option>
+          <option value="otro">Otro</option>
+        </select>
+        <div id="muro_fuente_otro_wrap" style="display:none; margin-top:.5rem;">
+          <input type="text" id="muro_fuente_otro" placeholder="¿Cuál?" />
+        </div>
+      </div>
+
       <div class="form-check">
         <input type="checkbox" id="muro_privacidad" />
         <label for="muro_privacidad">Acepto el aviso de privacidad. Mis datos solo se usan para el acceso y contenido de Aeterion.</label>
@@ -3799,6 +3974,21 @@
           <option>Bienestar mental y emocional</option>
         </select>
       </div>
+      <div class="campo">
+        <label>¿Cómo nos conociste?</label>
+        <select id="r_fuente" onchange="toggleOtraFuente2(this.value)">
+          <option value="">Selecciona</option>
+          <option value="tiktok">TikTok</option>
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="gym">Distribuidor certificado — Gym</option>
+          <option value="comunidad">Distribuidor certificado — Comunidad fitness</option>
+          <option value="otro">Otro</option>
+        </select>
+        <div id="r_fuente_otro_wrap" style="display:none; margin-top:.5rem;">
+          <input type="text" id="r_fuente_otro" placeholder="¿Cuál?" />
+        </div>
+      </div>
       <div class="form-check">
         <input type="checkbox" id="r_privacidad" />
         <label for="r_privacidad">Acepto el aviso de privacidad. Mis datos se usarán únicamente para enviarme el acceso y contenido de Aeterion.</label>
@@ -3838,6 +4028,7 @@
         contacto TEXT NOT NULL,
         tipo_contacto TEXT,
         objetivo TEXT,
+        fuente TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -4056,7 +4247,13 @@ async function registrarseYAcceder() {
       nombre,
       contacto,
       tipo_contacto: modoContactoMuro,
-      objetivo
+      objetivo,
+      fuente: (() => {
+        const f = document.getElementById('muro_fuente');
+        const fo = document.getElementById('muro_fuente_otro');
+        if (!f) return '';
+        return f.value === 'otro' && fo && fo.value ? fo.value : f.value;
+      })()
     });
 
     // Guardar sesión y activar acceso
@@ -4129,15 +4326,18 @@ async function verificarUsuario(contacto) {
    MODAL — para distribuidores y sugerencias
 ============================================================ */
 function abrirModal(tipo) {
-  // Registro siempre abre el muro
   if (tipo === 'registro') {
     if (!sesionActiva) mostrarMuro();
     return;
   }
-  if (tipo === 'registro')     { document.getElementById('modalRegistro').classList.add('activo'); }
-  if (tipo === 'distribuidor') { document.getElementById('modalDistribuidor').classList.add('activo'); }
-  if (tipo === 'sugerencia')   { document.getElementById('modalSugerencia').classList.add('activo'); }
-  document.body.style.overflow = 'hidden';
+  if (tipo === 'distribuidor') {
+    document.getElementById('modalDistribuidor').classList.add('activo');
+    document.body.style.overflow = 'hidden';
+  }
+  if (tipo === 'sugerencia') {
+    document.getElementById('modalSugerencia').classList.add('activo');
+    document.body.style.overflow = 'hidden';
+  }
 }
 function cerrarModal(tipo) {
   if (tipo === 'registro')     { document.getElementById('modalRegistro').classList.remove('activo'); }
@@ -4629,6 +4829,37 @@ function cambiarLab(panel, btn) {
   document.querySelectorAll('.lab-tab').forEach(b => b.classList.remove('activo'));
   document.getElementById('lab-' + panel).classList.add('activo');
   btn.classList.add('activo');
+}
+
+
+
+/* ============================================================
+   CAMPO "CÓMO NOS CONOCISTE"
+============================================================ */
+function toggleOtraFuente(val) {
+  const wrap = document.getElementById('muro_fuente_otro_wrap');
+  if (wrap) wrap.style.display = val === 'otro' ? 'block' : 'none';
+}
+function toggleOtraFuente2(val) {
+  const wrap = document.getElementById('r_fuente_otro_wrap');
+  if (wrap) wrap.style.display = val === 'otro' ? 'block' : 'none';
+}
+
+/* ============================================================
+   DESCARGA CON VERIFICACIÓN DE SESIÓN
+============================================================ */
+function descargarArchivo(archivo, nombre) {
+  if (!sesionActiva) {
+    mostrarMuro();
+    return;
+  }
+  // Usuario autenticado — proceder con descarga
+  const link = document.createElement('a');
+  link.href = archivo;
+  link.download = nombre || archivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 /* ============================================================
