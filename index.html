@@ -4759,39 +4759,13 @@ function actualizarCarritoUI() {
 
 function actualizarTotales() {
   const subtotal = calcularSubtotal();
-  envioGratis = subtotal >= 1500;
-  const costoEnvio = envioGratis ? 0 : (envioSeleccionado ? envioSeleccionado.precio : null);
-  const total = costoEnvio !== null ? subtotal + costoEnvio : subtotal;
-
-  document.getElementById('t-subtotal').textContent = '$' + subtotal.toLocaleString('es-MX');
-
-  if (envioGratis) {
-    document.getElementById('t-envio-label').textContent = 'Envío';
-    document.getElementById('t-envio').textContent = 'GRATIS 🎉';
-    document.getElementById('t-envio').style.color = '#2ecc71';
-    document.getElementById('t-total').textContent = '$' + total.toLocaleString('es-MX');
-  } else if (envioSeleccionado) {
-    document.getElementById('t-envio-label').textContent = 'Envío (' + envioSeleccionado.nombre + ')';
-    document.getElementById('t-envio').textContent = '$' + envioSeleccionado.precio.toLocaleString('es-MX');
-    document.getElementById('t-envio').style.color = '';
-    document.getElementById('t-total').textContent = '$' + total.toLocaleString('es-MX');
-  } else {
-    document.getElementById('t-envio').textContent = 'Ingresa tu CP';
-    document.getElementById('t-envio').style.color = '';
-    document.getElementById('t-total').textContent = subtotal >= 1500 ? '$' + subtotal.toLocaleString('es-MX') : '—';
-  }
-
-  // Habilitar botón pagar
-  const listo = envioGratis || envioSeleccionado !== null;
-  document.getElementById('btn-pagar').disabled = !listo;
-
-  // Si ya calculó envío antes, actualizar si hay envío gratis
-  if (envioGratis) {
-    const res = document.getElementById('envio-resultado');
-    res.textContent = '🎉 ¡Envío gratis! Tu pedido supera $1,500';
-    res.className = 'envio-resultado gratis';
-    document.getElementById('paqueterias-lista').innerHTML = '';
-  }
+  const el = document.getElementById('t-subtotal');
+  if (el) el.textContent = '$' + subtotal.toLocaleString('es-MX');
+  const elTotal = document.getElementById('t-total');
+  if (elTotal) elTotal.textContent = '$' + subtotal.toLocaleString('es-MX');
+  // Siempre habilitar el botón pagar
+  const btn = document.getElementById('btn-pagar');
+  if (btn) btn.disabled = false;
 }
 
 /* ============================================================
@@ -4945,18 +4919,13 @@ function cerrarCarrito() {
 function abrirCheckout() {
   if (Object.keys(carrito).length === 0) return;
   const subtotal = calcularSubtotal();
-
-  // Resumen
   const items = Object.values(carrito);
-  const costoEnvio = envioGratis ? 0 : (envioSeleccionado ? envioSeleccionado.precio : 0);
-  const total = subtotal + costoEnvio;
 
   let resumenHTML = items.map(({ producto: p, cantidad }) =>
     `<div class="co-fila"><span>${p.nombre} × ${cantidad}</span><span>$${(p.precio * cantidad).toLocaleString('es-MX')}</span></div>`
   ).join('');
-
-  resumenHTML += `<div class="co-fila"><span>Envío</span><span>${envioGratis ? 'GRATIS' : '$' + costoEnvio.toLocaleString('es-MX')}</span></div>`;
-  resumenHTML += `<div class="co-fila total"><span>Total a pagar</span><span>$${total.toLocaleString('es-MX')}</span></div>`;
+  resumenHTML += `<div class="co-fila total"><span>Subtotal</span><span>$${subtotal.toLocaleString('es-MX')} MXN</span></div>`;
+  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>A confirmar por WhatsApp</span></div>`;
 
   document.getElementById('checkout-resumen').innerHTML = resumenHTML;
   document.getElementById('modal-checkout').classList.add('visible');
