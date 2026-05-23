@@ -1214,6 +1214,7 @@
       padding: 0 2rem 2rem;
       border-top: 1px solid rgba(201,168,76,.08);
     }
+    .edu-contenido.abierto { display: block !important; }
     .edu-contenido.activo { display: block; }
 
     .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem; }
@@ -4295,6 +4296,7 @@ async function insertarSupabase(tabla, datos) {
 let sesionActiva = false;
 let usuarioActual = null;
 let modoContactoMuro = 'email';
+const modosContactoModal = { d: 'email', s: 'email' };
 
 // Al cargar la página, restaurar sesión si existe (NO mostrar muro automáticamente)
 document.addEventListener('DOMContentLoaded', function() {
@@ -5119,6 +5121,18 @@ function toggleOtraFuente(val) {
 function toggleOtraFuente2(val) {
   const wrap = document.getElementById('r_fuente_otro_wrap');
   if (wrap) wrap.style.display = val === 'otro' ? 'block' : 'none';
+}
+
+
+function seleccionarContacto(modal, modo) {
+  modosContactoModal[modal] = modo;
+  const prefix = modal === 'd' ? 'd' : 's';
+  document.getElementById('btn' + prefix.toUpperCase() + 'Email')?.classList.toggle('activo', modo === 'email');
+  document.getElementById('btn' + prefix.toUpperCase() + 'Whatsapp')?.classList.toggle('activo', modo === 'whatsapp');
+  const emailEl = document.getElementById(prefix + '_email');
+  const waEl    = document.getElementById(prefix + '_whatsapp');
+  if (emailEl) emailEl.style.display = modo === 'email' ? 'block' : 'none';
+  if (waEl)    waEl.style.display    = modo === 'whatsapp' ? 'block' : 'none';
 }
 
 </script>
