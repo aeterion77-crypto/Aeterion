@@ -4943,12 +4943,8 @@ function cerrarCarrito() {
    CHECKOUT — ABRIR Y PROCESAR
 ============================================================ */
 function abrirCheckout() {
-  const subtotal = calcularSubtotal();
   if (Object.keys(carrito).length === 0) return;
-
-  // Pre-llenar CP si ya lo ingresó
-  const cp = document.getElementById('cp-input').value.trim();
-  if (cp) document.getElementById('ch-cp').value = cp;
+  const subtotal = calcularSubtotal();
 
   // Resumen
   const items = Object.values(carrito);
