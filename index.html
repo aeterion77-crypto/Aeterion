@@ -5067,6 +5067,60 @@ window.addEventListener('scroll', () => {
     nav.style.borderBottomColor = 'rgba(201,168,76,.1)';
   }
 });
+
+/* ============================================================
+   FUNCIONES FALTANTES
+============================================================ */
+
+function cambiarLab(tab) {
+  document.querySelectorAll('.lab-tab').forEach(t => t.classList.remove('activo'));
+  document.querySelectorAll('.lab-panel').forEach(p => p.classList.remove('activo'));
+  const btn = document.querySelector(`[onclick*="cambiarLab('${tab}')"]`);
+  if (btn) btn.classList.add('activo');
+  const panel = document.getElementById('lab-' + tab);
+  if (panel) panel.classList.add('activo');
+}
+
+function descargarArchivo(archivo, nombre) {
+  if (!sesionActiva) {
+    mostrarMuro();
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = archivo;
+  link.download = nombre || archivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function toggleEdu(id) {
+  if (!sesionActiva) {
+    mostrarMuro();
+    return;
+  }
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.classList.contains('abierto');
+  document.querySelectorAll('.edu-contenido').forEach(e => e.classList.remove('abierto'));
+  document.querySelectorAll('.edu-arrow').forEach(a => a.classList.remove('rotado'));
+  if (!isOpen) {
+    el.classList.add('abierto');
+    const arrow = el.previousElementSibling?.querySelector('.edu-arrow');
+    if (arrow) arrow.classList.add('rotado');
+  }
+}
+
+function toggleOtraFuente(val) {
+  const wrap = document.getElementById('muro_fuente_otro_wrap');
+  if (wrap) wrap.style.display = val === 'otro' ? 'block' : 'none';
+}
+
+function toggleOtraFuente2(val) {
+  const wrap = document.getElementById('r_fuente_otro_wrap');
+  if (wrap) wrap.style.display = val === 'otro' ? 'block' : 'none';
+}
+
 </script>
 
 
