@@ -5106,7 +5106,7 @@ const AUTH_KEY   = 'aeterion_auth';
 const ESTADO_KEY = 'aeterion_estado';
 
 // Pega aquí tu Payment Link de Stripe (https://buy.stripe.com/...). Vacío = pagos desactivados.
-const STRIPE_PAYMENT_LINK = '';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/9B64gz47J1AI8JodIb2wU00';
 
 const TIPOS_PREMIUM = ['sano','sii','diabetes','entrenamiento','h3','m5','mma1','mma2','mma3','ciencia','recetas','dashboard'];
 const ARCHIVOS_PREMIUM = ['AETERION_GYM.xlsx','AETERION_PROGRAMA_MMA.docx','AETERION_SANO.xlsx','AETERION_DIABETES.xlsx','AETERION_SII.xlsx',
@@ -5484,7 +5484,7 @@ function renderCuenta() {
       : 'Tienes acceso a todo lo gratuito. Premium desbloquea las dietas, el gym, el programa MMA, la ciencia del entrenamiento y el recetario.');
   }
   const pagar = _$('cta_btn_pagar');
-  if (pagar) pagar.textContent = STRIPE_PAYMENT_LINK ? 'Pagar $59 MXN (tarjeta u OXXO)' : 'Pagos en línea: próximamente';
+  if (pagar) pagar.textContent = STRIPE_PAYMENT_LINK ? 'Pagar $59 MXN' : 'Pagos en línea: próximamente';
   if (pagar) pagar.disabled = !STRIPE_PAYMENT_LINK;
 }
 
