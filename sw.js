@@ -5,7 +5,7 @@
      el navegador habla directo con el servidor. Safari/iPhone exige respuestas parciales (206) reales
      para reproducir video, y las descargas no deben servirse desde una copia vieja.
    - Archivos pequeños (íconos, manifest) usan la copia guardada y se actualizan en segundo plano. */
-const CACHE = 'aeterion-v10';
+const CACHE = 'aeterion-v11';
 const ARCHIVOS_BASE = ['./index.html', './manifest.json'];
 const NO_INTERCEPTAR = /\.(mp4|m4v|mov|webm|mp3|m4a|wav|ogg|xlsx|xls|docx|doc|pdf|zip)$/i;
 
@@ -24,6 +24,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;                       // solo archivos propios
+  if (url.pathname.endsWith('/admin.html')) return;                      // panel de administración: siempre directo
 
   // Medios y descargas: sin intervención del service worker
   if (req.destination === 'video' || req.destination === 'audio' || req.headers.has('range') || NO_INTERCEPTAR.test(url.pathname)) return;
