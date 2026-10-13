@@ -3341,7 +3341,7 @@
 
     <div class="form-seccion">
       <div class="form-seccion-titulo">Pagar Premium — $59 MXN</div>
-      <button class="btn btn-outline" style="width:100%; justify-content:center;" id="cta_btn_pagar" onclick="pagarPremiumUI()">Pagar con tarjeta u OXXO</button>
+      <button class="btn btn-outline" style="width:100%; justify-content:center;" id="cta_btn_pagar" onclick="pagarPremiumUI()">Pagar $59 MXN</button>
       <p class="nota-chica" style="margin-top:.7rem;" id="cta_nota_pago">Un pago = 30 días de Premium. Sin renovación automática: tú decides cuándo volver a pagar. Si ya tienes días, se suman.</p>
     </div>
 
@@ -5270,6 +5270,12 @@ document.addEventListener('DOMContentLoaded', function () {
     try { history.replaceState(null, '', location.pathname + (resto ? '?' + resto : '') + location.hash); } catch (e) {}
   }
 
+  if (q.get('pedido')) {
+    const ok = q.get('pedido') === 'ok';
+    try { const l2 = new URLSearchParams(location.search); l2.delete('pedido'); history.replaceState(null, '', location.pathname + (l2.toString() ? '?' + l2 : '') + location.hash); } catch (e) {}
+    setTimeout(() => alert(ok ? '¡Gracias por tu compra! Recibimos tu pago y te enviaremos los datos de seguimiento por correo o WhatsApp.' : 'El pago se canceló. Tu carrito sigue disponible.'), 400);
+  }
+
   actualizarUIAcceso();
 
   if (sesionActiva && !_modoDev) {
@@ -6139,7 +6145,7 @@ function abrirCheckout() {
     `<div class="co-fila"><span>${p.nombre} × ${cantidad}</span><span>$${(p.precio * cantidad).toLocaleString('es-MX')}</span></div>`
   ).join('');
   resumenHTML += `<div class="co-fila total"><span>Subtotal</span><span>$${subtotal.toLocaleString('es-MX')} MXN</span></div>`;
-  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>A confirmar por WhatsApp</span></div>`;
+  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal (gratis desde $1,500)</span></div>`;
 
   document.getElementById('checkout-resumen').innerHTML = resumenHTML;
   document.getElementById('modal-checkout').classList.add('visible');
@@ -6155,69 +6161,34 @@ function cerrarCheckout() {
 /* ============================================================
    PROCESAR PAGO CON CLIP
 ============================================================ */
-function procesarPago() {
-  const nombre  = document.getElementById('ch-nombre').value.trim();
-  const email   = document.getElementById('ch-email').value.trim();
-  const tel     = document.getElementById('ch-tel').value.trim();
-  const calle   = document.getElementById('ch-calle').value.trim();
-  const colonia = document.getElementById('ch-colonia').value.trim();
-  const ciudad  = document.getElementById('ch-ciudad').value.trim();
-  const estado  = document.getElementById('ch-estado').value.trim();
-  const cp      = document.getElementById('ch-cp').value.trim();
+async function procesarPago() {
+  const v = (id) => document.getElementById(id).value.trim();
+  const cliente = { nombre: v('ch-nombre'), email: v('ch-email'), tel: v('ch-tel'), calle: v('ch-calle'),
+    colonia: v('ch-colonia'), ciudad: v('ch-ciudad'), estado: v('ch-estado'), cp: v('ch-cp') };
 
-  if (!nombre || !email || !tel || !calle || !colonia || !ciudad || !estado || !cp) {
-    alert('Por favor completa todos los campos antes de continuar.'); return;
+  if (Object.values(cliente).some(x => !x)) { alert('Por favor completa todos los campos antes de continuar.'); return; }
+  if (!cliente.email.includes('@')) { alert('Ingresa un email válido.'); return; }
+  if (!/^\d{5}$/.test(cliente.cp)) { alert('El código postal debe tener 5 dígitos.'); return; }
+
+  const items = Object.values(carrito).map(({ producto: p, cantidad }) => ({ id: p.id, qty: cantidad }));
+  if (!items.length) return;
+
+  const btn = document.getElementById('btn-procesar-pago');
+  const txt = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Conectando con Stripe…';
+  try {
+    const r = await fetch(SUPABASE_URL + '/functions/v1/crear-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ items, cliente })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) throw new Error(d.error || 'sin_url');
+    location.href = d.url;
+  } catch (e) {
+    btn.disabled = false; btn.textContent = txt;
+    alert('No pudimos iniciar el pago. Revisa tu conexión e inténtalo de nuevo.');
   }
-  if (!email.includes('@')) { alert('Ingresa un email válido.'); return; }
-  if (cp.length !== 5)      { alert('El código postal debe tener 5 dígitos.'); return; }
-
-  const subtotal = calcularSubtotal();
-
-  const lineasProductos = Object.values(carrito)
-    .map(({ producto: p, cantidad }) =>
-      `  • ${p.nombre} x${cantidad} — $${(p.precio * cantidad).toLocaleString('es-MX')} MXN`
-    ).join('\n');
-
-  const msg = [
-    '🛒 *NUEVO PEDIDO — AETERION*',
-    '',
-    '👤 *Datos del cliente*',
-    `  Nombre: ${nombre}`,
-    `  Email: ${email}`,
-    `  Teléfono: ${tel}`,
-    '',
-    '📦 *Productos*',
-    lineasProductos,
-    '',
-    '📍 *Dirección de entrega*',
-    `  ${calle}`,
-    `  ${colonia}, ${ciudad}`,
-    `  ${estado}, CP ${cp}`,
-    '',
-    '💰 *Resumen*',
-    `  Subtotal productos: $${subtotal.toLocaleString('es-MX')} MXN`,
-    '  Envío: a confirmar por WhatsApp según CP',
-    '',
-    'Por favor confirmar disponibilidad y coordinar el pago.'
-  ].join('\n');
-
-  if (!SUPABASE_URL.includes('TU_PROYECTO')) {
-    insertarSupabase('pedidos', {
-      nombre, email, tel,
-      direccion: calle + ', ' + colonia + ', ' + ciudad + ', ' + estado + ' CP ' + cp,
-      productos: lineasProductos,
-      subtotal, envio: 0, total: subtotal,
-      paqueteria: 'WhatsApp manual',
-      clip_id: 'whatsapp'
-    }).catch(() => {});
-  }
-
-  const url = 'https://wa.me/5215613241969?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
-  cerrarCheckout();
-  carrito = {};
-  actualizarCarritoUI();
-  cerrarCarrito();
 }
 
 
@@ -7116,7 +7087,7 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
   <div class="carrito-footer" id="carrito-footer" style="display:none;">
 
     <div style="padding:.7rem .8rem; background:rgba(201,168,76,.07); border-radius:4px; border-left:2px solid var(--oro);">
-        <p style="font-size:11px; color:var(--gris); margin:0; line-height:1.5;">📦 El costo de envío se confirma por WhatsApp según tu código postal.</p>
+        <p style="font-size:11px; color:var(--gris); margin:0; line-height:1.5;">📦 El envío se calcula según tu código postal. Gratis en compras desde $1,500.</p>
       </div>
 
     <!-- Totales -->
@@ -7189,12 +7160,12 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
     </div>
 
     <div class="clip-aviso">
-      <strong>Pedido por WhatsApp</strong>
-      Al continuar se abrirá WhatsApp con tu pedido. Te confirmaremos disponibilidad, costo de envío y forma de pago.
+      <strong>Pago seguro con Stripe</strong>
+      Al continuar pasarás a la página de pago de Stripe. Verás el total con envío antes de pagar.
     </div>
 
-    <button class="btn" style="width:100%; margin-top:1.5rem;" onclick="procesarPago()">
-      Enviar pedido por WhatsApp 📲
+    <button class="btn" id="btn-procesar-pago" style="width:100%; margin-top:1.5rem;" onclick="procesarPago()">
+      Continuar al pago
     </button>
   </div>
 </div>
