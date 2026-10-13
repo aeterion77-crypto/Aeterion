@@ -6145,12 +6145,35 @@ function abrirCheckout() {
     `<div class="co-fila"><span>${p.nombre} × ${cantidad}</span><span>$${(p.precio * cantidad).toLocaleString('es-MX')}</span></div>`
   ).join('');
   resumenHTML += `<div class="co-fila total"><span>Subtotal</span><span>$${subtotal.toLocaleString('es-MX')} MXN</span></div>`;
-  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal (gratis desde $1,500)</span></div>`;
+  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal, con la paquetería más económica (gratis desde $1,500)</span></div>`;
 
   document.getElementById('checkout-resumen').innerHTML = resumenHTML;
   document.getElementById('modal-checkout').classList.add('visible');
   cerrarCarrito();
   document.body.style.overflow = 'hidden';
+}
+
+let _estTimer = null, _estSeq = 0;
+function estimarEnvio() {
+  const el = document.getElementById('ch-envio-est');
+  const cp = document.getElementById('ch-cp').value.trim();
+  clearTimeout(_estTimer);
+  if (!/^\d{5}$/.test(cp)) { el.textContent = ''; return; }
+  const items = Object.values(carrito).map(({ producto: p, cantidad }) => p.id + ':' + cantidad).join(',');
+  if (!items) return;
+  const seq = ++_estSeq;
+  el.textContent = 'Calculando envío…';
+  _estTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(SUPABASE_URL + '/functions/v1/cotizar-envio?cp=' + cp + '&items=' + encodeURIComponent(items) + '&estado=' + encodeURIComponent(document.getElementById('ch-estado').value) + '&ciudad=' + encodeURIComponent(document.getElementById('ch-ciudad').value) + '&colonia=' + encodeURIComponent(document.getElementById('ch-colonia').value), { headers: { apikey: SUPABASE_KEY } });
+      const d = await r.json();
+      if (seq !== _estSeq) return;
+      if (!d.mejor) { el.textContent = 'Calcularemos tu envío al pagar.'; return; }
+      const gratis = calcularSubtotal() >= 1500;
+      const dias = d.mejor.dias ? ' · ' + d.mejor.dias + (d.mejor.dias === 1 ? ' día' : ' días') + ' hábiles aprox.' : '';
+      el.textContent = gratis ? 'Envío GRATIS con ' + d.mejor.paqueteria + dias : 'Envío: $' + d.mejor.precio + ' MXN con ' + d.mejor.paqueteria + dias;
+    } catch (e) { if (seq === _estSeq) el.textContent = 'Calcularemos tu envío al pagar.'; }
+  }, 400);
 }
 
 function cerrarCheckout() {
@@ -7152,7 +7175,8 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
     </div>
     <div class="campo">
       <label>Código Postal</label>
-      <input type="text" id="ch-cp" placeholder="09839" maxlength="5" />
+      <input type="text" id="ch-cp" placeholder="09839" maxlength="5" inputmode="numeric" oninput="estimarEnvio()" />
+      <div id="ch-envio-est" style="font-size:12px;color:var(--gris);margin-top:.4rem;min-height:16px;"></div>
     </div>
     <div class="campo">
       <label>Referencias / Notas (opcional)</label>
