@@ -191,6 +191,11 @@ async function rpc(nombre, args) {
   if (!r.ok) { const err = new Error((d && d.message) || 'error'); err.status = r.status; throw err; }
   return d;
 }
+async function crearGuia(id) {
+  const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/crear-guia', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }));
+  const d = await r.json().catch(() => ({}));
+  return { ok: r.ok, d };
+}
 async function funcion(cuerpo) {
   const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/pedido-estado', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }));
   const d = await r.json().catch(() => ({}));
@@ -272,6 +277,7 @@ function tarjeta(p) {
   const wa = String(p.tel || '').replace(/\D/g, '').slice(-10);
   const botones = BOTONES.map(([v, t]) => `<button class="e-${v}${p.estado === v ? ' on' : ''}" data-est="${v}">${t}</button>`).join('');
   const necesitaGuia = p.estado === 'enviado' || p.estado === 'entregado';
+  const puedeGuia = (p.estado === 'pagado' || p.estado === 'preparando') && !p.guia && !p.etiqueta_url;
   return `<article class="ped ${sem}" data-id="${esc(p.id)}" data-estado="${esc(p.estado)}">
     <div class="ped-top"><div><div class="ped-nom">${esc(p.nombre)}</div><span class="badge ${sem}">${esc(NOMBRE_ESTADO[p.estado] || p.estado)}</span> <span class="peq">${hace(p.creado_en)}</span></div><div class="ped-total">$${esc(p.total)}</div></div>
     ${al}
@@ -281,7 +287,9 @@ function tarjeta(p) {
       <dt>Envío</dt><dd>$${esc(p.envio)} · ${esc(p.paqueteria)}</dd><dt>Pagado</dt><dd>${fechaCorta(p.creado_en)}${p.actualizado_en && p.estado !== 'pagado' ? ' · actualizado ' + fechaCorta(p.actualizado_en) : ''}</dd>
     </dl>
     <div class="acciones">
-      <button data-sky>Copiar datos y abrir Skydropx</button>
+      ${puedeGuia ? '<button data-guia>⚡ Crear guía automática</button>' : ''}
+      ${p.etiqueta_url ? `<a class="btn" href="${esc(p.etiqueta_url)}" target="_blank" rel="noopener">🏷 Etiqueta (imprimir)</a>` : ''}
+      <button class="sec" data-sky>Manual en Skydropx</button>
       ${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a><a class="btn sec" href="tel:+52${wa}">Llamar</a>` : ''}
       <button class="sec" data-copiar>Copiar datos</button>
     </div>
@@ -318,7 +326,7 @@ function pintarAccesos() {
 /* ---------- Carga ---------- */
 async function cargar(silencioso) {
   try {
-    const [p, a] = await Promise.all([rpc('panel_pedidos_v3'), rpc('panel_listar')]);
+    const [p, a] = await Promise.all([rpc('panel_pedidos_v4'), rpc('panel_listar')]);
     const nuevos = pedidos.length && p.some((x) => !pedidos.find((y) => y.id === x.id));
     // No pisar lo que estás editando
     const editando = document.querySelector('.ped[data-dirty]') || (document.activeElement && document.activeElement.closest && document.activeElement.closest('.ped'));
@@ -366,6 +374,17 @@ $('listaPedidos').addEventListener('click', async (e) => {
   const p = pedidos.find((x) => String(x.id) === art.dataset.id); if (!p) return;
   const est = e.target.closest('[data-est]');
   if (est) { art.dataset.estado = est.dataset.est; art.dataset.dirty = '1'; art.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b === est)); return; }
+  if (e.target.closest('[data-guia]')) {
+    if (!confirm('¿Crear la guía en Skydropx para ' + p.nombre + '?\nSe cobrará de tu saldo de Skydropx y se avisará al cliente por correo.')) return;
+    const b = e.target.closest('button'); b.disabled = true; b.textContent = 'Creando guía…';
+    const r = await crearGuia(p.id);
+    if (r.ok && r.d.ok) {
+      aviso(r.d.pendiente ? 'Guía creada; Skydropx aún genera el número. Actualiza en un minuto.' : 'Guía creada: ' + r.d.guia + ' (' + r.d.paqueteria + ', $' + r.d.costo + '). Cliente avisado.', true);
+      if (r.d.etiqueta_url) window.open(r.d.etiqueta_url, '_blank', 'noopener');
+      await cargar(false);
+    } else { b.disabled = false; b.textContent = '⚡ Crear guía automática'; aviso((r.d && r.d.detalle) || 'No se pudo crear la guía.'); }
+    return;
+  }
   if (e.target.closest('[data-sky]')) { await copiar(textoSky(p)); aviso('Datos copiados. En Skydropx pega y llena el envío.', true); window.open(SKYDROPX_URL, '_blank', 'noopener'); return; }
   if (e.target.closest('[data-copiar]')) { await copiar(textoSky(p)); aviso('Datos copiados al portapapeles.', true); return; }
   if (e.target.closest('[data-recibo]')) {
