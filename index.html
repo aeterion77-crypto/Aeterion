@@ -243,6 +243,37 @@
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
     .hamburger span { width: 22px; height: 1px; background: var(--oro); display: block; transition: all .3s; }
 
+
+    /* ============================================================
+       MIS COMPRAS
+    ============================================================ */
+    .mc-card { background: rgba(255,255,255,.03); border: 1px solid rgba(201,168,76,.18); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+    .mc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .6rem; margin-bottom: .6rem; }
+    .mc-fecha { font-size: 12px; color: var(--gris); }
+    .mc-total { font-size: 18px; font-weight: 700; color: var(--oro); white-space: nowrap; }
+    .mc-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+    .mc-badge.b-pagado, .mc-badge.b-preparando { background: rgba(241,196,15,.15); color: #f1c40f; }
+    .mc-badge.b-enviado { background: rgba(52,152,219,.15); color: #5dade2; }
+    .mc-badge.b-entregado { background: rgba(46,204,113,.15); color: #2ecc71; }
+    .mc-badge.b-cancelado { background: rgba(231,76,60,.15); color: #e74c3c; }
+    .mc-prod { font-size: 13px; line-height: 1.55; color: var(--blanco, #eee); white-space: pre-wrap; padding: .6rem .8rem; background: rgba(0,0,0,.25); border-radius: 8px; margin-bottom: .8rem; }
+    .mc-pasos { list-style: none; margin: 0 0 .8rem; padding: 0; }
+    .mc-paso { position: relative; display: flex; gap: .75rem; padding-bottom: .95rem; }
+    .mc-paso:last-child { padding-bottom: 0; }
+    .mc-paso::before { content: ''; position: absolute; left: 10px; top: 22px; bottom: 0; width: 2px; background: rgba(255,255,255,.1); }
+    .mc-paso:last-child::before { display: none; }
+    .mc-paso.hecho::before { background: var(--oro); }
+    .mc-punto { flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; background: transparent; }
+    .mc-paso.hecho .mc-punto { background: var(--oro); border-color: var(--oro); color: #111; font-weight: 700; }
+    .mc-paso.actual .mc-punto { border-color: var(--oro); box-shadow: 0 0 0 4px rgba(201,168,76,.2); }
+    .mc-paso-t { font-size: 14px; font-weight: 600; color: var(--gris); line-height: 22px; }
+    .mc-paso.hecho .mc-paso-t, .mc-paso.actual .mc-paso-t { color: var(--blanco, #fff); }
+    .mc-paso-d { font-size: 12px; color: var(--gris); margin-top: 1px; line-height: 1.45; }
+    .mc-guia { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .8rem; background: rgba(201,168,76,.08); border: 1px dashed rgba(201,168,76,.4); border-radius: 8px; padding: .6rem .8rem; font-size: 13px; margin-bottom: .8rem; }
+    .mc-guia a { color: #111; background: var(--oro); padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; text-decoration: none; }
+    .mc-dir { font-size: 12px; color: var(--gris); line-height: 1.5; }
+    .mc-vacio { text-align: center; padding: 1.2rem .5rem; color: var(--gris); font-size: 13px; }
+
     /* ============================================================
        HERO
     ============================================================ */
@@ -1918,7 +1949,8 @@
     }
 
     @media (max-width: 680px) {
-      .nav-links, .nav-cta { display: none; }
+      .nav-links { display: none; }
+      .nav-cta { margin-left: auto; margin-right: 14px; padding: .45rem .9rem; font-size: 10.5px; letter-spacing: .1em; white-space: nowrap; }
       .hamburger { display: flex; }
       .productos-grid { grid-template-columns: 1fr; }
       .footer-grid { grid-template-columns: 1fr; }
@@ -2499,6 +2531,7 @@
 <!-- Nav Mobile -->
 <div class="nav-mobile" id="navMobile">
   <button class="nav-mobile-cerrar" onclick="toggleNavMobile()">✕</button>
+  <a href="#guias" class="nav-cta-m" style="color:var(--oro);" onclick="event.preventDefault();toggleNavMobile();abrirCuenta();">Entrar</a>
   <a href="#filosofia"  onclick="toggleNavMobile()">Filosofía</a>
   <a href="#sistema"    onclick="toggleNavMobile()">Sistema</a>
   <a href="#productos"     onclick="toggleNavMobile()">Productos</a>
@@ -5224,7 +5257,7 @@ function _fechaLarga(iso) {
 
 function actualizarUIAcceso() {
   // Botón de la barra superior
-  document.querySelectorAll('.nav-cta').forEach(a => { a.textContent = sesionActiva ? 'Mi cuenta' : 'Entrar'; });
+  document.querySelectorAll('.nav-cta, .nav-cta-m').forEach(a => { a.textContent = sesionActiva ? 'Mi cuenta' : 'Entrar'; });
   // Banner
   _txt('banner-estado', sesionActiva
     ? (tienePremiumLocal() ? 'Premium activo hasta el ' + _fechaLarga(estadoAcceso.vence_en) : 'Cuenta gratuita · Premium no activo')
@@ -5480,29 +5513,47 @@ function mostrarAvisoCuenta(texto) {
 }
 
 /* ---------- Mis compras ---------- */
-const ESTADO_PEDIDO = { pagado: 'Pagado', preparando: 'Preparando tu pedido', enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado' };
+const ESTADO_PEDIDO = { pagado: 'Pago recibido', preparando: 'Preparando', enviado: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' };
 const PASOS_PEDIDO = ['pagado', 'preparando', 'enviado', 'entregado'];
 function _e(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function _fechaHora(iso) { try { return new Date(iso).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
 async function cargarMisCompras() {
   const cont = _$('cta_compras'); if (!cont) return;
   if (!sesionActiva) { cont.innerHTML = ''; return; }
   const r = await _rpc('mis_compras');
-  if (!r.ok || !r.data || r.data.error) { cont.innerHTML = '<p class="nota-chica">No pudimos cargar tus compras ahora. Inténtalo más tarde.</p>'; return; }
+  if (!r.ok || !r.data || r.data.error) { cont.innerHTML = '<div class="mc-vacio">No pudimos cargar tus compras ahora. Inténtalo más tarde.</div>'; return; }
   const ped = r.data.pedidos || [], prem = r.data.premium || [];
-  if (!ped.length && !prem.length) { cont.innerHTML = '<p class="nota-chica">Aún no tienes compras. Cuando compres algo, lo verás aquí con su seguimiento.</p>'; return; }
-  const fecha = (iso) => _fechaLarga(iso);
+  if (!ped.length && !prem.length) { cont.innerHTML = '<div class="mc-vacio">Aún no tienes compras.<br>Cuando compres algo, lo verás aquí con su seguimiento paso a paso.</div>'; return; }
+  const DESC = {
+    pagado: 'Recibimos tu pago correctamente.',
+    preparando: 'Estamos empacando tu pedido.',
+    enviado: 'Tu paquete ya salió con la paquetería.',
+    entregado: 'Tu paquete fue entregado.'
+  };
   let h = '';
   ped.forEach(p => {
+    const cancelado = p.estado === 'cancelado';
     const idx = PASOS_PEDIDO.indexOf(p.estado);
-    const barra = p.estado === 'cancelado' ? '' : '<div style="display:flex;gap:4px;margin:.5rem 0 .3rem;">' + PASOS_PEDIDO.map((x, i) => '<div style="flex:1;height:4px;border-radius:2px;background:' + (i <= idx ? 'var(--oro)' : 'var(--borde, #333)') + ';"></div>').join('') + '</div>';
-    const rastreo = p.guia ? '<div class="nota-chica" style="margin-top:.4rem;">Guía <b>' + _e(p.guia) + '</b> · ' + _e(p.paqueteria) + (p.url_rastreo && /^https?:\/\//i.test(p.url_rastreo) ? ' · <a href="' + _e(p.url_rastreo) + '" target="_blank" rel="noopener" style="color:var(--oro);">Rastrear</a>' : '') + '</div>' : '';
-    h += '<div class="calc-resultado activo" style="display:block;margin-bottom:.8rem;">' +
-      '<div style="display:flex;justify-content:space-between;gap:.5rem;"><b>' + _e(ESTADO_PEDIDO[p.estado] || p.estado) + '</b><span class="nota-chica">' + fecha(p.fecha) + '</span></div>' + barra +
-      '<div class="nota-chica" style="white-space:pre-wrap;">' + _e(p.productos) + '</div>' +
-      '<div class="nota-chica" style="margin-top:.3rem;">Envío: ' + (Number(p.envio) === 0 ? 'gratis' : '$' + _e(p.envio)) + ' · <b>Total $' + _e(p.total) + ' MXN</b></div>' + rastreo + '</div>';
+    let pasos = '';
+    if (!cancelado) {
+      pasos = '<ul class="mc-pasos">' + PASOS_PEDIDO.map((x, i) => {
+        const clase = i < idx ? 'hecho' : (i === idx ? 'hecho actual' : '');
+        let det = (i === idx) ? DESC[x] : '';
+        if (x === 'pagado' && i <= idx) det = 'Recibimos tu pago el ' + _fechaHora(p.fecha);
+        return '<li class="mc-paso ' + clase + '"><div class="mc-punto">' + (i <= idx ? '✓' : '') + '</div><div><div class="mc-paso-t">' + ESTADO_PEDIDO[x] + '</div>' + (det ? '<div class="mc-paso-d">' + _e(det) + '</div>' : '') + '</div></li>';
+      }).join('') + '</ul>';
+    } else {
+      pasos = '<div class="mc-guia" style="border-color:rgba(231,76,60,.5);background:rgba(231,76,60,.08);">Este pedido fue cancelado. Si tienes dudas, escríbenos desde la sección de contacto.</div>';
+    }
+    const url = p.url_rastreo && /^https?:\/\//i.test(p.url_rastreo) ? p.url_rastreo : '';
+    const guia = (p.guia && !cancelado) ? '<div class="mc-guia"><span>' + _e(String(p.paqueteria).replace(/^Envio gratis · /, '')) + ' · Guía <b>' + _e(p.guia) + '</b></span>' + (url ? '<a href="' + _e(url) + '" target="_blank" rel="noopener">Rastrear paquete</a>' : '') + '</div>' : '';
+    h += '<div class="mc-card">' +
+      '<div class="mc-head"><div><span class="mc-badge b-' + _e(p.estado) + '">' + _e(ESTADO_PEDIDO[p.estado] || p.estado) + '</span><div class="mc-fecha" style="margin-top:6px;">Pedido del ' + _fechaLarga(p.fecha) + '</div></div><div class="mc-total">$' + _e(p.total) + '</div></div>' +
+      '<div class="mc-prod">' + _e(p.productos) + '</div>' + pasos + guia +
+      '<div class="mc-dir">Envío: ' + (Number(p.envio) === 0 ? 'gratis' : '$' + _e(p.envio) + ' MXN') + '<br>Entrega en: ' + _e(p.direccion) + '</div></div>';
   });
   prem.forEach(a => {
-    h += '<div class="calc-resultado activo" style="display:block;margin-bottom:.8rem;"><div style="display:flex;justify-content:space-between;gap:.5rem;"><b>Premium · 30 días</b><span class="nota-chica">' + fecha(a.fecha) + '</span></div><div class="nota-chica">$59 MXN · vigente hasta el ' + fecha(a.hasta) + '</div></div>';
+    h += '<div class="mc-card"><div class="mc-head"><div><span class="mc-badge b-entregado">Activado</span><div class="mc-fecha" style="margin-top:6px;">' + _fechaLarga(a.fecha) + '</div></div><div class="mc-total">$59</div></div><div class="mc-prod" style="margin-bottom:0;">Aeterion Premium · 30 días<br><span style="color:var(--gris);">Vigente hasta el ' + _fechaLarga(a.hasta) + '</span></div></div>';
   });
   cont.innerHTML = h;
 }

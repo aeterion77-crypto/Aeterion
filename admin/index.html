@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<title>Aeterion Admin</title>
+<style>
+  :root { --bg:#0b0b0d; --card:#15151a; --card2:#1b1b22; --linea:#2a2a33; --txt:#ecebe6; --gris:#9a9aa5; --oro:#c9a84c;
+          --verde:#2ecc71; --amar:#f1c40f; --rojo:#e74c3c; --azul:#5dade2; --neutro:#6b6b76; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding-bottom:env(safe-area-inset-bottom); }
+  header { position:sticky; top:0; z-index:20; background:rgba(11,11,13,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--linea); padding:calc(10px + env(safe-area-inset-top)) 14px 10px; }
+  .top { display:flex; align-items:center; gap:10px; max-width:980px; margin:0 auto; }
+  .logo { font-weight:800; letter-spacing:.18em; color:var(--oro); font-size:15px; flex:1; }
+  .logo small { color:var(--gris); letter-spacing:.05em; font-weight:500; margin-left:6px; }
+  main { max-width:980px; margin:0 auto; padding:14px 14px 80px; }
+  button, .btn { font:inherit; font-weight:600; border:0; border-radius:10px; padding:11px 14px; cursor:pointer; background:var(--oro); color:#111; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:42px; }
+  button.sec, .btn.sec { background:var(--card2); color:var(--txt); border:1px solid var(--linea); }
+  button.mal { background:transparent; color:var(--rojo); border:1px solid var(--rojo); }
+  button.mini { padding:6px 12px; min-height:34px; font-size:13px; }
+  button:disabled { opacity:.5; cursor:default; }
+  input, select { width:100%; background:#0f0f13; border:1px solid var(--linea); color:var(--txt); border-radius:10px; padding:11px 12px; font:inherit; min-height:42px; }
+  input:focus, select:focus { outline:none; border-color:var(--oro); }
+  .fila { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .fila > input { flex:1 1 200px; width:auto; }
+  .card { background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:16px; }
+  .oculto { display:none !important; }
+  .peq { font-size:12px; color:var(--gris); }
+  #msg { position:fixed; left:12px; right:12px; bottom:calc(14px + env(safe-area-inset-bottom)); z-index:50; max-width:560px; margin:0 auto; padding:12px 14px; border-radius:12px; font-weight:600; display:none; box-shadow:0 8px 30px rgba(0,0,0,.5); }
+  #msg.ok { display:block; background:#16301f; color:var(--verde); border:1px solid #1f5d36; }
+  #msg.err { display:block; background:#3a1a18; color:#ff8a7d; border:1px solid #7a2c25; }
+
+  /* Resumen */
+  .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+  @media (min-width:700px) { .stats { grid-template-columns:repeat(4,1fr); } }
+  .stat { background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:12px 14px; border-left:4px solid var(--neutro); cursor:pointer; }
+  .stat b { display:block; font-size:24px; line-height:1.1; }
+  .stat span { font-size:12px; color:var(--gris); }
+  .stat.amar { border-left-color:var(--amar); } .stat.rojo { border-left-color:var(--rojo); } .stat.verde { border-left-color:var(--verde); } .stat.oro { border-left-color:var(--oro); }
+
+  /* Pestañas y filtros */
+  .tabs { display:flex; gap:6px; margin-bottom:12px; }
+  .tab { flex:1; background:var(--card); color:var(--gris); border:1px solid var(--linea); }
+  .tab.on { background:var(--oro); color:#111; border-color:var(--oro); }
+  .filtros { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; scrollbar-width:none; }
+  .filtros::-webkit-scrollbar { display:none; }
+  .pill { flex:0 0 auto; background:var(--card); color:var(--gris); border:1px solid var(--linea); border-radius:30px; padding:7px 14px; min-height:36px; font-size:13px; }
+  .pill.on { background:var(--card2); color:var(--txt); border-color:var(--oro); }
+
+  /* Pedido */
+  .ped { background:var(--card); border:1px solid var(--linea); border-left:6px solid var(--neutro); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .ped.verde { border-left-color:var(--verde); } .ped.amarillo { border-left-color:var(--amar); } .ped.rojo { border-left-color:var(--rojo); } .ped.gris { border-left-color:var(--neutro); opacity:.8; }
+  .ped-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .ped-nom { font-weight:700; font-size:16px; }
+  .ped-total { font-size:19px; font-weight:800; color:var(--oro); white-space:nowrap; }
+  .badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
+  .badge::before { content:''; width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .badge.verde { background:rgba(46,204,113,.14); color:var(--verde); } .badge.amarillo { background:rgba(241,196,15,.14); color:var(--amar); }
+  .badge.rojo { background:rgba(231,76,60,.16); color:var(--rojo); } .badge.gris { background:rgba(107,107,118,.2); color:var(--gris); }
+  .alerta { margin:8px 0 0; padding:8px 10px; border-radius:8px; font-size:13px; font-weight:600; }
+  .alerta.rojo { background:rgba(231,76,60,.12); color:#ff8a7d; } .alerta.amarillo { background:rgba(241,196,15,.1); color:var(--amar); } .alerta.verde { background:rgba(46,204,113,.1); color:var(--verde); }
+  .prod { white-space:pre-wrap; background:#0f0f13; border-radius:10px; padding:10px 12px; margin:10px 0; font-size:14px; }
+  .datos { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:13px; margin-bottom:10px; }
+  .datos dt { color:var(--gris); } .datos dd { margin:0; word-break:break-word; }
+  .acciones { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .gestion { border-top:1px solid var(--linea); padding-top:12px; margin-top:6px; }
+  .seg { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin-bottom:10px; }
+  .seg button { padding:8px 2px; font-size:11.5px; min-height:40px; background:var(--card2); color:var(--gris); border:1px solid var(--linea); }
+  .seg button.on.e-pagado, .seg button.on.e-preparando { background:rgba(241,196,15,.18); color:var(--amar); border-color:var(--amar); }
+  .seg button.on.e-enviado { background:rgba(93,173,226,.18); color:var(--azul); border-color:var(--azul); }
+  .seg button.on.e-entregado { background:rgba(46,204,113,.18); color:var(--verde); border-color:var(--verde); }
+  .seg button.on.e-cancelado { background:rgba(231,76,60,.18); color:var(--rojo); border-color:var(--rojo); }
+  .campos { display:grid; gap:8px; margin-bottom:8px; }
+  .hist { margin-top:10px; font-size:12px; color:var(--gris); }
+
+  /* Accesos */
+  .acc { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--linea); }
+  .acc:last-child { border-bottom:0; }
+  .acc b { word-break:break-all; }
+  .tag { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; margin-right:6px; }
+  .tag.v { background:rgba(46,204,113,.15); color:var(--verde); } .tag.x { background:rgba(154,154,165,.15); color:var(--gris); }
+  .vacio { text-align:center; color:var(--gris); padding:30px 10px; }
+  details.menu { position:relative; } details.menu > summary { list-style:none; } details.menu > summary::-webkit-details-marker { display:none; }
+  .menu-caja { position:absolute; right:0; top:48px; width:min(300px,86vw); background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:12px; z-index:40; box-shadow:0 12px 40px rgba(0,0,0,.6); display:grid; gap:8px; }
+</style>
+</head>
+<body>
+
+<header id="cab" class="oculto">
+  <div class="top">
+    <div class="logo">AETERION<small>Admin</small></div>
+    <button class="sec mini" id="btnRefrescar" title="Actualizar">↻</button>
+    <details class="menu">
+      <summary><span class="btn sec mini" style="display:inline-flex">⚙ Ajustes</span></summary>
+      <div class="menu-caja">
+        <button class="sec" id="btnAvisos">🔔 Activar avisos de pedidos</button>
+        <button class="sec oculto" id="btnPrueba">Enviar aviso de prueba</button>
+        <button class="sec oculto" id="btnInstalar">📲 Instalar app</button>
+        <div class="peq oculto" id="notaIos">En iPhone: toca Compartir → "Añadir a pantalla de inicio", abre la app desde ahí y activa los avisos.</div>
+        <label class="peq">Marcar como urgente un pedido sin enviar después de:
+          <select id="selUrgente" style="margin-top:4px"><option value="6">6 horas</option><option value="12">12 horas</option><option value="24">24 horas</option><option value="48">48 horas</option><option value="72">72 horas</option></select></label>
+        <div class="peq" id="quien"></div>
+        <button class="mal" id="btnSalir">Cerrar sesión</button>
+      </div>
+    </details>
+  </div>
+</header>
+
+<main>
+  <div id="login" class="card" style="margin-top:40px">
+    <h2 style="margin-top:0">Aeterion · Administración</h2>
+    <div id="paso1">
+      <p class="peq">Entra con tu correo de administrador. Te llegará un código.</p>
+      <div class="fila"><input type="email" id="email" placeholder="tu correo" autocomplete="email"><button id="btnCodigo">Enviar código</button></div>
+    </div>
+    <div id="paso2" class="oculto">
+      <p class="peq">Escribe el código que llegó a <b id="destino"></b>.</p>
+      <div class="fila"><input type="text" id="codigo" placeholder="código" inputmode="numeric" maxlength="10" autocomplete="one-time-code"><button id="btnEntrar">Entrar</button></div>
+      <p><button class="sec mini" id="btnAtras">Cambiar correo</button></p>
+    </div>
+  </div>
+
+  <div id="panel" class="oculto">
+    <div class="stats" id="stats"></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="premium">Premium</button></div>
+
+    <section id="tPedidos">
+      <div class="filtros" id="filtros"></div>
+      <input type="search" id="buscar" placeholder="Buscar por nombre, correo, teléfono o guía…" style="margin-bottom:12px">
+      <div id="listaPedidos"></div>
+    </section>
+
+    <section id="tPremium" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b>Dar o quitar Premium</b>
+        <div class="fila" style="margin-top:10px">
+          <input type="email" id="aEmail" placeholder="correo de la cuenta">
+          <select id="aDias" style="width:auto"><option value="30">30 días</option><option value="60">60 días</option><option value="90">90 días</option><option value="7">7 días</option><option value="365">1 año</option></select>
+          <button id="btnDar">Dar acceso</button><button class="mal" id="btnQuitar">Quitar</button>
+        </div>
+        <div class="peq" style="margin-top:8px">Dar acceso suma los días al final del que ya tenga. Quitar acceso lo cancela de inmediato.</div>
+      </div>
+      <input type="search" id="buscarAcc" placeholder="Buscar correo…" style="margin-bottom:12px">
+      <div class="card" id="listaAccesos"></div>
+    </section>
+  </div>
+</main>
+<div id="msg" role="status"></div>
+
+<script>
+const SUPABASE_URL = 'https://pjbfhglrvsgheuyhguyp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_X86RvXPbwY5tXG34PxGzBA_T8yjEiM7';
+const VAPID_PUBLIC = 'BNiO3pl2Ty_-WvyYcUFAhX_Pi1ZaYa9Bx9azH79bBALDvJ1MkwzEqH3_onk1GzVuNPU3QTOTSHtHydwd5fYdaOE';
+const SKYDROPX_URL = 'https://app.skydropx.com/es-MX';
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+let sesion = null, emailPend = '', pedidos = [], accesos = [], filtro = 'porenviar', urgenteH = Number(lsGet('aet_urgente')) || 24, timer = null, instalarEvt = null;
+
+/* ---------- Avisos en pantalla ---------- */
+let _tm;
+function aviso(t, ok) { const m = $('msg'); clearTimeout(_tm); if (!t) { m.className = ''; return; } m.textContent = t; m.className = ok ? 'ok' : 'err'; _tm = setTimeout(() => { m.className = ''; }, ok ? 4000 : 7000); }
+
+/* ---------- Sesión ---------- */
+function guardar() { lsSet('aet_admin', sesion ? JSON.stringify(sesion) : ''); }
+function leer() { try { return JSON.parse(lsGet('aet_admin') || 'null'); } catch (e) { return null; } }
+async function auth(ruta, cuerpo) {
+  const r = await fetch(SUPABASE_URL + '/auth/v1/' + ruta, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) });
+  let d = null; try { d = await r.json(); } catch (e) {}
+  return { ok: r.ok, status: r.status, d };
+}
+async function conToken(fn) {
+  let r = await fn();
+  if (r.status === 401 && sesion && sesion.refresh_token) {
+    const t = await auth('token?grant_type=refresh_token', { refresh_token: sesion.refresh_token });
+    if (t.ok && t.d.access_token) { sesion = t.d; guardar(); r = await fn(); }
+  }
+  return r;
+}
+async function rpc(nombre, args) {
+  const r = await conToken(() => fetch(SUPABASE_URL + '/rest/v1/rpc/' + nombre, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) }));
+  let d = null; try { d = await r.json(); } catch (e) {}
+  if (!r.ok) { const err = new Error((d && d.message) || 'error'); err.status = r.status; throw err; }
+  return d;
+}
+async function funcion(cuerpo) {
+  const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/pedido-estado', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }));
+  const d = await r.json().catch(() => ({}));
+  return { ok: r.ok, d };
+}
+function vista(panel) { $('login').classList.toggle('oculto', panel); $('panel').classList.toggle('oculto', !panel); $('cab').classList.toggle('oculto', !panel); }
+
+/* ---------- Utilidades de pedidos ---------- */
+function horasDesde(iso) { return (Date.now() - new Date(iso).getTime()) / 36e5; }
+function hace(iso) {
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (m < 1) return 'justo ahora'; if (m < 60) return 'hace ' + m + ' min';
+  const h = Math.floor(m / 60); if (h < 24) return 'hace ' + h + ' h' + (m % 60 >= 30 ? ' 30 min' : '');
+  const d = Math.floor(h / 24); return 'hace ' + d + (d === 1 ? ' día' : ' días');
+}
+const fechaCorta = (s) => s ? new Date(s).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+function semaforo(p) {
+  if (p.estado === 'cancelado') return 'gris';
+  if (p.estado === 'enviado' || p.estado === 'entregado') return 'verde';
+  return horasDesde(p.creado_en) > urgenteH ? 'rojo' : 'amarillo';
+}
+const NOMBRE_ESTADO = { pagado: 'Pagado · sin enviar', preparando: 'Preparando', enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado' };
+const BOTONES = [['pagado', 'Pagado'], ['preparando', 'Preparando'], ['enviado', 'Enviado'], ['entregado', 'Entregado'], ['cancelado', 'Cancelar']];
+function cpDe(dir) { const m = /CP\s*(\d{5})/i.exec(dir || ''); return m ? m[1] : ''; }
+function paquete(productos) {
+  // Misma lógica de cotización: una sola caja con las medidas de cada producto
+  const DIM = { creatin: [4, 18, 25, .46], magnes: [6, 6, 13.5, .15], vitamin: [3.5, 3.5, 12.5, .18] };
+  let L = 0, H = 0, W = 0, kg = 0;
+  String(productos || '').split('\n').forEach((ln) => {
+    const k = Object.keys(DIM).find((x) => ln.toLowerCase().includes(x)); if (!k) return;
+    const q = Number((/x\s*(\d+)/i.exec(ln) || [0, 1])[1]) || 1; const [a, b, c] = [...DIM[k].slice(0, 3)].sort((x, y) => x - y);
+    for (let i = 0; i < q; i++) { W += a; H = Math.max(H, b); L = Math.max(L, c); kg += DIM[k][3]; }
+  });
+  const r1 = (n) => Math.ceil(n * 10) / 10;
+  return { l: Math.max(r1(L + 1), 10), a: Math.max(r1(W + 1), 10), h: Math.max(r1(H + 1), 10), kg: Math.max(r1(kg + .2), .5) };
+}
+function textoSky(p) {
+  const q = paquete(p.productos);
+  return ['Nombre: ' + p.nombre, 'Teléfono: ' + p.tel, 'Correo: ' + p.email, 'Dirección: ' + p.direccion, 'CP: ' + cpDe(p.direccion),
+    'Paquete: ' + q.l + ' × ' + q.a + ' × ' + q.h + ' cm · ' + q.kg + ' kg', 'Paquetería elegida: ' + String(p.paqueteria).replace(/^Envio gratis · /, '')].join('\n');
+}
+async function copiar(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); } catch (_) {} a.remove(); return true; } }
+
+/* ---------- Pintar ---------- */
+function pintarStats() {
+  const vivos = pedidos.filter((p) => p.estado !== 'cancelado');
+  const porEnviar = vivos.filter((p) => p.estado === 'pagado' || p.estado === 'preparando');
+  const urgentes = porEnviar.filter((p) => semaforo(p) === 'rojo');
+  const enviados = vivos.filter((p) => p.estado === 'enviado' || p.estado === 'entregado');
+  const ahora = new Date(); const mes = vivos.filter((p) => { const d = new Date(p.creado_en); return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear(); });
+  const venta = mes.reduce((s, p) => s + Number(p.total), 0);
+  $('stats').innerHTML =
+    `<div class="stat amar" data-f="porenviar"><b>${porEnviar.length}</b><span>Por enviar</span></div>` +
+    `<div class="stat rojo" data-f="urgentes"><b>${urgentes.length}</b><span>Urgentes (&gt; ${urgenteH} h)</span></div>` +
+    `<div class="stat verde" data-f="enviados"><b>${enviados.length}</b><span>Enviados / entregados</span></div>` +
+    `<div class="stat oro"><b>$${venta.toLocaleString('es-MX')}</b><span>Ventas del mes (${mes.length})</span></div>`;
+  try { if (navigator.setAppBadge) { porEnviar.length ? navigator.setAppBadge(porEnviar.length) : navigator.clearAppBadge(); } } catch (e) {}
+}
+function pintarFiltros() {
+  const cuenta = (f) => pedidos.filter((p) => pasa(p, f)).length;
+  const F = [['porenviar', 'Por enviar'], ['urgentes', 'Urgentes'], ['enviados', 'Enviados'], ['cancelados', 'Cancelados'], ['todos', 'Todos']];
+  $('filtros').innerHTML = F.map(([k, t]) => `<button class="pill${filtro === k ? ' on' : ''}" data-f="${k}">${t} (${cuenta(k)})</button>`).join('');
+}
+function pasa(p, f) {
+  if (f === 'todos') return true;
+  if (f === 'cancelados') return p.estado === 'cancelado';
+  if (f === 'enviados') return p.estado === 'enviado' || p.estado === 'entregado';
+  if (f === 'porenviar') return p.estado === 'pagado' || p.estado === 'preparando';
+  if (f === 'urgentes') return (p.estado === 'pagado' || p.estado === 'preparando') && semaforo(p) === 'rojo';
+  return true;
+}
+function tarjeta(p) {
+  const sem = semaforo(p);
+  const h = Math.floor(horasDesde(p.creado_en));
+  let al = '';
+  if (sem === 'rojo') al = `<div class="alerta rojo">⚠ Lleva ${h >= 48 ? Math.floor(h / 24) + ' días' : h + ' h'} sin enviarse. Envíalo pronto.</div>`;
+  else if (sem === 'amarillo') al = `<div class="alerta amarillo">Pedido reciente, pendiente de enviar (${hace(p.creado_en)}).</div>`;
+  else if (sem === 'verde') al = `<div class="alerta verde">✓ ${p.estado === 'entregado' ? 'Entregado' : 'Enviado'}${p.guia ? ' · guía ' + esc(p.guia) : ''}</div>`;
+  const wa = String(p.tel || '').replace(/\D/g, '').slice(-10);
+  const botones = BOTONES.map(([v, t]) => `<button class="e-${v}${p.estado === v ? ' on' : ''}" data-est="${v}">${t}</button>`).join('');
+  const necesitaGuia = p.estado === 'enviado' || p.estado === 'entregado';
+  return `<article class="ped ${sem}" data-id="${esc(p.id)}" data-estado="${esc(p.estado)}">
+    <div class="ped-top"><div><div class="ped-nom">${esc(p.nombre)}</div><span class="badge ${sem}">${esc(NOMBRE_ESTADO[p.estado] || p.estado)}</span> <span class="peq">${hace(p.creado_en)}</span></div><div class="ped-total">$${esc(p.total)}</div></div>
+    ${al}
+    <div class="prod">${esc(p.productos)}</div>
+    <dl class="datos">
+      <dt>Teléfono</dt><dd>${esc(p.tel)}</dd><dt>Correo</dt><dd>${esc(p.email)}</dd><dt>Entrega</dt><dd>${esc(p.direccion)}</dd>
+      <dt>Envío</dt><dd>$${esc(p.envio)} · ${esc(p.paqueteria)}</dd><dt>Pagado</dt><dd>${fechaCorta(p.creado_en)}${p.actualizado_en && p.estado !== 'pagado' ? ' · actualizado ' + fechaCorta(p.actualizado_en) : ''}</dd>
+    </dl>
+    <div class="acciones">
+      <button data-sky>Copiar datos y abrir Skydropx</button>
+      ${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a><a class="btn sec" href="tel:+52${wa}">Llamar</a>` : ''}
+      <button class="sec" data-copiar>Copiar datos</button>
+    </div>
+    <div class="gestion">
+      <div class="peq" style="margin-bottom:6px">Estado del pedido</div>
+      <div class="seg">${botones}</div>
+      <div class="campos">
+        <input type="text" class="p-guia" placeholder="Número de guía${necesitaGuia ? '' : ' (al marcar Enviado)'}" value="${esc(p.guia || '')}">
+        <input type="text" class="p-url" placeholder="Enlace de rastreo (opcional)" value="${esc(p.url_rastreo || '')}">
+      </div>
+      <label class="peq"><input type="checkbox" class="p-avisar" checked style="width:auto;min-height:0;margin-right:6px">Avisar al cliente por correo al marcar Enviado o Entregado</label>
+      <div class="fila" style="margin-top:10px"><button data-guardar>Guardar cambios</button><button class="sec" data-recibo>Reenviar recibo al cliente</button></div>
+    </div>
+  </article>`;
+}
+function pintarPedidos() {
+  pintarStats(); pintarFiltros();
+  const q = $('buscar').value.trim().toLowerCase();
+  const lista = pedidos.filter((p) => pasa(p, filtro)).filter((p) => !q || [p.nombre, p.email, p.tel, p.guia, p.direccion].join(' ').toLowerCase().includes(q));
+  // Primero lo urgente, luego lo reciente sin enviar, luego lo demás
+  const peso = (p) => ({ rojo: 0, amarillo: 1, verde: 2, gris: 3 }[semaforo(p)]);
+  lista.sort((a, b) => peso(a) - peso(b) || new Date(b.creado_en) - new Date(a.creado_en));
+  $('listaPedidos').innerHTML = lista.length ? lista.map(tarjeta).join('') : '<div class="vacio">No hay pedidos en esta vista.</div>';
+}
+function pintarAccesos() {
+  const q = $('buscarAcc').value.trim().toLowerCase();
+  const f = accesos.filter((a) => !q || String(a.email).toLowerCase().includes(q));
+  $('listaAccesos').innerHTML = f.length ? f.map((a) => {
+    const est = a.revocado_en ? '<span class="tag x">Quitado</span>' : a.vigente ? '<span class="tag v">Activo</span>' : '<span class="tag x">Vencido</span>';
+    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div>${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}</div>`;
+  }).join('') : '<div class="vacio">Sin accesos.</div>';
+}
+
+/* ---------- Carga ---------- */
+async function cargar(silencioso) {
+  try {
+    const [p, a] = await Promise.all([rpc('panel_pedidos_v3'), rpc('panel_listar')]);
+    const nuevos = pedidos.length && p.some((x) => !pedidos.find((y) => y.id === x.id));
+    // No pisar lo que estás editando
+    const editando = document.querySelector('.ped[data-dirty]') || (document.activeElement && document.activeElement.closest && document.activeElement.closest('.ped'));
+    pedidos = p; accesos = a; pintarStats(); pintarFiltros(); pintarAccesos();
+    if (!editando) pintarPedidos();
+    $('quien').textContent = (sesion.user && sesion.user.email) || '';
+    vista(true);
+    if (nuevos && silencioso) aviso('Llegó un pedido nuevo', true);
+  } catch (e) {
+    if (e.status === 401 || e.status === 403 || /autorizado/.test(e.message)) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
+    else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
+  }
+}
+
+/* ---------- Eventos ---------- */
+$('btnCodigo').onclick = async () => {
+  const email = $('email').value.trim().toLowerCase();
+  if (!email.includes('@')) { aviso('Escribe un correo válido.'); return; }
+  $('btnCodigo').disabled = true; const r = await auth('otp', { email, create_user: false }); $('btnCodigo').disabled = false;
+  if (!r.ok) { aviso('No se pudo enviar el código. Espera un minuto e inténtalo otra vez.'); return; }
+  emailPend = email; $('destino').textContent = email; $('paso1').classList.add('oculto'); $('paso2').classList.remove('oculto'); aviso('Código enviado.', true);
+};
+$('btnAtras').onclick = () => { $('paso2').classList.add('oculto'); $('paso1').classList.remove('oculto'); };
+$('btnEntrar').onclick = async () => {
+  const token = $('codigo').value.trim(); if (!token) return;
+  $('btnEntrar').disabled = true; const r = await auth('verify', { type: 'email', email: emailPend, token }); $('btnEntrar').disabled = false;
+  if (!r.ok || !r.d || !r.d.access_token) { aviso('Código incorrecto o vencido.'); return; }
+  sesion = r.d; guardar(); $('codigo').value = ''; iniciar();
+};
+$('btnSalir').onclick = () => { if (sesion) fetch(SUPABASE_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token } }).catch(() => {}); sesion = null; guardar(); clearInterval(timer); vista(false); $('paso2').classList.add('oculto'); $('paso1').classList.remove('oculto'); };
+$('btnRefrescar').onclick = () => cargar(false);
+$('selUrgente').value = String(urgenteH);
+$('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
+
+document.querySelectorAll('.tab').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+  $('tPedidos').classList.toggle('oculto', b.dataset.tab !== 'pedidos'); $('tPremium').classList.toggle('oculto', b.dataset.tab !== 'premium');
+});
+$('stats').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; pintarPedidos(); } });
+$('filtros').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; pintarPedidos(); } });
+$('buscar').oninput = pintarPedidos; $('buscarAcc').oninput = pintarAccesos;
+
+$('listaPedidos').addEventListener('click', async (e) => {
+  const art = e.target.closest('.ped'); if (!art) return;
+  const p = pedidos.find((x) => String(x.id) === art.dataset.id); if (!p) return;
+  const est = e.target.closest('[data-est]');
+  if (est) { art.dataset.estado = est.dataset.est; art.dataset.dirty = '1'; art.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b === est)); return; }
+  if (e.target.closest('[data-sky]')) { await copiar(textoSky(p)); aviso('Datos copiados. En Skydropx pega y llena el envío.', true); window.open(SKYDROPX_URL, '_blank', 'noopener'); return; }
+  if (e.target.closest('[data-copiar]')) { await copiar(textoSky(p)); aviso('Datos copiados al portapapeles.', true); return; }
+  if (e.target.closest('[data-recibo]')) {
+    if (!confirm('¿Reenviar el recibo a ' + p.email + '?')) return;
+    const b = e.target.closest('button'); b.disabled = true; const r = await funcion({ accion: 'recibo', id: p.id }); b.disabled = false;
+    aviso(r.ok && r.d.ok ? 'Recibo enviado a ' + p.email + '.' : r.d.aviso === 'sin_resend' ? 'Falta configurar el correo (llave de Resend).' : 'No se pudo enviar el recibo.', r.ok && r.d.ok); return;
+  }
+  if (e.target.closest('[data-guardar]')) {
+    const estado = art.dataset.estado;
+    if (estado === 'cancelado' && !confirm('¿Marcar este pedido como CANCELADO?')) return;
+    const b = e.target.closest('button'); b.disabled = true;
+    const r = await funcion({ id: p.id, estado, guia: art.querySelector('.p-guia').value, url_rastreo: art.querySelector('.p-url').value, avisar: art.querySelector('.p-avisar').checked });
+    b.disabled = false;
+    if (r.ok && r.d.ok) {
+      const ex = r.d.aviso === 'enviado' ? ' Se avisó al cliente por correo.' : r.d.aviso === 'sin_resend' ? ' (No se pudo avisar: falta configurar el correo.)' : r.d.aviso === 'fallo' ? ' (El correo al cliente falló.)' : '';
+      aviso('Pedido actualizado.' + ex, true); delete art.dataset.dirty; document.activeElement && document.activeElement.blur(); await cargar(false);
+    } else aviso(r.d.error === 'falta_guia' ? 'Para marcar "Enviado" escribe el número de guía.' : r.d.error === 'url_invalida' ? 'El enlace de rastreo debe empezar con https://' : 'No se pudo guardar. Inténtalo de nuevo.');
+  }
+});
+
+$('btnDar').onclick = async () => {
+  const email = $('aEmail').value.trim(); if (!email.includes('@')) { aviso('Escribe el correo de la cuenta.'); return; }
+  try {
+    const r = await rpc('panel_dar', { p_email: email, p_dias: Number($('aDias').value) });
+    if (r.ok) { aviso('Listo: ' + email + ' tiene Premium hasta ' + fechaCorta(r.vence_en) + '.', true); await cargar(false); }
+    else aviso(r.error === 'usuario_no_encontrado' ? 'Esa persona aún no tiene cuenta. Debe entrar una vez a la página con ese correo.' : 'No se pudo: ' + r.error);
+  } catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+};
+async function quitar(email) {
+  if (!confirm('¿Quitar Premium a ' + email + '? Perderá el acceso de inmediato.')) return;
+  try { const r = await rpc('panel_quitar', { p_email: email }); if (r.ok) { aviso('Acceso quitado a ' + email + '.', true); await cargar(false); } else aviso(r.error === 'usuario_no_encontrado' ? 'No existe una cuenta con ese correo.' : 'No se pudo: ' + r.error); }
+  catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+}
+$('btnQuitar').onclick = () => { const e = $('aEmail').value.trim(); if (!e.includes('@')) { aviso('Escribe el correo de la cuenta.'); return; } quitar(e); };
+$('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-quitar]'); if (b) quitar(b.dataset.quitar); });
+
+/* ---------- Instalación y avisos push ---------- */
+const b64 = (s) => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
+const buf = (a) => btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+let swReg = null;
+async function registrarSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try { swReg = await navigator.serviceWorker.register('sw.js', { scope: '/admin/' }); } catch (e) {}
+  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.tipo === 'push') cargar(true); });
+}
+async function estadoAvisos() {
+  const sop = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const esIos = /iphone|ipad|ipod/i.test(navigator.userAgent), standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  $('notaIos').classList.toggle('oculto', !(esIos && !standalone));
+  if (!sop) { $('btnAvisos').textContent = 'Avisos no disponibles en este navegador'; $('btnAvisos').disabled = true; return; }
+  let sub = null; try { const reg = swReg || await navigator.serviceWorker.ready; sub = await reg.pushManager.getSubscription(); } catch (e) {}
+  const on = Notification.permission === 'granted' && !!sub;
+  $('btnAvisos').textContent = on ? '🔔 Avisos activados en este dispositivo' : '🔔 Activar avisos de pedidos';
+  $('btnPrueba').classList.toggle('oculto', !on);
+}
+$('btnAvisos').onclick = async () => {
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { aviso('Los avisos están bloqueados. Actívalos en los permisos del navegador para este sitio.'); return; }
+    const reg = swReg || await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(VAPID_PUBLIC) });
+    await rpc('panel_push_guardar', { p_endpoint: sub.endpoint, p_p256dh: buf(sub.getKey('p256dh')), p_auth: buf(sub.getKey('auth')) });
+    aviso('Avisos activados. Te llegará una notificación con cada pedido nuevo.', true); estadoAvisos();
+  } catch (e) { aviso('No se pudieron activar los avisos en este dispositivo.'); }
+};
+$('btnPrueba').onclick = async () => { const r = await funcion({ accion: 'push_prueba' }); aviso(r.ok && r.d.ok ? 'Aviso de prueba enviado.' : 'No se pudo enviar. Activa los avisos de nuevo.', r.ok && r.d.ok); };
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); instalarEvt = e; $('btnInstalar').classList.remove('oculto'); });
+$('btnInstalar').onclick = async () => { if (!instalarEvt) return; instalarEvt.prompt(); await instalarEvt.userChoice.catch(() => {}); instalarEvt = null; $('btnInstalar').classList.add('oculto'); };
+
+/* ---------- Inicio ---------- */
+function iniciar() {
+  vista(true); cargar(false); estadoAvisos();
+  clearInterval(timer); timer = setInterval(() => { if (!document.hidden) cargar(true); }, 60000);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && sesion) cargar(true); });
+registrarSW();
+sesion = leer();
+if (sesion && sesion.access_token) iniciar();
+</script>
+</body>
+</html>
