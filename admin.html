@@ -74,7 +74,7 @@
 
     <h2>Pedidos de productos</h2>
     <div class="card tabla"><table>
-      <thead><tr><th>Fecha</th><th>Cliente</th><th>Dirección</th><th>Productos</th><th>Envío</th><th>Total</th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>Dirección y productos</th><th>Envío / Total</th><th>Seguimiento</th></tr></thead>
       <tbody id="tPedidos"></tbody></table></div>
   </section>
 </main>
@@ -111,7 +111,7 @@ function mostrar(panel) { $('login').classList.toggle('oculto', panel); $('panel
 
 async function abrirPanel() {
   try {
-    const a = await rpc('panel_listar'); const p = await rpc('panel_pedidos');
+    const a = await rpc('panel_listar'); const p = await rpc('panel_pedidos_v2');
     $('quien').textContent = (sesion.user && sesion.user.email) || '';
     pintarAccesos(a); pintarPedidos(p); mostrar(true); aviso('');
   } catch (e) {
@@ -128,13 +128,39 @@ function pintarAccesos(filas) {
     return `<tr><td>${esc(f.email)}</td><td>${estado}</td><td>${esc(f.origen)}</td><td>${fecha(f.hasta)}</td><td>${btn}</td></tr>`;
   }).join('') : '<tr><td colspan="5" class="peq">Sin accesos todavía.</td></tr>';
 }
+const ESTADOS = [['pagado','Pagado'],['preparando','Preparando'],['enviado','Enviado'],['entregado','Entregado'],['cancelado','Cancelado']];
 function pintarPedidos(filas) {
-  $('tPedidos').innerHTML = filas.length ? filas.map((f) =>
-    `<tr><td>${fecha(f.creado_en)}</td><td>${esc(f.nombre)}<br><span class="peq">${esc(f.tel)} · ${esc(f.email)}</span></td><td>${esc(f.direccion)}</td><td style="white-space:pre-wrap">${esc(f.productos)}</td><td>$${esc(f.envio)}<br><span class="peq">${esc(f.paqueteria)}</span></td><td>$${esc(f.total)}</td></tr>`
-  ).join('') : '<tr><td colspan="6" class="peq">Sin pedidos todavía.</td></tr>';
+  $('tPedidos').innerHTML = filas.length ? filas.map((f) => {
+    const opts = ESTADOS.map(([v, t]) => `<option value="${v}"${f.estado === v ? ' selected' : ''}>${t}</option>`).join('');
+    return `<tr data-id="${esc(f.id)}"><td>${fecha(f.creado_en)}</td>
+      <td>${esc(f.nombre)}<br><span class="peq">${esc(f.tel)}<br>${esc(f.email)}</span></td>
+      <td>${esc(f.direccion)}<div class="peq" style="white-space:pre-wrap;margin-top:4px">${esc(f.productos)}</div></td>
+      <td>$${esc(f.envio)} · ${esc(f.paqueteria)}<br><b>Total $${esc(f.total)}</b></td>
+      <td style="min-width:200px"><select class="p-estado" style="width:100%;margin-bottom:6px">${opts}</select>
+        <input type="text" class="p-guia" placeholder="Número de guía" value="${esc(f.guia || '')}" style="width:100%;margin-bottom:6px">
+        <input type="text" class="p-url" placeholder="Enlace de rastreo (opcional)" value="${esc(f.url_rastreo || '')}" style="width:100%;margin-bottom:6px">
+        <label class="peq"><input type="checkbox" class="p-avisar" checked> Avisar al cliente por correo</label><br>
+        <button data-guardar style="margin-top:6px;padding:7px 12px">Guardar</button></td></tr>`;
+  }).join('') : '<tr><td colspan="5" class="peq">Sin pedidos todavía.</td></tr>';
 }
+async function guardarPedido(tr) {
+  const body = { id: Number(tr.dataset.id), estado: tr.querySelector('.p-estado').value, guia: tr.querySelector('.p-guia').value, url_rastreo: tr.querySelector('.p-url').value, avisar: tr.querySelector('.p-avisar').checked };
+  const btn = tr.querySelector('[data-guardar]'); btn.disabled = true;
+  try {
+    const llamar = () => fetch(SUPABASE_URL + '/functions/v1/pedido-estado', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    let r = await llamar();
+    if (r.status === 401 && sesion.refresh_token) { const t = await auth('token?grant_type=refresh_token', { refresh_token: sesion.refresh_token }); if (t.ok && t.d.access_token) { sesion = t.d; guardar(); r = await llamar(); } }
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok) {
+      const extra = d.aviso === 'enviado' ? ' Se avisó al cliente por correo.' : d.aviso === 'sin_resend' ? ' (No se pudo avisar: falta configurar el correo.)' : d.aviso === 'fallo' ? ' (El aviso por correo falló.)' : '';
+      aviso('Pedido actualizado.' + extra, true);
+    } else aviso(d.error === 'falta_guia' ? 'Para marcar "Enviado" escribe el número de guía.' : d.error === 'url_invalida' ? 'El enlace de rastreo debe empezar con https://' : 'No se pudo guardar. Inténtalo de nuevo.');
+  } catch (e) { aviso('No se pudo guardar. Inténtalo de nuevo.'); }
+  btn.disabled = false;
+}
+$('tPedidos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-guardar]'); if (b) guardarPedido(b.closest('tr')); });
 
-async function recargar() { const a = await rpc('panel_listar'); const p = await rpc('panel_pedidos'); pintarAccesos(a); pintarPedidos(p); }
+async function recargar() { const a = await rpc('panel_listar'); const p = await rpc('panel_pedidos_v2'); pintarAccesos(a); pintarPedidos(p); }
 
 $('btnCodigo').onclick = async () => {
   const email = $('email').value.trim().toLowerCase();

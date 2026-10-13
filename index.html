@@ -3345,6 +3345,11 @@
       <p class="nota-chica" style="margin-top:.7rem;" id="cta_nota_pago">Un pago = 30 días de Premium. Sin renovación automática: tú decides cuándo volver a pagar. Si ya tienes días, se suman.</p>
     </div>
 
+    <div class="form-seccion">
+      <div class="form-seccion-titulo">Mis compras</div>
+      <div id="cta_compras"><p class="nota-chica">Cargando…</p></div>
+    </div>
+
     <div class="form-seccion" style="margin-bottom:0;">
       <div class="form-seccion-titulo">Sesión</div>
       <button class="btn btn-outline" style="width:100%; justify-content:center;" onclick="cerrarSesion()">Cerrar sesión</button>
@@ -5273,7 +5278,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (q.get('pedido')) {
     const ok = q.get('pedido') === 'ok';
     try { const l2 = new URLSearchParams(location.search); l2.delete('pedido'); history.replaceState(null, '', location.pathname + (l2.toString() ? '?' + l2 : '') + location.hash); } catch (e) {}
-    setTimeout(() => alert(ok ? '¡Gracias por tu compra! Recibimos tu pago y te enviaremos los datos de seguimiento por correo o WhatsApp.' : 'El pago se canceló. Tu carrito sigue disponible.'), 400);
+    setTimeout(() => { alert(ok ? '¡Gracias por tu compra! Recibimos tu pago. Te enviamos el recibo por correo y, cuando salga tu paquete, te llegará la guía de seguimiento. También puedes verlo en Mi cuenta → Mis compras.' : 'El pago se canceló. Tu carrito sigue disponible.'); if (ok && sesionActiva) setTimeout(() => abrirCuenta(), 300); }, 400);
   }
 
   actualizarUIAcceso();
@@ -5464,6 +5469,7 @@ function pedirPremium(motivo) {
 function abrirCuenta(motivo) {
   if (!sesionActiva) { mostrarMuro(); return; }
   abrirCalculadora('premium');
+  cargarMisCompras();
   if (motivo === 'premium') mostrarAvisoCuenta('Este contenido es Premium. Canjea tu código o activa tu suscripción para abrirlo.');
 }
 
@@ -5471,6 +5477,34 @@ function abrirCuenta(motivo) {
 function mostrarAvisoCuenta(texto) {
   const a = _$('cta_aviso'); if (!a) return;
   a.textContent = texto; a.style.display = texto ? 'block' : 'none';
+}
+
+/* ---------- Mis compras ---------- */
+const ESTADO_PEDIDO = { pagado: 'Pagado', preparando: 'Preparando tu pedido', enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado' };
+const PASOS_PEDIDO = ['pagado', 'preparando', 'enviado', 'entregado'];
+function _e(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+async function cargarMisCompras() {
+  const cont = _$('cta_compras'); if (!cont) return;
+  if (!sesionActiva) { cont.innerHTML = ''; return; }
+  const r = await _rpc('mis_compras');
+  if (!r.ok || !r.data || r.data.error) { cont.innerHTML = '<p class="nota-chica">No pudimos cargar tus compras ahora. Inténtalo más tarde.</p>'; return; }
+  const ped = r.data.pedidos || [], prem = r.data.premium || [];
+  if (!ped.length && !prem.length) { cont.innerHTML = '<p class="nota-chica">Aún no tienes compras. Cuando compres algo, lo verás aquí con su seguimiento.</p>'; return; }
+  const fecha = (iso) => _fechaLarga(iso);
+  let h = '';
+  ped.forEach(p => {
+    const idx = PASOS_PEDIDO.indexOf(p.estado);
+    const barra = p.estado === 'cancelado' ? '' : '<div style="display:flex;gap:4px;margin:.5rem 0 .3rem;">' + PASOS_PEDIDO.map((x, i) => '<div style="flex:1;height:4px;border-radius:2px;background:' + (i <= idx ? 'var(--oro)' : 'var(--borde, #333)') + ';"></div>').join('') + '</div>';
+    const rastreo = p.guia ? '<div class="nota-chica" style="margin-top:.4rem;">Guía <b>' + _e(p.guia) + '</b> · ' + _e(p.paqueteria) + (p.url_rastreo && /^https?:\/\//i.test(p.url_rastreo) ? ' · <a href="' + _e(p.url_rastreo) + '" target="_blank" rel="noopener" style="color:var(--oro);">Rastrear</a>' : '') + '</div>' : '';
+    h += '<div class="calc-resultado activo" style="display:block;margin-bottom:.8rem;">' +
+      '<div style="display:flex;justify-content:space-between;gap:.5rem;"><b>' + _e(ESTADO_PEDIDO[p.estado] || p.estado) + '</b><span class="nota-chica">' + fecha(p.fecha) + '</span></div>' + barra +
+      '<div class="nota-chica" style="white-space:pre-wrap;">' + _e(p.productos) + '</div>' +
+      '<div class="nota-chica" style="margin-top:.3rem;">Envío: ' + (Number(p.envio) === 0 ? 'gratis' : '$' + _e(p.envio)) + ' · <b>Total $' + _e(p.total) + ' MXN</b></div>' + rastreo + '</div>';
+  });
+  prem.forEach(a => {
+    h += '<div class="calc-resultado activo" style="display:block;margin-bottom:.8rem;"><div style="display:flex;justify-content:space-between;gap:.5rem;"><b>Premium · 30 días</b><span class="nota-chica">' + fecha(a.fecha) + '</span></div><div class="nota-chica">$59 MXN · vigente hasta el ' + fecha(a.hasta) + '</div></div>';
+  });
+  cont.innerHTML = h;
 }
 
 function renderCuenta() {
