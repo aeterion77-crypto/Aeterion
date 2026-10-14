@@ -800,6 +800,7 @@
       display: flex; align-items: center; justify-content: space-between;
     }
     .app-header-logo { font-family: var(--font-ui); font-weight: 700; letter-spacing: .12em; color: var(--oro); font-size: 15px; }
+    .app-cuenta-btn { background: transparent; border: 1px solid rgba(201,168,76,.45); color: var(--oro); border-radius: 20px; padding: .4rem .85rem; font-family: var(--font-ui); font-size: 11px; letter-spacing: .05em; cursor: pointer; white-space: nowrap; }
     .app-header-sub { font-family: var(--font-ui); font-size: 10px; color: var(--gris); letter-spacing: .06em; }
 
     .app-screen { display: none; flex: 1; padding: 1.6rem 1.4rem calc(6.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
@@ -2368,6 +2369,7 @@
   <header class="app-header">
     <span class="app-header-logo">AETERION</span>
     <span class="app-header-sub" id="appHeaderSub"></span>
+    <button class="app-cuenta-btn" onclick="abrirCuenta()">👤 <span class="app-cuenta-txt">Entrar</span></button>
   </header>
 
   <!-- INICIO -->
@@ -2462,6 +2464,10 @@
   <div class="app-screen" id="app-screen-mas">
     <h2 class="app-titulo">Más</h2>
     <p class="app-subtitulo">Recetas, protocolos y guías</p>
+    <button class="app-card continuar" onclick="abrirCuenta()">
+      <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
+      <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
+    </button>
     <button class="app-card" onclick="abrirCalculadora('recetas')">
       <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
       <div class="app-card-desc">Cocina mexicana, ensaladas, postres, snacks y comidas saludables — con ingredientes y pasos.</div>
@@ -5258,6 +5264,8 @@ function _fechaLarga(iso) {
 function actualizarUIAcceso() {
   // Botón de la barra superior
   document.querySelectorAll('.nav-cta, .nav-cta-m').forEach(a => { a.textContent = sesionActiva ? 'Mi cuenta' : 'Entrar'; });
+  document.querySelectorAll('.app-cuenta-txt').forEach(a => { a.textContent = sesionActiva ? 'Mi cuenta' : 'Entrar'; });
+  _txt('appCuentaMeta', sesionActiva ? 'Mi cuenta' : 'Entrar');
   // Banner
   _txt('banner-estado', sesionActiva
     ? (tienePremiumLocal() ? 'Premium activo hasta el ' + _fechaLarga(estadoAcceso.vence_en) : 'Cuenta gratuita · Premium no activo')
