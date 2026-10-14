@@ -7913,8 +7913,8 @@ function aetBeep() {
   try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
   try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = .15; o.start(); setTimeout(() => { o.stop(); c.close(); }, 350); } catch (e) {}
 }
-function aetTimerIniciar(seg, label) { AET_TMR = { fin: Date.now() + seg * 1000, label }; aetTick(); }
-function aetTimerMas(s) { if (AET_TMR.fin) { AET_TMR.fin += s * 1000; aetTick(); } }
+function aetTimerIniciar(seg, label, tope) { const t0 = Date.now(); AET_TMR = { fin: t0 + seg * 1000, label, t0, max: tope ? t0 + tope * 1000 : Infinity }; aetTick(); }
+function aetTimerMas(s) { if (AET_TMR.fin) { AET_TMR.fin = Math.min(AET_TMR.fin + s * 1000, AET_TMR.max || Infinity); aetTick(); } }
 function aetTimerParar() { AET_TMR = { fin: 0, label: '' }; aetTick(); }
 function aetTick() {
   const ck = document.getElementById('sesClock');
@@ -7928,7 +7928,7 @@ function aetTick() {
     } else r.classList.remove('on');
   }
 }
-function aetRestHtml() { return `<div class="ses-rest" id="sesRest"><b>00:00</b><span></span><button onclick="aetTimerMas(15)">+15 s</button><button onclick="aetTimerParar()">Saltar</button></div>`; }
+function aetRestHtml() { return `<div class="ses-rest" id="sesRest"><b>00:00</b><span></span><button onclick="aetTimerMas(30)">+30 s</button><button onclick="aetTimerParar()">Saltar</button></div>`; }
 function aetSesEl(mma) {
   let s = document.getElementById('appSesion');
   if (!s) { s = document.createElement('div'); s.id = 'appSesion'; document.body.appendChild(s); }
@@ -8033,7 +8033,7 @@ function aetAro(h, t, size) {
 }
 function aetSesRender() {
   const el = aetSesEl(false), cfg = aetCfg(AET_S.tipo), dia = cfg.R[AET_S.key], { t, h } = aetSesSeries();
-  const sc = el.scrollTop;
+  const sc = el.scrollTop, vOld = el.querySelector('video.video-tecnica');
   if (AET_S.vista < 0) {
     el.innerHTML = `<div class="ses-top"><button onclick="aetSesSalir()">✕</button><div class="ses-title">${esc(dia.titulo)}<small>${AET_PROG_NOM[AET_S.tipo]}</small></div><div class="ses-clock" id="sesClock">00:00</div></div>
       <div class="ses-body"><div class="ses-prog"><div class="bar"><i style="width:${t ? Math.round(h / t * 100) : 0}%"></i></div><span>${h}/${t} series</span></div>${aetRestHtml()}
@@ -8042,10 +8042,13 @@ function aetSesRender() {
   } else {
     const e = AET_S.ejs[AET_S.vista], i = AET_S.vista, ultimo = i === AET_S.ejs.length - 1;
     let sug = null; try { sug = sugerenciaSobrecarga(e.n, e.reps, e.m, i < 2, cfg.perfil, cfg.bloque); } catch (x) {}
+    const vid = (dia.ejercicios[e.idx] || {}).video || '';
     el.innerHTML = `<div class="ses-top"><button onclick="AET_S.vista=-1;aetSesRender()">←</button><div class="ses-title">Ejercicio ${i + 1} de ${AET_S.ejs.length}<small>${esc(dia.titulo)}</small></div><div class="ses-clock" id="sesClock">00:00</div></div>
       <div class="ses-body">${aetRestHtml()}<div class="ses-h">${esc(e.n)}</div><div class="ses-mus">${esc(e.m)}</div>
-      <div class="ses-chips"><div class="ses-chip"><b>${e.sets.length}</b><span>Series</span></div><div class="ses-chip"><b>${esc(e.reps)}</b><span>Reps</span></div><div class="ses-chip"><b>${esc(e.des)}</b><span>Descanso</span></div><div class="ses-chip"><b>${esc(e.rpe)}</b><span>Esfuerzo</span></div></div>
+      <div class="ses-chips"><div class="ses-chip"><b>${e.sets.length}</b><span>Series</span></div><div class="ses-chip"><b>${esc(e.reps)}</b><span>Reps</span></div><div class="ses-chip"><b>3–5 min</b><span>Descanso</span></div><div class="ses-chip"><b>${esc(e.rpe)}</b><span>Esfuerzo</span></div></div>
+      ${vid ? `<video class="video-tecnica" data-psrc="tecnica-videos/${esc(vid)}" muted loop playsinline preload="metadata" onerror="videoFallo(this)" style="max-height:230px;margin:.2rem 0 .8rem"></video>` : ''}
       ${sug ? `<div class="ses-sug">📈 ${esc(sug.texto)}</div>` : ''}
+      <div class="ses-sug" style="border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.04)">⏱ Descansa lo que tarde tu recuperación, entre 3 y 5 minutos. Empieza el siguiente set cuando sientas que puedes repetir la técnica y el esfuerzo de la serie anterior.</div>
       <details class="ses-det"><summary>Técnica</summary><p style="margin:.5rem 0 0">${esc(e.nota)}</p></details>
       <div class="ses-tab"><div class="ses-fila cab"><div>#</div><div>Reps</div><div>Kg</div><div></div></div>
       ${e.sets.map((s, j) => `<div class="ses-fila ${s.ok ? 'ok' : ''}"><span>${j + 1}</span><input type="number" inputmode="numeric" value="${s.r}" onchange="aetSesVal(${i},${j},'r',this.value)"><input type="number" inputmode="decimal" step="0.5" value="${s.kg}" placeholder="kg" onchange="aetSesVal(${i},${j},'kg',this.value)"><button class="ses-chk" onclick="aetSesCheck(${i},${j})">✓</button></div>`).join('')}
@@ -8053,6 +8056,7 @@ function aetSesRender() {
       <p class="aet-nota">Se precargan los kilos y repeticiones de tu última sesión. Marca ✓ al terminar cada serie y empieza el descanso solo.</p></div>
       <div class="ses-bar-bot">${ultimo ? `<button class="aet-btn e" onclick="aetSesTerminar()">Terminar entrenamiento</button>` : `<button class="aet-btn e" onclick="AET_S.vista=${i + 1};aetSesRender()">Siguiente ejercicio ›</button>`}</div>`;
   }
+  if (AET_S.vista >= 0) { const vN = el.querySelector('video.video-tecnica'); if (vN && vOld && vOld.dataset.psrc === vN.dataset.psrc && vOld.getAttribute('src')) vN.replaceWith(vOld); }
   el.scrollTop = sc; aetTick();
 }
 function aetSesAbrir(i) { AET_S.vista = i; aetSesGuardar(); aetSesRender(); document.getElementById('appSesion').scrollTop = 0; }
@@ -8069,7 +8073,7 @@ function aetSesCheck(i, j) {
   document.querySelectorAll('.ses-fila:not(.cab)')[j] && (() => { const f = document.querySelectorAll('.ses-fila:not(.cab)')[j].querySelectorAll('input'); const r = AET.num(f[0].value), k = AET.num(f[1].value); s.r = r == null ? '' : r; s.kg = k == null ? '' : k; })();
   if (s.ok) {
     const fin = e.sets.every(x => x.ok);
-    if (!(fin && i === AET_S.ejs.length - 1)) aetTimerIniciar(aetSeg(e.des), fin ? 'Descanso · siguiente ejercicio' : 'Descanso · serie ' + (j + 2));
+    if (!(fin && i === AET_S.ejs.length - 1)) aetTimerIniciar(180, (fin ? 'Descanso · siguiente ejercicio' : 'Descanso · serie ' + (j + 2)) + ' · hasta 5 min si lo necesitas', 300);
     if (fin) aetToast('✓ ' + e.n + ' completo');
   }
   aetSesGuardar(); aetSesRender();
