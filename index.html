@@ -6765,7 +6765,7 @@ const RESPALDO_VALIDADORES = {
   medidas_historial: v => Array.isArray(v), medidas_meta: v => _esObj(v),
   mma_completados: v => _esObj(v), mma2_completados: v => _esObj(v), mma3_completados: v => _esObj(v),
   mma_1rm: v => _esObj(v), mma_historial_semanas: v => Array.isArray(v),
-  aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
+  aet_programa: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
 };
 // Valores que se guardan como texto plano (no JSON)
@@ -6880,6 +6880,7 @@ function notaRespaldoHtml() {
 function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
 async function abrirCalculadora(tipo) {
+  if (typeof AET_PROGRAMAS !== 'undefined' && AET_PROGRAMAS[tipo]) { try { if (!localStorage.getItem('aet_programa')) localStorage.setItem('aet_programa', JSON.stringify({ tipo })); } catch (e) {} }
   if (TIPOS_PREMIUM.includes(tipo)) {
     if (!tienePremiumLocal()) { pedirPremium(tipo); return; }
     if (!(await cargarModuloPremium(MODULOS_PREMIUM[tipo]))) return;
@@ -6907,6 +6908,7 @@ function cerrarCalculadora(tipo) {
   const modal = document.getElementById('modalCalc' + tipo.charAt(0).toUpperCase() + tipo.slice(1));
   if (modal) modal.classList.remove('activo');
   document.body.style.overflow = '';
+  if (document.body.classList.contains('modo-app') && typeof aetRefrescar === 'function') aetRefrescar();
 }
 
 function cambiarCalcTab(tipo, tab, btn) {
@@ -7232,7 +7234,7 @@ const AET = {
   hoy() { return AET.fmt(new Date()); },
   dia(off) { const d = new Date(); d.setDate(d.getDate() - off); return AET.fmt(d); },
   corta(f) { const p = f.split('-'); return p[2] + '/' + p[1]; },
-  metas() { return Object.assign({ kcal: 2000, prot: 120, entrenos: 4, agua: 8 }, AET.leer('aet_metas', {})); },
+  metas() { const a = aetMetasAuto(); return Object.assign({ kcal: a.kcal, prot: a.prot, entrenos: a.entrenos, agua: 8 }, AET.leer('aet_metas', {})); },
   num(v) { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; },
   pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
   idg: 0,
@@ -7250,6 +7252,69 @@ function aetSheet(t, html) {
   s.classList.add('abierto');
 }
 function aetCerrar() { const s = document.getElementById('appSheet'); if (s) s.classList.remove('abierto'); }
+
+/* ---------- metas automáticas: salen de tu rutina y de tu plan ---------- */
+const AET_PROGRAMAS = {
+  entrenamiento: { dias: 5, n: 'GYM Hombre 5 días' }, h3: { dias: 3, n: 'GYM Hombre 3 días' }, m5: { dias: 5, n: 'GYM Mujer 5 días' },
+  mma1: { dias: 4, n: 'MMA Nivel 1' }, mma2: { dias: 5, n: 'MMA Nivel 2' }, mma3: { dias: 6, n: 'MMA Nivel 3' },
+};
+function aetPrograma() {
+  const g = AET.leer('aet_programa', null);
+  if (g && AET_PROGRAMAS[g.tipo]) return Object.assign({ tipo: g.tipo }, AET_PROGRAMAS[g.tipo]);
+  const hay = {
+    entrenamiento: (AET.leer('gym_perfil_h5', {}) || {}).calculado, h3: (AET.leer('gym_perfil_h3', {}) || {}).calculado,
+    m5: (AET.leer('gym_perfil_m5', {}) || {}).calculado, mma1: localStorage.getItem('mma_semana'),
+    mma2: localStorage.getItem('mma2_semana'), mma3: localStorage.getItem('mma3_semana'),
+  };
+  const t = Object.keys(hay).find(k => hay[k]);
+  return t ? Object.assign({ tipo: t }, AET_PROGRAMAS[t]) : null;
+}
+function aetNumTexto(t) { const m = /\d[\d,]*\.?\d*/.exec(String(t || '')); const n = m ? parseFloat(m[0].replace(/,/g, '')) : NaN; return isFinite(n) ? n : null; }
+function aetPlanNutri() {
+  let mejor = null;
+  ['dieta_sano', 'dieta_sii', 'dieta_diabetes'].forEach(k => {
+    const d = AET.leer(k, null); if (!d || !d.resumen) return;
+    const kcal = aetNumTexto(d.resumen.kcal), prot = aetNumTexto(d.resumen.prot);
+    if (kcal && kcal >= 800 && kcal <= 8000 && (!mejor || String(d.fecha) >= String(mejor.fecha))) mejor = { fecha: d.fecha, kcal: Math.round(kcal), prot: prot && prot > 10 && prot < 500 ? Math.round(prot) : null, k };
+  });
+  return mejor;
+}
+function aetMetasAuto() {
+  const pr = aetPrograma(), pl = aetPlanNutri(), ps = AET.pesos(), peso = ps.length ? ps[ps.length - 1].peso : null;
+  return {
+    entrenos: pr ? pr.dias : 3, fEntrenos: pr ? 'según tu rutina: ' + pr.n : 'referencia general (3 días/semana)',
+    kcal: pl ? pl.kcal : 2000, fKcal: pl ? 'según tu plan de Nutrición' : 'referencia general: calcula tu plan en Nutrición',
+    prot: pl && pl.prot ? pl.prot : (peso ? Math.round(peso * 1.6) : 120),
+    fProt: pl && pl.prot ? 'según tu plan de Nutrición' : (peso ? '1.6 g por kg de tu peso (Morton 2018)' : 'referencia general: registra tu peso'),
+  };
+}
+
+/* Detecta entrenos hechos en las rutinas (checks de ejercicios, series guardadas) para sumarlos a la racha */
+(function () {
+  const orig = Storage.prototype.setItem;
+  const cuenta = (k, v) => {
+    try {
+      const o = JSON.parse(v); if (!o || typeof o !== 'object') return 0;
+      if (/^gym_completados_/.test(k)) return Object.values(o).reduce((t, a) => t + (Array.isArray(a) ? a.length : 0), 0);
+      if (/^mma\d?_completados$/.test(k)) return Object.values(o).reduce((t, d) => t + Object.values(d || {}).filter(Boolean).length, 0);
+      if (k === 'gym_registro_series') return JSON.stringify(o).split('"fecha":"' + AET.hoy() + '"').length - 1;
+    } catch (e) {}
+    return 0;
+  };
+  Storage.prototype.setItem = function (k, v) {
+    try {
+      if (this === window.localStorage && (/^gym_completados_|^mma\d?_completados$|^gym_registro_series$/).test(k)) {
+        const antes = cuenta(k, localStorage.getItem(k)), despues = cuenta(k, v);
+        if (despues > antes) setTimeout(() => {
+          aetMarcar('e');
+          const t = { gym_completados_h5: 'entrenamiento', gym_completados_h3: 'h3', gym_completados_m5: 'm5', mma_completados: 'mma1', mma2_completados: 'mma2', mma3_completados: 'mma3' }[k];
+          if (t) AET.guardar('aet_programa', { tipo: t });
+        }, 0);
+      }
+    } catch (e) {}
+    return orig.apply(this, arguments);
+  };
+})();
 
 /* ---------- actividad / racha ---------- */
 function aetMarcar(t) {
@@ -7326,19 +7391,24 @@ function aetGuardarComida() {
   aetAgregarComida({ n, k, p: g('aetCp') || 0, c: g('aetCc') || 0, g: g('aetCg') || 0 });
 }
 function aetFormMetas() {
-  const m = AET.metas();
+  const m = AET.metas(), a = aetMetasAuto();
   aetSheet('Mis metas diarias', `
     <div class="aet-fila"><div><label class="aet-lbl">Calorías</label><input class="aet-in" id="aetMk" type="number" inputmode="numeric" value="${m.kcal}"></div>
     <div><label class="aet-lbl">Proteína (g)</label><input class="aet-in" id="aetMp" type="number" inputmode="numeric" value="${m.prot}"></div></div>
     <div class="aet-fila"><div><label class="aet-lbl">Entrenos / semana</label><input class="aet-in" id="aetMe" type="number" inputmode="numeric" value="${m.entrenos}"></div>
     <div><label class="aet-lbl">Vasos de agua</label><input class="aet-in" id="aetMa" type="number" inputmode="numeric" value="${m.agua}"></div></div>
-    <p class="aet-nota">Si hiciste tu plan en la calculadora de Nutrición, usa esas calorías y proteína.</p>
+    <p class="aet-nota">Automático: calorías ${esc(a.fKcal)}; proteína ${esc(a.fProt)}; entrenos ${esc(a.fEntrenos)}. Si cambias un valor se respeta el tuyo; para volver al automático déjalo igual que el sugerido (${a.kcal} kcal · ${a.prot} g · ${a.entrenos} días). 8 vasos ≈ 2 litros, una referencia general.</p>
     <button class="aet-btn" style="margin-top:1rem" onclick="aetGuardarMetas()">Guardar</button>`);
 }
 function aetGuardarMetas() {
-  const v = (id, a, b, d) => { const n = AET.num(document.getElementById(id).value); return n != null && n >= a && n <= b ? Math.round(n) : d; };
-  const m = AET.metas();
-  AET.guardar('aet_metas', { kcal: v('aetMk', 500, 10000, m.kcal), prot: v('aetMp', 10, 500, m.prot), entrenos: v('aetMe', 1, 7, m.entrenos), agua: v('aetMa', 1, 30, m.agua) });
+  const v = (id, a, b) => { const n = AET.num(document.getElementById(id).value); return n != null && n >= a && n <= b ? Math.round(n) : null; };
+  const a = aetMetasAuto(), nuevo = { kcal: v('aetMk', 500, 10000), prot: v('aetMp', 10, 500), entrenos: v('aetMe', 1, 7), agua: v('aetMa', 1, 30) };
+  const g = {};
+  if (nuevo.kcal != null && nuevo.kcal !== a.kcal) g.kcal = nuevo.kcal;
+  if (nuevo.prot != null && nuevo.prot !== a.prot) g.prot = nuevo.prot;
+  if (nuevo.entrenos != null && nuevo.entrenos !== a.entrenos) g.entrenos = nuevo.entrenos;
+  if (nuevo.agua != null && nuevo.agua !== 8) g.agua = nuevo.agua;
+  AET.guardar('aet_metas', g);
   aetCerrar(); aetRefrescar();
 }
 
@@ -7370,8 +7440,16 @@ function aetGrafica(pts, color, mini) {
 
 /* ---------- registro de entrenos ---------- */
 const AET_EJERCICIOS = ['Press de banca', 'Press inclinado con mancuernas', 'Press militar', 'Sentadilla', 'Peso muerto', 'Peso muerto rumano', 'Prensa de piernas', 'Zancadas', 'Hip thrust', 'Dominadas', 'Jalón al pecho', 'Remo con barra', 'Remo con mancuerna', 'Curl de bíceps', 'Extensión de tríceps', 'Elevaciones laterales', 'Fondos', 'Curl femoral', 'Extensión de cuádriceps', 'Elevación de talones'];
-const aetE1rm = (kg, r) => r > 0 ? Math.round(kg * (1 + r / 30) * 10) / 10 : 0;
-function aetLog() { return AET.leer('aet_log_entreno', []); }
+const aetE1rm = (kg, r) => (r > 0 && r <= 12 && kg > 0) ? Math.round(kg * (1 + r / 30) * 10) / 10 : 0;
+function aetLogPropio() { return AET.leer('aet_log_entreno', []); }
+function aetLog() { // mis registros + lo que guardas dentro de las rutinas
+  const rs = AET.leer('gym_registro_series', {}), extra = [];
+  if (rs && typeof rs === 'object') Object.keys(rs).forEach(n => (Array.isArray(rs[n]) ? rs[n] : []).forEach(r => {
+    const series = (r.sets || []).map(x => ({ r: +x.reps || 0, kg: +x.peso || 0 })).filter(x => x.r > 0);
+    if (series.length && r.fecha) extra.push({ id: Date.parse(r.fecha + 'T12:00:00') || 0, fecha: r.fecha, ej: n, series, rutina: true });
+  }));
+  return aetLogPropio().concat(extra);
+}
 function aetMejorE1rm(ses) { return Math.max(0, ...ses.series.map(s => aetE1rm(s.kg, s.r))); }
 function aetFormEntreno(nombre) {
   const nombres = [...new Set([...aetLog().map(l => l.ej), ...AET_EJERCICIOS])];
@@ -7407,8 +7485,8 @@ function aetGuardarEntreno() {
     if (r && r > 0 && r <= 100 && (kg == null || (kg >= 0 && kg <= 1000))) series.push({ r: Math.round(r), kg: kg || 0 });
   });
   if (!series.length) { aetToast('Agrega al menos una serie con repeticiones'); return; }
-  const log = aetLog();
-  const previos = log.filter(l => l.ej.toLowerCase() === ej.toLowerCase());
+  const log = aetLogPropio();
+  const previos = aetLog().filter(l => l.ej.toLowerCase() === ej.toLowerCase());
   const nueva = { id: Date.now(), fecha: AET.hoy(), ej, series };
   const mejorAntes = previos.length ? Math.max(...previos.map(aetMejorE1rm)) : 0;
   const pr = previos.length > 0 && aetMejorE1rm(nueva) > mejorAntes && aetMejorE1rm(nueva) > 0;
@@ -7423,15 +7501,15 @@ function aetDetalleEj(nombre) {
   const pts = ses.map(s => ({ l: AET.corta(s.fecha), y: aetMejorE1rm(s) }));
   const mejor = Math.max(0, ...pts.map(p => p.y));
   aetSheet(esc(nombre), `
-    <div class="aet-peso"><b style="color:var(--ac-e)">${mejor}</b><small>kg · mejor 1RM estimado</small></div>
+    <div class="aet-peso"><b style="color:var(--ac-e)">${mejor || '—'}</b><small>${mejor ? 'kg · mejor 1RM estimado' : 'sin 1RM: solo se estima con 1–12 repeticiones y peso'}</small></div>
     ${aetGrafica(pts, '#ff7a2f')}
     <button class="aet-btn e" style="margin:.6rem 0" onclick="aetFormEntreno(${JSON.stringify(nombre).replace(/"/g, '&quot;')})">＋ Registrar otra sesión</button>
-    ${ses.slice().reverse().slice(0, 12).map(s => `<div class="aet-ses"><small>${AET.corta(s.fecha)} · <a href="#" style="color:#e8504a" onclick="aetBorrarSesion(${s.id});return false">borrar</a></small>${s.series.map(x => x.r + '×' + x.kg + ' kg').join(' · ')}</div>`).join('')}
-    <p class="aet-nota">1RM estimado con la fórmula de Epley (peso × (1 + reps/30)). Es una referencia, no una prueba de máximo.</p>`);
+    ${ses.slice().reverse().slice(0, 12).map(s => `<div class="aet-ses"><small>${AET.corta(s.fecha)}${s.rutina ? ' · de tu rutina' : ` · <a href="#" style="color:#e8504a" onclick="aetBorrarSesion(${s.id});return false">borrar</a>`}</small>${s.series.map(x => x.r + '×' + x.kg + ' kg').join(' · ')}</div>`).join('')}
+    <p class="aet-nota">1RM estimado con la fórmula de Epley (peso × (1 + reps/30)), válida para series de 1 a 12 repeticiones. Es una referencia, no una prueba de máximo.</p>`);
 }
 function aetBorrarSesion(id) {
   if (!confirm('¿Borrar esta sesión?')) return;
-  AET.guardar('aet_log_entreno', aetLog().filter(l => l.id !== id));
+  AET.guardar('aet_log_entreno', aetLogPropio().filter(l => l.id !== id));
   aetCerrar(); aetRefrescar();
 }
 function aetRenderEntrenar() {
@@ -7443,9 +7521,10 @@ function aetRenderEntrenar() {
   const hoyMarcado = (AET.leer('aet_actividad', {})[AET.hoy()] || []).includes('e');
   el.innerHTML = `<div class="aet-panel" style="border-color:rgba(255,122,47,.3)">
     <div class="aet-panel-t"><span style="color:var(--ac-e)">📓 Mi registro</span><span style="color:var(--blanco)">${sem}/${m.entrenos} esta semana</span></div>
+    ${aetPrograma() ? `<p class="aet-nota" style="margin:-.3rem 0 .8rem">Tu rutina: ${aetPrograma().n} · meta de ${m.entrenos} días.</p>` : ''}
     <div class="aet-fila"><button class="aet-btn e" onclick="aetFormEntreno()">＋ Registrar ejercicio</button>
     <button class="aet-btn sec" onclick="aetMarcarEntreno()">${hoyMarcado ? '✓ Hoy marcado' : 'Marcar entreno de hoy'}</button></div>
-    ${lista.length ? `<div class="aet-ejs" style="margin-top:.9rem">${lista.map(x => `<button class="aet-ej" onclick="aetDetalleEj(${JSON.stringify(x.n).replace(/"/g, '&quot;')})"><b>${esc(x.n)}</b><span>${x.k} ses. · 1RM ${x.mejor} kg</span></button>`).join('')}</div>`
+    ${lista.length ? `<div class="aet-ejs" style="margin-top:.9rem">${lista.map(x => `<button class="aet-ej" onclick="aetDetalleEj(${JSON.stringify(x.n).replace(/"/g, '&quot;')})"><b>${esc(x.n)}</b><span>${x.k} ses.${x.mejor ? ' · 1RM ' + x.mejor + ' kg' : ''}</span></button>`).join('')}</div>`
       : '<p class="aet-nota">Registra series, repeticiones y kilos. Verás tu historial, tu 1RM estimado y tus récords.</p>'}
   </div>`;
 }
