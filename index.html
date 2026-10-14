@@ -8027,7 +8027,7 @@ const AETGYM = (() => {
     if (st.tipoBloque === 'B') return [5, 8];
     return st.niv <= 1 ? [8, 12] : [6, 10];
   }
-  function descansoSeg(nombre) { const M = meta(nombre); return M.k === C ? [180, 300] : (M.peq ? [90, 150] : [120, 180]); }
+  function descansoSeg(nombre) { return [180, 300]; }
   const fmtDesc = r => { const f = s => { const m = s / 60; return Number.isInteger(m) ? String(m) : m.toFixed(1).replace(/\.0$/, ''); }; return f(r[0]) + '–' + f(r[1]) + ' min'; };
 
   function minutosDia(items) { // items: [{nombre, sets}] · 40 s por serie + descanso medio + 1 min de cambio + 6 min de calentamiento
@@ -8378,7 +8378,7 @@ function aetPanelMotor() {
         <b>Repeticiones:</b> 6–12. La hipertrofia es similar con cargas de 30 a 100 % del 1RM si te acercas lo suficiente al fallo (ACSM 2026); el rango 6–12 es una elección práctica para progresar con seguridad.<br>
         <b>Esfuerzo:</b> RIR 3 las dos primeras semanas y 2–3 después; nunca al fallo por calendario.<br>
         <b>Sobrecarga:</b> solo sube la carga si llegas al tope del rango con la reserva indicada y buena técnica, sin dolor. Si no, mantienes o sumas repeticiones. Cada ejercicio progresa por separado; nunca se usa la marca de un ejercicio para otro.<br>
-        <b>Descanso:</b> básicos 3–5 min; aislamiento 2–3 min. La evidencia no fija un valor exacto: manda llegar recuperado para repetir la calidad.<br>
+        <b>Descanso:</b> 3–5 min en todos los ejercicios de GYM. La evidencia no fija un valor exacto: manda llegar recuperado para repetir la calidad.<br>
         <b>Descarga:</b> solo si coinciden caída de rendimiento y fatiga alta, o al cerrar un bloque con señales; no por calendario.<br>
         <b>Límites:</b> pensado para adultos sanos de 18 años o más. No es una valoración médica ni sustituye a un profesional si tienes lesiones o enfermedades.</p></details>
       <div class="aet-fila"><button class="aet-btn sec mini" onclick="aetReiniciarSemana('${t}')">Cerrar semana del bloque</button></div>
