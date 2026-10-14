@@ -2577,33 +2577,34 @@
   <div class="app-screen" id="app-screen-entrenar">
     <h2 class="app-titulo">Entrenar</h2>
     <p class="app-subtitulo">Tu entrenamiento de hoy, paso a paso</p>
+    <div id="appEntrenarChips"></div>
     <div id="appEntrenarHero"></div>
     <div id="appEntrenarLog"></div>
 
     <div class="app-seccion-titulo">Programas GYM — ver detalle y perfil</div>
-    <button class="app-card" onclick="abrirCalculadora('entrenamiento')">
+    <button class="app-card" onclick="aetSetPrograma('entrenamiento');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Hombre — 5 Días</span><span class="app-card-meta">Hipertrofia</span></div>
       <div class="app-card-desc">Push/Pull/Piernas + Upper + Piernas&Brazos. Perfil físico que ajusta tus series reales.</div>
     </button>
-    <button class="app-card" onclick="abrirCalculadora('h3')">
+    <button class="app-card" onclick="aetSetPrograma('h3');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Hombre — 3 Días</span><span class="app-card-meta">Hipertrofia</span></div>
       <div class="app-card-desc">Full Body + Superior + Inferior. Para quien no puede comprometer 5 días.</div>
     </button>
-    <button class="app-card" onclick="abrirCalculadora('m5')">
+    <button class="app-card" onclick="aetSetPrograma('m5');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Mujer — 5 Días</span><span class="app-card-meta">Hipertrofia</span></div>
       <div class="app-card-desc">Glúteo dominante, volumen auditado dentro del máximo recuperable.</div>
     </button>
 
     <div class="app-seccion-titulo">Programas MMA — ver detalle y semana</div>
-    <button class="app-card" onclick="abrirCalculadora('mma1')">
+    <button class="app-card" onclick="aetSetPrograma('mma1');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Nivel 1 — Armadura Estructural</span><span class="app-card-meta">Meses 1–4</span></div>
       <div class="app-card-desc">16 semanas resueltas automáticamente. Bompa/Issurin + Colquhoun et al. 2017.</div>
     </button>
-    <button class="app-card" onclick="abrirCalculadora('mma2')">
+    <button class="app-card" onclick="aetSetPrograma('mma2');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Nivel 2 — Transferencia de Potencia</span><span class="app-card-meta">Meses 5–8</span></div>
       <div class="app-card-desc">5 días por semana: fuerza máxima, potencia explosiva y circuito de combate. Colquhoun et al. 2017.</div>
     </button>
-    <button class="app-card" onclick="abrirCalculadora('mma3')">
+    <button class="app-card" onclick="aetSetPrograma('mma3');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Nivel 3 — Fight Ready / Élite</span><span class="app-card-meta">Meses 9–12</span></div>
       <div class="app-card-desc">6 días por semana: isométricos post-fatiga, Complex AETERION y simulación de combate. Issurin 2008.</div>
     </button>
@@ -7928,7 +7929,8 @@ function aetDiaGymSel(pr, cfg) {
 }
 function aetRenderHero() {
   const el = document.getElementById('appEntrenarHero'); if (!el) return;
-  const pr = aetPrograma();
+  const pr = aetPrograma(), ch = document.getElementById('appEntrenarChips');
+  if (ch) ch.innerHTML = `<div class="ses-dias" style="margin-bottom:.4rem">${Object.keys(AET_PROG_NOM).map(k => `<button class="ses-dia ${pr && pr.tipo === k ? 'sel' : ''}" style="--ac:${k.indexOf('mma') === 0 ? '#e8504a' : '#ff7a2f'}" onclick="aetSetPrograma('${k}')"><b>${k.indexOf('mma') === 0 ? 'MMA ' + k.slice(3) : k === 'entrenamiento' ? 'GYM H5' : k === 'h3' ? 'GYM H3' : 'GYM M5'}</b>${AET_PROGRAMAS[k].dias} días</button>`).join('')}</div>`;
   if (!pr) {
     el.innerHTML = `<div class="ses-hero"><div class="k">Empieza aquí</div><h3>Elige tu programa</h3><p>Escoge GYM o MMA y la app te guía día por día: qué ejercicio sigue, cuántas series, qué peso y cuánto descansar.</p><button class="aet-btn e" onclick="aetElegirPrograma()">Elegir programa</button></div>`;
     return;
@@ -7973,7 +7975,7 @@ function aetHeroGym(pr, el) {
   }
   el.innerHTML = `<div class="ses-hero">${cuerpo}</div>
     <div class="ses-dias">${pills}</div>
-    <div class="aet-fila" style="margin-bottom:.4rem"><button class="aet-btn sec mini" onclick="aetElegirPrograma()">Programa: ${pr.n} ⇄</button><button class="aet-btn sec mini" onclick="abrirCalculadora('${pr.tipo}')">Perfil y detalle</button></div>`;
+    <div class="aet-fila" style="margin-bottom:.4rem"><button class="aet-btn sec mini" onclick="abrirCalculadora('${pr.tipo}')">Perfil y detalle de ${pr.n}</button></div>`;
 }
 function aetReiniciarSemana(tipo) {
   if (!confirm('¿Empezar una semana nueva? Se limpian los checks de los días (tus series registradas se quedan).')) return;
@@ -8108,7 +8110,7 @@ function aetHeroMma(pr, el) {
       <button class="aet-btn e" style="background:#e8504a;color:#fff" onclick="aetMmaAbrir(${n},'${cur.k}')">▶ ${cur.hechos ? 'Continuar' : 'Empezar'} entrenamiento</button>`
     : `<div class="k">${pr.n} · Semana ${sem.s} de 16</div><h3>¡Semana completa! 🎉</h3><p>Terminaste los ${dias.length} días. Pasa a la semana siguiente para recibir su plan.</p><button class="aet-btn e" style="background:#e8504a;color:#fff" onclick="aetMmaAvanzar(${n})">Avanzar a la semana ${Math.min(16, sem.s + 1)}</button>`;
   el.innerHTML = `<div class="ses-hero mma">${cuerpo}</div><div class="ses-dias" style="--ac:#e8504a">${pills}</div>
-    <div class="aet-fila" style="margin-bottom:.4rem"><button class="aet-btn sec mini" onclick="aetElegirPrograma()">Programa: ${pr.n} ⇄</button><button class="aet-btn sec mini" onclick="abrirCalculadora('${pr.tipo}')">Mi semana y detalle</button></div>`;
+    <div class="aet-fila" style="margin-bottom:.4rem"><button class="aet-btn sec mini" onclick="abrirCalculadora('${pr.tipo}')">Mi semana y detalle de ${pr.n}</button></div>`;
 }
 function aetMmaAvanzar(n) { if (confirm('¿Pasar a la semana siguiente? Se reinician los checks de la semana.')) { aetMmaInfo(n).avanzar(); aetRefrescar(); } }
 function aetMmaAbrir(n, dia) {
