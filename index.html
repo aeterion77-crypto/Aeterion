@@ -7329,7 +7329,8 @@ function aetMetasAuto() {
       const o = JSON.parse(v); if (!o || typeof o !== 'object') return 0;
       if (/^gym_completados_/.test(k)) return Object.values(o).reduce((t, a) => t + (Array.isArray(a) ? a.length : 0), 0);
       if (/^mma\d?_completados$/.test(k)) return Object.values(o).reduce((t, d) => t + Object.values(d || {}).filter(Boolean).length, 0);
-      if (k === 'gym_registro_series') return JSON.stringify(o).split('"fecha":"' + AET.hoy() + '"').length - 1;
+      if (k === 'gym_registro_series') { const j = JSON.stringify(o), utc = new Date().toISOString().slice(0, 10); // las rutinas fechan en UTC, la app en hora local
+        return j.split('"fecha":"' + AET.hoy() + '"').length - 1 + (utc !== AET.hoy() ? j.split('"fecha":"' + utc + '"').length - 1 : 0); }
     } catch (e) {}
     return 0;
   };
@@ -7484,7 +7485,8 @@ function aetLog() { // mis registros + lo que guardas dentro de las rutinas
   const rs = AET.leer('gym_registro_series', {}), extra = [];
   if (rs && typeof rs === 'object') Object.keys(rs).forEach(n => (Array.isArray(rs[n]) ? rs[n] : []).forEach(r => {
     const series = (r.sets || []).map(x => ({ r: +x.reps || 0, kg: +x.peso || 0 })).filter(x => x.r > 0);
-    if (series.length && r.fecha) extra.push({ id: Date.parse(r.fecha + 'T12:00:00') || 0, fecha: r.fecha, ej: n, series, rutina: true });
+    const utc = new Date().toISOString().slice(0, 10), fecha = r.fecha === utc ? AET.hoy() : r.fecha; // las rutinas fechan en UTC
+    if (series.length && r.fecha) extra.push({ id: Date.parse(fecha + 'T12:00:00') || 0, fecha, ej: n, series, rutina: true });
   }));
   return aetLogPropio().concat(extra);
 }
