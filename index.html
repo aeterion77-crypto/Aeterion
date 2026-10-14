@@ -7235,7 +7235,7 @@ const AET = {
   hoy() { return AET.fmt(new Date()); },
   dia(off) { const d = new Date(); d.setDate(d.getDate() - off); return AET.fmt(d); },
   corta(f) { const p = f.split('-'); return p[2] + '/' + p[1]; },
-  metas() { const a = aetMetasAuto(); return Object.assign({ kcal: a.kcal, prot: a.prot, entrenos: a.entrenos, agua: 8 }, AET.leer('aet_metas', {})); },
+  metas() { const a = aetMetasAuto(); return Object.assign({ kcal: a.kcal, prot: a.prot, entrenos: a.entrenos, agua: a.agua }, AET.leer('aet_metas', {})); },
   num(v) { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; },
   pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
   idg: 0,
@@ -7276,14 +7276,28 @@ function aetPlanNutri() {
   ['dieta_sano', 'dieta_sii', 'dieta_diabetes'].forEach(k => {
     const d = AET.leer(k, null); if (!d || !d.resumen) return;
     const kcal = aetNumTexto(d.resumen.kcal), prot = aetNumTexto(d.resumen.prot);
-    if (kcal && kcal >= 800 && kcal <= 8000 && (!mejor || String(d.fecha) >= String(mejor.fecha))) mejor = { fecha: d.fecha, kcal: Math.round(kcal), prot: prot && prot > 10 && prot < 500 ? Math.round(prot) : null, k };
+    if (kcal && kcal >= 800 && kcal <= 8000 && (!mejor || String(d.fecha) >= String(mejor.fecha))) mejor = { fecha: d.fecha, sexo: (d.entradas && d.entradas.sexo) || null, kcal: Math.round(kcal), prot: prot && prot > 10 && prot < 500 ? Math.round(prot) : null, k };
   });
   return mejor;
 }
+/* Agua: ingesta adecuada de agua total (EFSA 2010: hombres 2.5 L, mujeres 2.0 L/día; ~20 % viene de los alimentos,
+   así que lo que se bebe es ~80 %: 2.0 L / 1.6 L). En días de entrenamiento se suma ~0.5 L por sesión de ~1 h
+   (ACSM 2007: reponer las pérdidas por sudor; varían de 0.5 a 2 L/h según persona, calor e intensidad). Vaso = 250 ml. */
+function aetAguaAuto() {
+  const pl = aetPlanNutri(), pr = aetPrograma();
+  let sexo = pl && pl.sexo ? pl.sexo : (pr ? (pr.tipo === 'm5' ? 'F' : (['entrenamiento', 'h3'].includes(pr.tipo) ? 'M' : null)) : null);
+  const baseL = sexo === 'M' ? 2.0 : sexo === 'F' ? 1.6 : 1.8;
+  const entrenaHoy = (AET.leer('aet_actividad', {})[AET.hoy()] || []).includes('e');
+  const ml = baseL * 1000 + (entrenaHoy ? 500 : 0);
+  const fuente = (sexo === 'M' ? 'hombre' : sexo === 'F' ? 'mujer' : 'sexo no indicado: promedio') + ' (EFSA)' + (entrenaHoy ? ' + 0.5 L por entrenar hoy (ACSM)' : '; los días que entrenas sube ~0.5 L por hora de sesión');
+  return { vasos: Math.ceil(ml / 250), ml, fuente };
+}
 function aetMetasAuto() {
   const pr = aetPrograma(), pl = aetPlanNutri(), ps = AET.pesos(), peso = ps.length ? ps[ps.length - 1].peso : null;
+  const ag = aetAguaAuto();
   return {
-    entrenos: pr ? pr.dias : 3, fEntrenos: pr ? 'según tu rutina: ' + pr.n : 'referencia general (3 días/semana)',
+    agua: ag.vasos, fAgua: ag.fuente + ' — ' + ag.ml + ' ml de bebida, vasos de 250 ml',
+    entrenos: pr ? pr.dias : 3, fEntrenos: pr ? 'según tu rutina: ' + pr.n : 'referencia general (OMS: al menos 2 días de fuerza por semana; 3 es un buen punto de partida)',
     kcal: pl ? pl.kcal : 2000, fKcal: pl ? 'según tu plan de Nutrición' : 'referencia general: calcula tu plan en Nutrición',
     prot: pl && pl.prot ? pl.prot : (peso ? Math.round(peso * 1.6) : 120),
     fProt: pl && pl.prot ? 'según tu plan de Nutrición' : (peso ? '1.6 g por kg de tu peso (Morton 2018)' : 'referencia general: registra tu peso'),
@@ -7397,8 +7411,8 @@ function aetFormMetas() {
     <div class="aet-fila"><div><label class="aet-lbl">Calorías</label><input class="aet-in" id="aetMk" type="number" inputmode="numeric" value="${m.kcal}"></div>
     <div><label class="aet-lbl">Proteína (g)</label><input class="aet-in" id="aetMp" type="number" inputmode="numeric" value="${m.prot}"></div></div>
     <div class="aet-fila"><div><label class="aet-lbl">Entrenos / semana</label><input class="aet-in" id="aetMe" type="number" inputmode="numeric" value="${m.entrenos}"></div>
-    <div><label class="aet-lbl">Vasos de agua</label><input class="aet-in" id="aetMa" type="number" inputmode="numeric" value="${m.agua}"></div></div>
-    <p class="aet-nota">Automático: calorías ${esc(a.fKcal)}; proteína ${esc(a.fProt)}; entrenos ${esc(a.fEntrenos)}. Si cambias un valor se respeta el tuyo; para volver al automático déjalo igual que el sugerido (${a.kcal} kcal · ${a.prot} g · ${a.entrenos} días). 8 vasos ≈ 2 litros, una referencia general.</p>
+    <div><label class="aet-lbl">Vasos de agua (250 ml)</label><input class="aet-in" id="aetMa" type="number" inputmode="numeric" value="${m.agua}"></div></div>
+    <p class="aet-nota">Automático: calorías ${esc(a.fKcal)}; proteína ${esc(a.fProt)}; entrenos ${esc(a.fEntrenos)}; agua ${esc(a.fAgua)}. Si cambias un valor se respeta el tuyo; para volver al automático déjalo igual que el sugerido (${a.kcal} kcal · ${a.prot} g · ${a.entrenos} días · ${a.agua} vasos). El agua es una referencia para adultos sanos: calor, sudor, embarazo, lactancia o enfermedad renal/cardiaca la cambian; consulta a tu médico.</p>
     <button class="aet-btn" style="margin-top:1rem" onclick="aetGuardarMetas()">Guardar</button>`);
 }
 function aetGuardarMetas() {
@@ -7408,7 +7422,7 @@ function aetGuardarMetas() {
   if (nuevo.kcal != null && nuevo.kcal !== a.kcal) g.kcal = nuevo.kcal;
   if (nuevo.prot != null && nuevo.prot !== a.prot) g.prot = nuevo.prot;
   if (nuevo.entrenos != null && nuevo.entrenos !== a.entrenos) g.entrenos = nuevo.entrenos;
-  if (nuevo.agua != null && nuevo.agua !== 8) g.agua = nuevo.agua;
+  if (nuevo.agua != null && nuevo.agua !== a.agua) g.agua = nuevo.agua;
   AET.guardar('aet_metas', g);
   aetCerrar(); aetRefrescar();
 }
@@ -7626,7 +7640,7 @@ function aetLogros() {
   const maxRacha = (() => { const f = Object.keys(act).filter(k => act[k].length).sort(); let m = 0, c = 0, p = null; f.forEach(x => { const d = new Date(x + 'T00:00'); if (p && Math.round((d - p) / 864e5) === 1) c++; else c = 1; p = d; m = Math.max(m, c); }); return m; })();
   const ent = aetEntrenosTotal(), ses = aetLog().length;
   const diasComida = Object.values(dias).filter(d => d.comidas && d.comidas.length).length;
-  const aguaOk = Object.values(dias).some(d => (d.agua || 0) >= AET.metas().agua);
+  const aguaOk = Object.values(act).some(v => v.includes('a'));
   return [
     { i: '🔥', n: 'Racha de 3 días', ok: maxRacha >= 3 }, { i: '⚡', n: 'Racha de 7 días', ok: maxRacha >= 7 },
     { i: '🌋', n: 'Racha de 14 días', ok: maxRacha >= 14 }, { i: '👑', n: 'Racha de 30 días', ok: maxRacha >= 30 },
