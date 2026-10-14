@@ -2377,7 +2377,7 @@
     .app-nav-btn.activo::before { background: currentColor; }
     .app-nav-btn:nth-child(2).activo { color: var(--ac-e); }
     .app-nav-btn:nth-child(3).activo { color: var(--ac-n); }
-    .app-nav-btn:nth-child(5).activo { color: var(--ac-p); }
+    .app-nav-btn:nth-child(6).activo { color: var(--ac-p); }
     .app-nav-btn span.icono { filter: saturate(1.15); }
 
     .app-header-sub { color: var(--oro2); font-weight: 600; }
@@ -2707,6 +2707,7 @@
     <button class="app-nav-btn" onclick="cambiarPantallaApp('entrenar', this)"><span class="icono">💪</span><span>Entrenar</span></button>
     <button class="app-nav-btn" onclick="cambiarPantallaApp('nutricion', this)"><span class="icono">🥗</span><span>Nutrición</span></button>
     <button class="app-nav-btn" onclick="cambiarPantallaApp('mas', this)"><span class="icono">📚</span><span>Más</span></button>
+    <button class="app-nav-btn" id="appNavTienda" onclick="abrirContenidoApp('productos', 'Tienda')"><span class="icono">🛍</span><span>Tienda</span></button>
     <button class="app-nav-btn" onclick="cambiarPantallaApp('perfil', this)"><span class="icono">📊</span><span>Progreso</span></button>
   </nav>
 </div>
@@ -7259,6 +7260,10 @@ function abrirContenidoApp(idContenido, titulo) {
 
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-visor').classList.add('activo');
+  document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
+  const nb = document.querySelectorAll('.app-nav-btn')[idContenido === 'productos' ? 4 : 3];
+  if (nb) nb.classList.add('activo');
+  window.scrollTo(0, 0);
 }
 
 function volverDeVisorApp(cambiarPantalla = true) {
@@ -7356,7 +7361,7 @@ const AET = {
   pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
   idg: 0,
 };
-const AET_IR = { inicio: 0, entrenar: 1, nutricion: 2, mas: 3, perfil: 4 };
+const AET_IR = { inicio: 0, entrenar: 1, nutricion: 2, mas: 3, perfil: 5 };
 function aetIr(p) { cambiarPantallaApp(p, document.querySelectorAll('.app-nav-btn')[AET_IR[p]]); }
 function aetToast(m) {
   const t = document.createElement('div'); t.className = 'aet-toast'; t.textContent = m;
