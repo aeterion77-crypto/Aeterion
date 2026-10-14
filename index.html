@@ -5989,9 +5989,30 @@ let _sync = { owner: null, ver: {}, sucias: {} };
 let _aplicandoRemoto = false, _timerPush = null, _sincronizando = false, _huboRedPendiente = false;
 
 // Datos del seguimiento diario (claves aet_*): si dos dispositivos cambiaron lo mismo, se FUSIONAN en vez de pisarse
+// Claves de ENTRENO que se acumulan (series, checks, medidas): se unen en vez de pisarse. El resto (perfil, bloque, día, dietas) gana la última edición.
+const SYNC_UNION = new Set(['gym_registro_series','gym_completados_h5','gym_completados_h3','gym_completados_m5','mma_completados','mma2_completados','mma3_completados','medidas_historial','mma_historial_semanas','mma_1rm']);
+function _fusionable(k) { return k.indexOf('aet_') === 0 || SYNC_UNION.has(k); }
+function _unirProfundo(r, l) {
+  if (Array.isArray(r) && Array.isArray(l)) return Array.from(new Set([...r, ...l]));
+  if (r && l && typeof r === 'object' && typeof l === 'object') { const o = {}; new Set([...Object.keys(r), ...Object.keys(l)]).forEach(c => { o[c] = (c in r) ? ((c in l) ? _unirProfundo(r[c], l[c]) : r[c]) : l[c]; }); return o; }
+  if (typeof r === 'boolean' && typeof l === 'boolean') return r || l;
+  return l === undefined ? r : l;
+}
 function _fusionAet(k, a, b) {
   let L, R;
   try { L = JSON.parse(a); R = JSON.parse(b); } catch (e) { return b; }
+  if (/^(gym_completados_|mma\d?_completados$)/.test(k)) return JSON.stringify(_unirProfundo(R, L));
+  if (k === 'gym_registro_series') {
+    const o = {};
+    new Set([...Object.keys(R || {}), ...Object.keys(L || {})]).forEach(n => {
+      const m = new Map(); (R[n] || []).forEach(x => m.set(x.fecha, x));
+      (L[n] || []).forEach(x => { const y = m.get(x.fecha); if (!y || (x.sets || []).length >= (y.sets || []).length) m.set(x.fecha, x); });
+      o[n] = [...m.values()].sort((p, q) => String(p.fecha).localeCompare(String(q.fecha)));
+    });
+    return JSON.stringify(o);
+  }
+  if (k === 'medidas_historial') { const m = new Map(); [...(R || []), ...(L || [])].forEach(x => m.set(x.fecha, x)); return JSON.stringify([...m.values()].sort((p, q) => String(p.fecha).localeCompare(String(q.fecha)))); }
+  if (k === 'mma_historial_semanas') { const m = new Map(); [...(R || []), ...(L || [])].forEach(x => m.set(JSON.stringify(x), x)); return JSON.stringify([...m.values()].sort((p, q) => String(p.fecha).localeCompare(String(q.fecha)))); }
   const uni = (x, y) => Array.from(new Set([...(x || []), ...(y || [])]));
   const llaves = (x, y) => Array.from(new Set([...Object.keys(x || {}), ...Object.keys(y || {})]));
   let M;
@@ -6068,8 +6089,8 @@ async function pushPendiente() {
         _sync.ver[k] = r.data.version;
         if (localStorage.getItem(k) === v) delete _sync.sucias[k];
       } else if (r.ok && r.data && r.data.conflicto) {
-        if (k.indexOf('aet_') === 0) { if (_aplicarFusion(k, v, r.data.valor, r.data.version)) aplicados++; }
-        else { _aplicarRemoto(k, r.data.valor, r.data.version); aplicados++; }
+        if (_fusionable(k)) { if (_aplicarFusion(k, v, r.data.valor, r.data.version)) aplicados++; }
+        else { _sync.ver[k] = r.data.version; }   // perfil/bloque/día/dieta: gana tu última edición (se vuelve a subir)
       } else if (r.ok && r.data && r.data.error) {
         delete _sync.sucias[k];                 // error permanente (clave/valor no válidos)
       } else { fallaRed = true; break; }       // sin red o sesión: se reintenta después
@@ -6096,7 +6117,8 @@ async function jalarProgreso() {
     const conocida = _sync.ver[row.clave];
     if (local === row.valor) { _sync.ver[row.clave] = row.version; delete _sync.sucias[row.clave]; }
     else if (local !== null && conocida === row.version) { _sync.sucias[row.clave] = true; }   // cambió aquí, el servidor no
-    else if (local !== null && row.clave.indexOf('aet_') === 0) { if (_aplicarFusion(row.clave, local, row.valor, row.version)) cambios++; }   // seguimiento: se fusiona
+    else if (local !== null && _fusionable(row.clave)) { if (_aplicarFusion(row.clave, local, row.valor, row.version)) cambios++; }   // seguimiento/entreno: se fusiona
+    else if (local !== null && _sync.sucias[row.clave]) { _sync.ver[row.clave] = row.version; }                                          // editado aquí sin conexión: se sube
     else { _aplicarRemoto(row.clave, row.valor, row.version); cambios++; }                       // servidor más nuevo (o primera vez)
   }
   // lo que solo existe aquí se sube
@@ -7410,7 +7432,7 @@ function aetPlanNutri() {
 const AET_AGUA_OPC = {
   clima: { t: ['Templado (hasta ~25 °C)', 0], c: ['Cálido (~30 °C)', 700], m: ['Muy cálido (35 °C o más)', 1200] },
   alt: { b: ['Menos de 1,000 m', 0], m: ['1,000 – 2,000 m', 700], a: ['Más de 2,000 m', 1100] },
-  estado: { n: ['Ninguno', 0], e: ['Embarazo', 300], l: ['Lactancia', 700] },
+  estado: { n: ['Ninguno', 0], e: ['Embarazo', 240], l: ['Lactancia', 560] },
 };
 function aetAguaAuto() {
   const pl = aetPlanNutri(), pr = aetPrograma(), cfg = AET.leer('aet_perfil_agua', {});
