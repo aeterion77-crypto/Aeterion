@@ -3625,7 +3625,7 @@
     <div class="fade-up">
       <span class="etiqueta">Biblioteca de Recetas</span>
       <div class="linea-oro linea-oro-izq"></div>
-      <h2 class="h-seccion">Más de 400 recetas<br><em>con información nutricional.</em></h2>
+      <h2 class="h-seccion">41 recetas<br><em>con información nutricional.</em></h2>
       <p class="sub-seccion">Cocina mexicana, ensaladas, recetas saludables y snacks. Todo con ingredientes reales, fácil de preparar y con macros calculados.</p>
     </div>
 
@@ -5118,7 +5118,19 @@ const SUPABASE_KEY = 'sb_publishable_X86RvXPbwY5tXG34PxGzBA_T8yjEiM7';
 /* ============================================================
    SUPABASE — INSERTAR DATOS
 ============================================================ */
+function msgErrorForm(err) {
+  const m = String((err && err.message) || err || '');
+  if (/demasiados_envios|espera_un_momento/.test(m)) return 'Has enviado muchas solicitudes seguidas. Espera un rato e inténtalo de nuevo.';
+  if (/texto_demasiado_largo/.test(m)) return 'Tu mensaje es demasiado largo. Acórtalo e inténtalo de nuevo.';
+  return 'Hubo un error al enviar. Verifica tu conexión e intenta de nuevo.';
+}
 async function insertarSupabase(tabla, datos) {
+  // Freno en el navegador: un envío por formulario cada 20 s
+  try {
+    const k = 'aet_form_' + tabla, ult = Number(localStorage.getItem(k) || 0);
+    if (Date.now() - ult < 20000) throw new Error('espera_un_momento');
+    localStorage.setItem(k, String(Date.now()));
+  } catch (e) { if (String(e.message) === 'espera_un_momento') throw e; }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${tabla}`, {
     method: 'POST',
     headers: {
@@ -6331,7 +6343,7 @@ async function enviarDistribuidor() {
     document.getElementById('distribuidorOk').classList.add('activo');
   } catch (err) {
     console.error('Error:', err);
-    alert('Error al enviar. Intenta de nuevo.');
+    alert(msgErrorForm(err));
   }
 }
 
@@ -6351,7 +6363,7 @@ async function enviarSugerencia() {
     document.getElementById('sugerenciaOk').classList.add('activo');
   } catch (err) {
     console.error('Error:', err);
-    alert('Error al enviar. Intenta de nuevo.');
+    alert(msgErrorForm(err));
   }
 }
 let modoContacto = 'email'; // 'email' o 'whatsapp'
@@ -6396,7 +6408,7 @@ async function enviarRegistro() {
     document.getElementById('registroOk').classList.add('activo');
   } catch (err) {
     console.error('Error Supabase:', err);
-    alert('Hubo un error al enviar. Verifica tu conexión e intenta de nuevo.');
+    alert(msgErrorForm(err));
   }
 }
 
@@ -6421,7 +6433,7 @@ async function enviarContacto() {
     document.getElementById('contactoOk').classList.add('activo');
   } catch (err) {
     console.error('Error Supabase:', err);
-    alert('Hubo un error al enviar. Verifica tu conexión e intenta de nuevo.');
+    alert(msgErrorForm(err));
   }
 }
 
