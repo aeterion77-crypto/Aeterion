@@ -6765,7 +6765,7 @@ const RESPALDO_VALIDADORES = {
   medidas_historial: v => Array.isArray(v), medidas_meta: v => _esObj(v),
   mma_completados: v => _esObj(v), mma2_completados: v => _esObj(v), mma3_completados: v => _esObj(v),
   mma_1rm: v => _esObj(v), mma_historial_semanas: v => Array.isArray(v),
-  aet_programa: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
+  aet_programa: v => _esObj(v), aet_perfil_agua: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
 };
 // Valores que se guardan como texto plano (no JSON)
@@ -7276,27 +7276,44 @@ function aetPlanNutri() {
   ['dieta_sano', 'dieta_sii', 'dieta_diabetes'].forEach(k => {
     const d = AET.leer(k, null); if (!d || !d.resumen) return;
     const kcal = aetNumTexto(d.resumen.kcal), prot = aetNumTexto(d.resumen.prot);
-    if (kcal && kcal >= 800 && kcal <= 8000 && (!mejor || String(d.fecha) >= String(mejor.fecha))) mejor = { fecha: d.fecha, sexo: (d.entradas && d.entradas.sexo) || null, kcal: Math.round(kcal), prot: prot && prot > 10 && prot < 500 ? Math.round(prot) : null, k };
+    if (kcal && kcal >= 800 && kcal <= 8000 && (!mejor || String(d.fecha) >= String(mejor.fecha))) mejor = { fecha: d.fecha, sexo: (d.entradas && d.entradas.sexo) || null, peso: d.entradas ? aetNumTexto(d.entradas.peso) : null, pal: d.entradas ? aetNumTexto(d.entradas.actividad) : null, kcal: Math.round(kcal), prot: prot && prot > 10 && prot < 500 ? Math.round(prot) : null, k };
   });
   return mejor;
 }
-/* Agua: ingesta adecuada de agua total (EFSA 2010: hombres 2.5 L, mujeres 2.0 L/día; ~20 % viene de los alimentos,
-   así que lo que se bebe es ~80 %: 2.0 L / 1.6 L). En días de entrenamiento se suma ~0.5 L por sesión de ~1 h
-   (ACSM 2007: reponer las pérdidas por sudor; varían de 0.5 a 2 L/h según persona, calor e intensidad). Vaso = 250 ml. */
+/* Agua (lo que se BEBE, vasos de 250 ml). Base: ingesta adecuada de agua total de la EFSA (2010): hombres 2.5 L, mujeres 2.0 L,
+   para actividad moderada (PAL 1.6) y clima templado; ~20 % llega con los alimentos, así que se bebe ~80 %.
+   Ajustes con los coeficientes de Yamada et al., Science 2022 (5,604 personas, agua marcada con isótopos): +1,076 mL por cada 1.0 de PAL,
+   +14.3 mL por kg de peso, clima cálido y altitud (+0.47 mL por metro); y de la EFSA: embarazo +300 mL, lactancia +700 mL.
+   Día de entrenamiento: ~+0.5 L por sesión de ~1 h (ACSM 2007: reponer sudor, que varía de 0.5 a 2 L/h). Es una estimación para
+   adultos sanos, no una prescripción: explica menos de la mitad de la variación entre personas. */
+const AET_AGUA_OPC = {
+  clima: { t: ['Templado (hasta ~25 °C)', 0], c: ['Cálido (~30 °C)', 700], m: ['Muy cálido (35 °C o más)', 1200] },
+  alt: { b: ['Menos de 1,000 m', 0], m: ['1,000 – 2,000 m', 700], a: ['Más de 2,000 m', 1100] },
+  estado: { n: ['Ninguno', 0], e: ['Embarazo', 300], l: ['Lactancia', 700] },
+};
 function aetAguaAuto() {
-  const pl = aetPlanNutri(), pr = aetPrograma();
-  let sexo = pl && pl.sexo ? pl.sexo : (pr ? (pr.tipo === 'm5' ? 'F' : (['entrenamiento', 'h3'].includes(pr.tipo) ? 'M' : null)) : null);
-  const baseL = sexo === 'M' ? 2.0 : sexo === 'F' ? 1.6 : 1.8;
-  const entrenaHoy = (AET.leer('aet_actividad', {})[AET.hoy()] || []).includes('e');
-  const ml = baseL * 1000 + (entrenaHoy ? 500 : 0);
-  const fuente = (sexo === 'M' ? 'hombre' : sexo === 'F' ? 'mujer' : 'sexo no indicado: promedio') + ' (EFSA)' + (entrenaHoy ? ' + 0.5 L por entrenar hoy (ACSM)' : '; los días que entrenas sube ~0.5 L por hora de sesión');
+  const pl = aetPlanNutri(), pr = aetPrograma(), cfg = AET.leer('aet_perfil_agua', {});
+  const sexo = pl && pl.sexo ? pl.sexo : (pr ? (pr.tipo === 'm5' ? 'F' : (['entrenamiento', 'h3'].includes(pr.tipo) ? 'M' : null)) : null);
+  const ps = AET.pesos(), peso = ps.length ? ps[ps.length - 1].peso : (pl && pl.peso) || null;
+  const lim = (v, a, b) => Math.max(a, Math.min(b, v));
+  const base = Math.round((sexo === 'M' ? 2500 : sexo === 'F' ? 2000 : 2250) * 0.8);
+  const f = [['base ' + (sexo === 'M' ? 'hombre' : sexo === 'F' ? 'mujer' : 'promedio') + ' (EFSA)', base]];
+  const suma = (n, v) => { v = Math.round(v / 10) * 10; if (v) f.push([n, v]); };
+  if (pl && pl.pal && pl.pal >= 1.1 && pl.pal <= 2.4) suma('tu actividad habitual', lim(1076 * (pl.pal - 1.6), -400, 800));
+  if (peso) suma('tu peso', lim(14.34 * (peso - (sexo === 'F' ? 60 : 70)), -400, 500));
+  suma('clima', (AET_AGUA_OPC.clima[cfg.clima] || [0, 0])[1]);
+  suma('altitud', (AET_AGUA_OPC.alt[cfg.alt] || [0, 0])[1]);
+  if (sexo !== 'M') suma((cfg.estado === 'l' ? 'lactancia' : 'embarazo'), (AET_AGUA_OPC.estado[cfg.estado] || [0, 0])[1]);
+  if ((AET.leer('aet_actividad', {})[AET.hoy()] || []).includes('e')) suma('entrenar hoy', 500);
+  const ml = lim(f.reduce((t, x) => t + x[1], 0), 1200, 3500);
+  const fuente = f.map(x => x[0] + (x === f[0] ? ' ' + (x[1] / 1000).toFixed(1) + ' L' : ' ' + (x[1] > 0 ? '+' : '') + x[1] + ' ml')).join(' · ');
   return { vasos: Math.ceil(ml / 250), ml, fuente };
 }
 function aetMetasAuto() {
   const pr = aetPrograma(), pl = aetPlanNutri(), ps = AET.pesos(), peso = ps.length ? ps[ps.length - 1].peso : null;
   const ag = aetAguaAuto();
   return {
-    agua: ag.vasos, fAgua: ag.fuente + ' — ' + ag.ml + ' ml de bebida, vasos de 250 ml',
+    agua: ag.vasos, fAgua: ag.fuente + ' = ' + ag.ml + ' ml (' + ag.vasos + ' vasos de 250 ml)',
     entrenos: pr ? pr.dias : 3, fEntrenos: pr ? 'según tu rutina: ' + pr.n : 'referencia general (OMS: al menos 2 días de fuerza por semana; 3 es un buen punto de partida)',
     kcal: pl ? pl.kcal : 2000, fKcal: pl ? 'según tu plan de Nutrición' : 'referencia general: calcula tu plan en Nutrición',
     prot: pl && pl.prot ? pl.prot : (peso ? Math.round(peso * 1.6) : 120),
@@ -7412,17 +7429,23 @@ function aetFormMetas() {
     <div><label class="aet-lbl">Proteína (g)</label><input class="aet-in" id="aetMp" type="number" inputmode="numeric" value="${m.prot}"></div></div>
     <div class="aet-fila"><div><label class="aet-lbl">Entrenos / semana</label><input class="aet-in" id="aetMe" type="number" inputmode="numeric" value="${m.entrenos}"></div>
     <div><label class="aet-lbl">Vasos de agua (250 ml)</label><input class="aet-in" id="aetMa" type="number" inputmode="numeric" value="${m.agua}"></div></div>
-    <p class="aet-nota">Automático: calorías ${esc(a.fKcal)}; proteína ${esc(a.fProt)}; entrenos ${esc(a.fEntrenos)}; agua ${esc(a.fAgua)}. Si cambias un valor se respeta el tuyo; para volver al automático déjalo igual que el sugerido (${a.kcal} kcal · ${a.prot} g · ${a.entrenos} días · ${a.agua} vasos). El agua es una referencia para adultos sanos: calor, sudor, embarazo, lactancia o enfermedad renal/cardiaca la cambian; consulta a tu médico.</p>
+    <label class="aet-lbl">Tu clima</label><select class="aet-in" id="aetPc">${Object.entries(AET_AGUA_OPC.clima).map(([k, v]) => `<option value="${k}" ${(AET.leer('aet_perfil_agua', {}).clima || 't') === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
+    <label class="aet-lbl">Altitud donde vives</label><select class="aet-in" id="aetPa">${Object.entries(AET_AGUA_OPC.alt).map(([k, v]) => `<option value="${k}" ${(AET.leer('aet_perfil_agua', {}).alt || 'b') === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
+    <label class="aet-lbl">Embarazo o lactancia</label><select class="aet-in" id="aetPe">${Object.entries(AET_AGUA_OPC.estado).map(([k, v]) => `<option value="${k}" ${(AET.leer('aet_perfil_agua', {}).estado || 'n') === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
+    <p class="aet-nota">Automático: calorías ${esc(a.fKcal)}; proteína ${esc(a.fProt)}; entrenos ${esc(a.fEntrenos)}; agua ${esc(a.fAgua)}. Si cambias un valor se respeta el tuyo; para volver al automático déjalo igual que el sugerido (${a.kcal} kcal · ${a.prot} g · ${a.entrenos} días · ${a.agua} vasos). El agua es una estimación para adultos sanos (EFSA 2010, Yamada et al. 2022, ACSM 2007), no una prescripción; con enfermedad renal o cardiaca, o si tu médico te dio un límite de líquidos, sigue su indicación. Tu orina amarillo pálido y tu sed son la mejor guía diaria.</p>
     <button class="aet-btn" style="margin-top:1rem" onclick="aetGuardarMetas()">Guardar</button>`);
 }
 function aetGuardarMetas() {
   const v = (id, a, b) => { const n = AET.num(document.getElementById(id).value); return n != null && n >= a && n <= b ? Math.round(n) : null; };
+  const aguaAntes = AET.metas().agua, ovAgua = AET.leer('aet_metas', {}).agua;
+  AET.guardar('aet_perfil_agua', { clima: document.getElementById('aetPc').value, alt: document.getElementById('aetPa').value, estado: document.getElementById('aetPe').value });
   const a = aetMetasAuto(), nuevo = { kcal: v('aetMk', 500, 10000), prot: v('aetMp', 10, 500), entrenos: v('aetMe', 1, 7), agua: v('aetMa', 1, 30) };
   const g = {};
   if (nuevo.kcal != null && nuevo.kcal !== a.kcal) g.kcal = nuevo.kcal;
   if (nuevo.prot != null && nuevo.prot !== a.prot) g.prot = nuevo.prot;
   if (nuevo.entrenos != null && nuevo.entrenos !== a.entrenos) g.entrenos = nuevo.entrenos;
-  if (nuevo.agua != null && nuevo.agua !== a.agua) g.agua = nuevo.agua;
+  if (nuevo.agua != null && nuevo.agua !== aguaAntes) g.agua = nuevo.agua; // lo cambió a mano
+  else if (ovAgua != null) g.agua = ovAgua;                                  // conserva su valor propio
   AET.guardar('aet_metas', g);
   aetCerrar(); aetRefrescar();
 }
