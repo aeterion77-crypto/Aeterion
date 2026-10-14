@@ -2512,11 +2512,15 @@
     .ses-det { background: var(--negro2); border-radius: 12px; padding: .7rem .9rem; margin-bottom: 1rem; font-size: 13px; line-height: 1.55; color: #cfcfcf; }
     .ses-det summary { cursor: pointer; font-family: var(--font-ui); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--oro2); }
     .ses-tab { background: var(--negro2); border-radius: 14px; padding: .7rem; }
-    .ses-fila { display: grid; grid-template-columns: 28px 1fr 1fr 44px; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+    .ses-fila { display: grid; grid-template-columns: 28px 1fr 1fr 58px 44px; gap: .4rem; align-items: center; margin-bottom: .5rem; }
     .ses-fila.cab { font-family: var(--font-ui); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--gris); text-align: center; }
     .ses-fila > span { text-align: center; font-family: var(--font-ui); font-weight: 700; color: var(--ac); }
     .ses-fila input { width: 100%; text-align: center; background: #1a1a1a; border: 1px solid rgba(255,255,255,.1); border-radius: 9px; color: var(--blanco); font-size: 17px; font-weight: 600; padding: .6rem .2rem; font-family: var(--font-ui); }
-    .ses-fila.ok input { background: rgba(62,207,142,.12); border-color: rgba(62,207,142,.5); }
+    .ses-fila select { width: 100%; text-align: center; text-align-last: center; background: #1a1a1a; border: 1px solid rgba(255,255,255,.1); border-radius: 9px; color: var(--blanco); font-size: 15px; font-weight: 600; padding: .62rem 0; font-family: var(--font-ui); }
+    .ses-fila.ok input, .ses-fila.ok select { background: rgba(62,207,142,.12); border-color: rgba(62,207,142,.5); }
+    .ses-ckb { background: transparent; border: 1px solid rgba(255,255,255,.2); color: var(--blanco); border-radius: 10px; padding: .55rem .8rem; font-family: var(--font-ui); font-size: 14px; margin: .15rem .2rem .15rem 0; cursor: pointer; }
+    .ses-ckb.on { background: var(--ac-e, #ff7a2f); border-color: var(--ac-e, #ff7a2f); color: #111; font-weight: 700; }
+    .mot-t { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: .5rem; } .mot-t td, .mot-t th { padding: .3rem .4rem; border-bottom: 1px solid rgba(255,255,255,.07); text-align: left; } .mot-t th { color: var(--gris); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
     .ses-chk { width: 44px; height: 44px; border-radius: 10px; border: 2px solid rgba(255,255,255,.25); background: transparent; color: transparent; font-size: 20px; cursor: pointer; }
     .ses-fila.ok .ses-chk { background: var(--ac-n); border-color: var(--ac-n); color: #04170e; font-weight: 800; }
     .ses-bar-bot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, #0a0a0a 30%); display: flex; gap: .6rem; }
@@ -5938,8 +5942,15 @@ function cargarModuloPremium(nombre) {
     // GYM: descanso entre series de 3–5 min en todas las pantallas de detalle (se aplica al cargar, también con la copia sin conexión)
     sc.textContent = nombre === 'programa' ? data.js.replace(/descanso:\s*'[^']*'/g, "descanso:'3–5 min'")
       // Repeticiones: nada por encima de 12 (rango 6–12). Los rangos altos pasan a 10–12 / 8–12; doble progresión: al llegar a 12 con buena técnica, sube la carga
-      .replace(/reps:\s*'(12–15|15–20|12–20)'/g, "reps:'10–12'").replace(/reps:\s*'10–15'/g, "reps:'8–12'") : data.js;
+      .replace(/reps:\s*'(12–15|15–20|12–20)'/g, "reps:'10–12'").replace(/reps:\s*'10–15'/g, "reps:'8–12'")
+      // Motor de entrenamiento: bloques de longitud variable, textos coherentes con lo que el motor hace de verdad
+      .split('BLOQUE_NOMBRES[bloque.semana]').join('AETGYM.infoBloque(bloque)')
+      .split('Semana ${bloque.semana} de 4 — ${info.nombre}').join('${info.nombre}')
+      .split('sube 2.5kg (compuesto) o 1–2kg (accesorio).').join('sube la carga (el motor te indica cuánto en cada ejercicio).')
+      .replace(/modelo:\s*'[^']*'/g, "modelo:'Doble progresión por ejercicio (primero repeticiones, luego carga) y bloques que se revisan con tu rendimiento y tu fatiga (motor Aeterion).'")
+      .replace(/Base científica:<\/b> (?:el nivel determina|nivel → modelo)[^']*'/g, "Base científica:</b> tu nivel y tu modificador de recuperación fijan el volumen semanal por grupo muscular (≥ 10 series efectivas por semana, con rendimientos decrecientes hacia 18–20: ACSM 2026). Las repeticiones, la reserva (RIR) y la carga se ajustan por ejercicio con tus registros, y tu nivel se reevalúa con tu rendimiento. Es una guía basada en evidencia general, no una prescripción médica.'") : data.js;
     document.head.appendChild(sc);
+    if (nombre === 'programa') { try { aetMotorEnganchar(); } catch (e) { console.error('motor', e); } }
     if (typeof renderDashboardApp === 'function' && document.getElementById('appDashboardCards')) { try { renderDashboardApp(); } catch (e) {} }
     return true;
   })().then(ok => { if (!ok) delete _modulos[nombre]; return ok; });
@@ -6901,9 +6912,9 @@ const RESPALDO_VALIDADORES = {
   gym_completados_h5: v => _esObj(v) && Object.values(v).every(a => Array.isArray(a) && a.every(Number.isInteger)),
   gym_completados_h3: v => _esObj(v) && Object.values(v).every(a => Array.isArray(a) && a.every(Number.isInteger)),
   gym_completados_m5: v => _esObj(v) && Object.values(v).every(a => Array.isArray(a) && a.every(Number.isInteger)),
-  gym_bloque_h5: v => _esObj(v) && Number.isInteger(v.semana) && v.semana >= 1 && v.semana <= 4,
-  gym_bloque_h3: v => _esObj(v) && Number.isInteger(v.semana) && v.semana >= 1 && v.semana <= 4,
-  gym_bloque_m5: v => _esObj(v) && Number.isInteger(v.semana) && v.semana >= 1 && v.semana <= 4,
+  gym_bloque_h5: v => _esObj(v) && Number.isInteger(v.semana) && v.semana >= 1 && v.semana <= 12,
+  gym_bloque_h3: v => _esObj(v) && Number.isInteger(v.semana) && v.semana >= 1 && v.semana <= 12,
+  gym_bloque_m5: v => _esObj(v) && Number.isInteger(v.semana) && v.semana >= 1 && v.semana <= 12,
   medidas_historial: v => Array.isArray(v), medidas_meta: v => _esObj(v),
   mma_completados: v => _esObj(v), mma2_completados: v => _esObj(v), mma3_completados: v => _esObj(v),
   mma_1rm: v => _esObj(v), mma_historial_semanas: v => Array.isArray(v),
@@ -7705,7 +7716,7 @@ function aetRenderEntrenar() {
   log.forEach(l => { (grupos[l.ej] = grupos[l.ej] || []).push(l); });
   const lista = Object.keys(grupos).map(n => ({ n, ult: Math.max(...grupos[n].map(s => s.id)), k: grupos[n].length, mejor: Math.max(...grupos[n].map(aetMejorE1rm)) })).sort((a, b) => b.ult - a.ult).slice(0, 6);
   const hoyMarcado = (AET.leer('aet_actividad', {})[AET.hoy()] || []).includes('e');
-  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(255,122,47,.3)">
+  el.innerHTML = aetPanelMotor() + `<div class="aet-panel" style="border-color:rgba(255,122,47,.3)">
     <div class="aet-panel-t"><span style="color:var(--ac-e)">📓 Mi registro</span><span style="color:var(--blanco)">${sem}/${m.entrenos} esta semana</span></div>
     ${aetPrograma() ? `<p class="aet-nota" style="margin:-.3rem 0 .8rem">Tu rutina: ${aetPrograma().n} · meta de ${m.entrenos} días.</p>` : ''}
     <div class="aet-fila"><button class="aet-btn e" onclick="aetFormEntreno()">＋ Registrar ejercicio</button>
@@ -7892,6 +7903,489 @@ function renderDashboardApp() {
    se guarda en el mismo lugar que el programa (series, checks).
 ============================================================ */
 const AET_GYM = ['entrenamiento', 'h3', 'm5'];
+/* ===================================================================
+   AETGYM — motor de entrenamiento GYM (determinista)
+   Misma entrada + mismo historial = mismas decisiones. Sin azar.
+   Módulos: 1 perfil/nivel · 2 prescripción · 3 sobrecarga por ejercicio
+            4 periodización por bloques · 5 autorregulación · 6 validación
+   Base: ACSM 2026 (overview de 137 revisiones): ≥10 series/músculo/semana,
+   rendimientos decrecientes hacia 18–20; hipertrofia similar de 30 a 100 % 1RM;
+   no hace falta llegar al fallo (2–3 RIR). Los umbrales numéricos de abajo son
+   heurísticas del motor, NO normas publicadas: están marcados como tales.
+=================================================================== */
+const AETGYM = (() => {
+  'use strict';
+  const NIV = ['principiante', 'principiante-intermedio', 'intermedio', 'avanzado'];
+  const NIV_NOM = ['Principiante', 'Principiante–Intermedio', 'Intermedio', 'Avanzado'];
+  const LARGO = [4, 4, 5, 6];                    // semanas de acumulación por bloque (heurística)
+  const GRUPOS = ['Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps', 'Cuádriceps', 'Glúteo/Isquios', 'Pantorrilla'];
+  const VOL = [[8, 12], [10, 14], [10, 16], [12, 18]];   // series efectivas/semana por grupo y nivel (heurística acotada por ACSM)
+  const FACTOR_GRUPO = { 'Glúteo/Isquios': 1.4 };        // la categoría junta dos músculos
+  const CT = {
+    entrenamiento: { R: () => (typeof RUTINA_H5 !== 'undefined' ? RUTINA_H5 : null), P: () => (typeof perfilGym !== 'undefined' ? perfilGym : null), B: () => (typeof bloqueGym !== 'undefined' ? bloqueGym : null), clave: 'gym_bloque_h5' },
+    h3: { R: () => (typeof RUTINA_H3 !== 'undefined' ? RUTINA_H3 : null), P: () => (typeof perfilH3 !== 'undefined' ? perfilH3 : null), B: () => (typeof bloqueH3 !== 'undefined' ? bloqueH3 : null), clave: 'gym_bloque_h3' },
+    m5: { R: () => (typeof RUTINA_M5 !== 'undefined' ? RUTINA_M5 : null), P: () => (typeof perfilM5 !== 'undefined' ? perfilM5 : null), B: () => (typeof bloqueM5 !== 'undefined' ? bloqueM5 : null), clave: 'gym_bloque_m5' },
+  };
+  const TIPOS = Object.keys(CT);
+
+  /* ---------- catálogo: tipo de ejercicio, grupo, trabajo indirecto, escalón de carga ---------- */
+  const C = 'c', I = 'i';
+  const META = {
+    'Press inclinado con barra/mancuerna': { k: C, g: 'Pecho', ind: [['Tríceps', .5], ['Hombro', .5]], paso: 2.5 },
+    'Press inclinado con mancuerna': { k: C, g: 'Pecho', ind: [['Tríceps', .5], ['Hombro', .5]], paso: 2 },
+    'Pec fly / Aperturas con mancuerna': { k: I, g: 'Pecho', ri: [10, 12], paso: 2, peq: 1 },
+    'Pec fly / Aperturas': { k: I, g: 'Pecho', ri: [10, 12], paso: 2, peq: 1 },
+    'Aperturas en máquina (pec deck)': { k: I, g: 'Pecho', ri: [10, 12], paso: 2.5, peq: 1 },
+    'Press militar con mancuernas (sentado)': { k: C, g: 'Hombro', ind: [['Tríceps', .5]], paso: 2 },
+    'Press militar con mancuernas': { k: C, g: 'Hombro', ind: [['Tríceps', .5]], paso: 2 },
+    'Elevaciones laterales con mancuernas': { k: I, g: 'Hombro', ri: [10, 12], paso: 1, peq: 1 },
+    'Elevaciones laterales': { k: I, g: 'Hombro', ri: [10, 12], paso: 1, peq: 1 },
+    'Aperturas inversas en máquina': { k: I, g: 'Hombro', ri: [10, 12], paso: 2.5, peq: 1 },
+    'Extensión de tríceps unilateral en polea': { k: I, g: 'Tríceps', paso: 2.5 },
+    'Extensión de tríceps en polea': { k: I, g: 'Tríceps', paso: 2.5 },
+    'Press francés / JM Press': { k: I, g: 'Tríceps', paso: 2.5 },
+    'Jalón al pecho': { k: C, g: 'Espalda', ind: [['Bíceps', .5]], paso: 2.5 },
+    'Remo en T': { k: C, g: 'Espalda', ind: [['Bíceps', .5]], paso: 2.5 },
+    'Remo horizontal en máquina': { k: C, g: 'Espalda', ind: [['Bíceps', .5]], paso: 2.5 },
+    'Remo horizontal unilateral': { k: C, g: 'Espalda', ind: [['Bíceps', .5]], paso: 2, uni: 1 },
+    'Dominadas (o jalón al pecho)': { k: C, g: 'Espalda', ind: [['Bíceps', .5]], paso: 2.5, rep: [6, 10] },
+    'Curl Bayesian en polea': { k: I, g: 'Bíceps', paso: 2.5 },
+    'Curl martillo': { k: I, g: 'Bíceps', paso: 2 },
+    'Curl en polea / barra': { k: I, g: 'Bíceps', paso: 2.5 },
+    'Sentadilla Smith / Hack / Prensa': { k: C, g: 'Cuádriceps', ind: [['Glúteo/Isquios', .5]], paso: 5 },
+    'Extensión de cuádriceps en máquina': { k: I, g: 'Cuádriceps', ri: [10, 12], paso: 2.5 },
+    'Extensión de cuádriceps': { k: I, g: 'Cuádriceps', ri: [10, 12], paso: 2.5 },
+    'Zancadas con mancuernas': { k: C, g: 'Cuádriceps', ind: [['Glúteo/Isquios', .5]], paso: 2, uni: 1 },
+    'Sentadilla búlgara': { k: C, g: 'Glúteo/Isquios', ind: [['Cuádriceps', .5]], paso: 2, uni: 1 },
+    'Peso muerto rumano': { k: C, g: 'Glúteo/Isquios', paso: 2.5 },
+    'Curl femoral tumbado/sentado': { k: I, g: 'Glúteo/Isquios', paso: 2.5 },
+    'Curl femoral': { k: I, g: 'Glúteo/Isquios', paso: 2.5 },
+    'Hip thrust con barra': { k: C, g: 'Glúteo/Isquios', paso: 5 },
+    'Abducción en máquina': { k: I, g: 'Glúteo/Isquios', ri: [10, 12], paso: 2.5, peq: 1 },
+    'Patada de glúteo en polea': { k: I, g: 'Glúteo/Isquios', ri: [10, 12], paso: 2.5, peq: 1, uni: 1 },
+    'Elevación de talón de pie': { k: I, g: 'Pantorrilla', ri: [10, 12], paso: 5, peq: 1 },
+    'Elevación de talón sentado': { k: I, g: 'Pantorrilla', ri: [10, 12], paso: 2.5, peq: 1 },
+  };
+  function meta(nombre) {
+    if (META[nombre]) return META[nombre];
+    const comp = /press|sentadilla|remo|jal[oó]n|dominada|peso muerto|hip thrust|zancada|b[uú]lgara/i.test(nombre);
+    return { k: comp ? C : I, g: null, paso: 2.5, ind: [] };
+  }
+
+  /* ---------- utilidades ---------- */
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  const redon = (x, paso) => Math.round(Math.round(x / paso) * paso * 100) / 100;
+  const num = x => (typeof x === 'number' && isFinite(x)) ? x : (parseFloat(x) || 0);
+  const e1rm = (kg, reps, rir) => kg > 0 && reps > 0 ? kg * (1 + (reps + (rir == null ? 1 : rir)) / 30) : 0; // Epley sobre repeticiones totales posibles (reps + RIR); fiable ≤ ~10 reps
+  const mid = a => (a[0] + a[1]) / 2;
+  function parseRango(s) { // "3–4" · "8–12" · "10–12/pierna" -> [min,max]
+    const n = String(s || '').replace(/\/.*$/, '').replace(/[–—]/g, '-').split('-').map(x => parseFloat(x));
+    return n.length > 1 && isFinite(n[1]) ? [n[0], n[1]] : [n[0], n[0]];
+  }
+  function fechaISO(d) { return (d || new Date()).toISOString().slice(0, 10); }
+  function difDias(a, b) { return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5); }
+
+  /* ---------- 1 · PERFIL Y NIVEL ---------- */
+  function motorDe(b) {
+    if (!b.motor || typeof b.motor !== 'object') b.motor = {};
+    const m = b.motor;
+    if (m.obj !== 'hip' && m.obj !== 'fue') m.obj = 'hip';
+    if (!(m.min >= 30 && m.min <= 150)) m.min = 90;
+    if (!(m.bloque >= 1)) m.bloque = 1;
+    if (m.tipo !== 'A' && m.tipo !== 'B') m.tipo = 'A';
+    m.descarga = !!m.descarga;
+    if (!(m.sinDescarga >= 0)) m.sinDescarga = 0;
+    if (!Array.isArray(m.checkins)) m.checkins = [];
+    if (!Array.isArray(m.diario)) m.diario = [];
+    if (!(b.semana >= 1)) b.semana = 1;
+    return m;
+  }
+  function estadoDe(perfil, bloque) {
+    const m = motorDe(bloque), calc = !!(perfil && perfil.calculado);
+    const decl = Math.max(0, NIV.indexOf(calc ? perfil.nivelKey : 'principiante-intermedio'));
+    if (m.nivelBase !== decl) { m.nivelBase = decl; m.nivelEf = null; }          // si cambia el perfil declarado, se recalibra desde ahí
+    const niv = m.nivelEf != null ? clamp(m.nivelEf, 0, 3) : decl;
+    const largo = LARGO[niv], w = clamp(bloque.semana, 1, 12), des = m.descarga;
+    const rir = rirSemana(w, largo, des, niv);
+    const mod = calc ? clamp(perfil.modificador || 1, .75, 1.1) : 1;
+    return { calc, decl, niv, nivNom: NIV_NOM[niv], largo, semana: w, desc: des, tipoBloque: (niv >= 2 && m.obj === 'hip') ? m.tipo : 'A', obj: m.obj, min: m.min, bloqueN: m.bloque, rirLo: rir.lo, rirTxt: rir.txt, mod, reclasificado: niv !== decl };
+  }
+  function rirSemana(w, largo, desc, niv) { // RIR objetivo: nunca al fallo por calendario; baja gradualmente dentro del bloque
+    if (desc) return { lo: 4, txt: '4+' };
+    if (w <= 2) return { lo: 3, txt: '3' };
+    if (niv >= 2 && w >= largo) return { lo: 1, txt: '1–2' };
+    return { lo: 2, txt: '2–3' };
+  }
+
+  /* ---------- 2 · PRESCRIPCIÓN ---------- */
+  function rangoReps(nombre, st) {
+    const M = meta(nombre);
+    if (M.rep) return M.rep.slice();
+    if (st.obj === 'fue' && M.k === C) return st.niv <= 1 ? [5, 8] : [4, 6];
+    if (M.ri) return M.ri.slice();
+    if (M.k === I) return st.niv === 0 ? [10, 12] : [8, 12];
+    if (st.tipoBloque === 'B') return [5, 8];
+    return st.niv <= 1 ? [8, 12] : [6, 10];
+  }
+  function descansoSeg(nombre) { const M = meta(nombre); return M.k === C ? [180, 300] : (M.peq ? [90, 150] : [120, 180]); }
+  const fmtDesc = r => { const f = s => { const m = s / 60; return Number.isInteger(m) ? String(m) : m.toFixed(1).replace(/\.0$/, ''); }; return f(r[0]) + '–' + f(r[1]) + ' min'; };
+
+  function minutosDia(items) { // items: [{nombre, sets}] · 40 s por serie + descanso medio + 1 min de cambio + 6 min de calentamiento
+    let s = 6 * 60;
+    items.forEach(it => { const d = descansoSeg(it.nombre); s += it.sets * 40 + Math.max(0, it.sets - 1) * mid(d) + 60; });
+    return Math.round(s / 60);
+  }
+  /* Reparte las series de TODA la semana para que cada grupo caiga dentro de su rango recuperable */
+  function asignar(dias, st) {
+    // dias: [{key, ej:[{nombre, mn, mx}]}] -> {sets:{key|idx:n}, ef:{grupo:n}, min:{key:min}, recortado, fueraRango:[]}
+    const [lo0, hi0] = VOL[st.niv];
+    const rango = g => { const f = FACTOR_GRUPO[g] || 1; return [Math.round(lo0 * st.mod * f), Math.round(hi0 * st.mod * f)]; };
+    const L = [];
+    dias.forEach(d => d.ej.forEach((e, i) => { const M = meta(e.nombre); L.push({ id: d.key + '|' + i, dia: d.key, ord: L.length, nombre: e.nombre, M, n: 0, mn: e.mn }); }));
+    const cap = x => x.M.k === C ? (st.niv === 0 ? 4 : 5) : (st.niv === 0 ? 3 : 4);
+    const piso = x => (st.obj === 'fue' && x.M.k === C) ? 3 : 2;
+    L.forEach(x => { x.n = clamp(x.mn, piso(x), cap(x)); });
+    const efect = () => { const ef = {}; GRUPOS.forEach(g => ef[g] = 0); L.forEach(x => { if (x.M.g) ef[x.M.g] += x.n; (x.M.ind || []).forEach(([g, f]) => { ef[g] += x.n * f; }); }); return ef; };
+    for (let it = 0; it < 300; it++) {
+      const ef = efect(); let cambio = false;
+      for (const g of GRUPOS) {
+        const [lo, hi] = rango(g);
+        if (ef[g] < lo) {
+          const c = L.filter(x => x.M.g === g && x.n < cap(x)).sort((a, b) => a.n - b.n || (a.M.k === C ? 0 : 1) - (b.M.k === C ? 0 : 1) || a.ord - b.ord)[0];
+          if (c && ef[g] + 1 <= hi + .01) { c.n++; cambio = true; break; }
+        } else if (ef[g] > hi) {
+          const c = L.filter(x => x.M.g === g && x.n > piso(x)).sort((a, b) => b.n - a.n || (a.M.k === I ? 0 : 1) - (b.M.k === I ? 0 : 1) || b.ord - a.ord)[0];
+          if (c && ef[g] - 1 >= lo - .01) { c.n--; cambio = true; break; }
+        }
+      }
+      if (!cambio) break;
+    }
+    // tiempo disponible por sesión: se recorta primero el aislamiento, luego lo que sobre (siempre ≥ 2 series)
+    let recortado = false;
+    dias.forEach(d => {
+      const lst = L.filter(x => x.dia === d.key);
+      for (let k = 0; k < 60; k++) {
+        if (minutosDia(lst.map(x => ({ nombre: x.nombre, sets: x.n }))) <= st.min) break;
+        const c = lst.filter(x => x.n > 2).sort((a, b) => (a.M.k === I ? 0 : 1) - (b.M.k === I ? 0 : 1) || b.n - a.n || b.ord - a.ord)[0];
+        if (!c) break; c.n--; recortado = true;
+      }
+    });
+    if (st.desc) L.forEach(x => { x.n = Math.max(x.M.k === C ? 2 : 1, Math.round(x.n * .5)); });   // descarga: ~mitad de series
+    const sets = {}, min = {}; L.forEach(x => { sets[x.id] = x.n; });
+    dias.forEach(d => { min[d.key] = minutosDia(L.filter(x => x.dia === d.key).map(x => ({ nombre: x.nombre, sets: x.n }))); });
+    const ef = efect(), fuera = [];
+    if (!st.desc) GRUPOS.forEach(g => { const [lo, hi] = rango(g); if (ef[g] < lo - .01) fuera.push([g, 'bajo']); else if (ef[g] > hi + .01) fuera.push([g, 'alto']); });
+    return { sets, ef, min, recortado, fuera, rangos: Object.fromEntries(GRUPOS.map(g => [g, rango(g)])) };
+  }
+  function diasDe(R) { // lee la plantilla ORIGINAL (series base) de cada día
+    const out = [];
+    Object.keys(R).forEach(key => { const d = R[key]; if (!d || !d.ejercicios) return; out.push({ key, ej: d.ejercicios.map(e => { const b = e._b || { series: e.series }; const r = parseRango(b.series); return { nombre: e.nombre, mn: r[0] }; }) }); });
+    return out;
+  }
+  function plan(tipo) {
+    const c = CT[tipo], R = c.R(), st = estado(tipo);
+    return { st, p: asignar(diasDe(R), st) };
+  }
+  function estado(tipo) { const c = CT[tipo]; return estadoDe(c.P(), c.B()); }
+  function aplicar(tipo) { // escribe la prescripción del motor en la plantilla que muestran las pantallas de detalle y la sesión
+    const c = CT[tipo], R = c && c.R(); if (!R || !c.B()) return null;
+    Object.keys(R).forEach(k => { const d = R[k]; if (d && d.ejercicios) d.ejercicios.forEach(e => { if (!e._b) e._b = { series: e.series, reps: e.reps, descanso: e.descanso, rpe: e.rpe }; }); });
+    const { st, p } = plan(tipo);
+    Object.keys(R).forEach(k => {
+      const d = R[k]; if (!d || !d.ejercicios) return;
+      if (d._sub == null) d._sub = d.subtitulo || '';
+      if (d._sub) d.subtitulo = d._sub.replace(/RPE\s*\d+(?:[–-]\d+)?/, 'RIR ' + st.rirTxt);
+      d.ejercicios.forEach((e, i) => {
+        const M = meta(e.nombre), r = rangoReps(e.nombre, st);
+        e.series = String(p.sets[k + '|' + i]);
+        e.reps = r[0] + '–' + r[1] + (M.uni ? '/pierna' : '');
+        e.descanso = fmtDesc(descansoSeg(e.nombre));
+        e.rpe = 'RIR ' + st.rirTxt;
+      });
+    });
+    return { st, p };
+  }
+
+  /* ---------- 3 · SOBRECARGA PROGRESIVA POR EJERCICIO ---------- */
+  function limpia(en) { // una entrada del historial -> series válidas con kg, reps y RIR (o RPE convertido)
+    const sets = (en.sets || []).map(s => ({ kg: num(s.peso != null ? s.peso : s.kg), reps: num(s.reps != null ? s.reps : s.r), rir: s.rir != null && s.rir !== '' ? num(s.rir) : (en.rpe ? clamp(10 - num(en.rpe), 0, 5) : null) })).filter(s => s.kg > 0 && s.reps > 0);
+    if (!sets.length) return null;
+    const cnt = {}; sets.forEach(s => { cnt[s.kg] = (cnt[s.kg] || 0) + 1; });
+    const kg = +Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || b - a)[0];
+    const en2 = sets.filter(s => Math.abs(s.kg - kg) < .01);
+    return { fecha: en.fecha, kg, sets: en2, todas: sets, rirUlt: en2[en2.length - 1].rir, tec: en.tecnica !== false, dolor: !!en.dolor, e1: Math.max(...sets.map(s => e1rm(s.kg, s.reps, s.rir))) };
+  }
+  function incremento(kg, paso, niv) { return Math.max(paso, redon(kg * [.05, .04, .03, .025][niv], paso)); }
+  function decidir(p) { // p: {hist, repMin, repMax, rirLo, niv, desc, paso}
+    const h = (p.hist || []).map(limpia).filter(Boolean);
+    if (!h.length) return { a: 'calibrar', kg: null };
+    const u = h[h.length - 1], conf = [1, 1, 2, 2][p.niv];
+    const mismo = []; for (let i = h.length - 1; i >= 0 && Math.abs(h[i].kg - u.kg) < .01; i--) mismo.push(h[i]);
+    const alTope = x => x.tec && x.sets.length >= 2 && x.sets.every(s => s.reps >= p.repMax) || (x.tec && x.sets.length === 1 && x.sets[0].reps >= p.repMax);
+    let racha = 0; for (const x of mismo) { if (alTope(x)) racha++; else break; }
+    const bajoMin = x => x.sets.some(s => s.reps < p.repMin);
+    const inc = incremento(u.kg, p.paso, p.niv);
+    if (u.dolor) return { a: 'dolor', kg: u.kg, txt: 'Marcaste dolor la última vez: no subas carga. Baja la carga o cambia la variante; si el dolor persiste, consulta a un profesional.' };
+    if (p.desc) return { a: 'descarga', kg: u.kg, txt: 'Semana de descarga: usa ' + u.kg + ' kg con la mitad de series y deja ≥ 4 repeticiones en reserva. No busques subir.' };
+    if (!u.tec) return { a: 'tecnica', kg: u.kg, txt: 'La última vez marcaste técnica o rango incompleto: eso no cuenta como progreso. Repite ' + u.kg + ' kg con técnica completa.' };
+    if (bajoMin(u)) {
+      const prev = h[h.length - 2];
+      if (prev && Math.abs(prev.kg - u.kg) < .01 && bajoMin(prev)) { const k = redon(u.kg * .92, p.paso); return { a: 'bajar', kg: k, reps: p.repMin, txt: 'Dos sesiones seguidas por debajo de ' + p.repMin + ' reps con ' + u.kg + ' kg: baja a ' + k + ' kg (~8 %) y reconstruye desde ' + p.repMin + ' reps.' }; }
+      return { a: 'mantener', kg: u.kg, reps: p.repMin, txt: 'Alguna serie quedó por debajo de ' + p.repMin + ' reps con ' + u.kg + ' kg. Mantén la carga; revisa descanso (usa todo el rango), sueño y técnica. Si se repite, bajaremos la carga.' };
+    }
+    if (u.rirUlt != null && u.rirUlt >= p.rirLo + 2 && !alTope(u)) { const k = redon(u.kg + inc, p.paso); return { a: 'ligero', kg: k, reps: p.repMin, txt: 'Te sobraron ' + u.rirUlt + ' repeticiones en reserva (objetivo ' + p.rirLo + '+): la carga quedó ligera. Sube a ' + k + ' kg.' }; }
+    if (alTope(u)) {
+      if (u.rirUlt == null) { const k = redon(u.kg + inc, p.paso); return { a: 'condicional', kg: u.kg, kgSube: k, reps: p.repMax, txt: 'Llegaste al tope de reps (' + p.repMax + '). Si te quedaban ' + p.rirLo + ' o más reps en reserva, sube a ' + k + ' kg; si no, repite ' + u.kg + ' kg. Registra el RIR para que decida yo.' }; }
+      if (u.rirUlt < p.rirLo) return { a: 'confirmar', kg: u.kg, reps: p.repMax, txt: 'Tope de reps con RIR ' + u.rirUlt + ' (objetivo ' + p.rirLo + '+): fue demasiado cerca del fallo. Repite ' + u.kg + ' kg y confirma con más reserva antes de subir.' };
+      if (racha >= conf) { const k = redon(u.kg + inc, p.paso); return { a: 'subir', kg: k, reps: p.repMin, txt: 'Tope de reps con RIR ' + u.rirUlt + (racha > 1 ? ' en ' + racha + ' sesiones' : '') + ' → sube a ' + k + ' kg (+' + redon(k - u.kg, .25) + ') y vuelve a ' + p.repMin + ' reps.' }; }
+      return { a: 'confirmar', kg: u.kg, reps: p.repMax, txt: 'Tope de reps: confírmalo ' + (conf - racha) + ' vez(es) más con ' + u.kg + ' kg antes de subir (tu nivel pide ' + conf + ' sesión(es)).' };
+    }
+    // progresión por repeticiones
+    const mn = Math.min(...u.sets.map(s => s.reps));
+    if (mismo.length >= 4) {
+      const t = mismo.slice(0, 4).map(x => x.sets.reduce((a, s) => a + s.reps, 0));
+      if (t[0] <= t[3]) return { a: 'meseta', kg: u.kg, reps: mn, txt: 'Cuatro sesiones con ' + u.kg + ' kg sin sumar repeticiones: meseta real. Revisa sueño, comida y volumen; si coincide con cansancio, el motor propondrá descarga. Puedes bajar ~5 % y reconstruir.' };
+    }
+    const objetivo = Math.min(p.repMax, mn + 1);
+    return { a: 'reps', kg: u.kg, reps: objetivo, txt: 'Con ' + u.kg + ' kg: meta hoy ' + objetivo + ' reps en cada serie (la peor fue ' + mn + ') y llega a ' + p.repMax + ' con RIR ' + p.rirLo + '+ para subir. Progresar por repeticiones sirve igual que por kilos.' };
+  }
+  function calibrar(kg, reps, rir, nombre, st) { // carga de trabajo a partir de UNA serie del MISMO ejercicio
+    if (!(kg > 0 && reps > 0 && reps <= 15)) return null;
+    const M = meta(nombre), r = rangoReps(nombre, st), objReps = Math.round(mid(r)), r0 = rir == null ? 2 : rir;
+    const est = kg * (1 + (reps + r0) / 30);                         // 1RM estimado de ESTE ejercicio
+    const k = redon(est / (1 + (objReps + st.rirLo) / 30), M.paso);
+    return { kg: Math.max(M.paso, k), reps: objReps, e1: Math.round(est * 10) / 10 };
+  }
+
+  /* ---------- 5 · AUTORREGULACIÓN ---------- */
+  function histDe(nombre) { return (typeof registroSeries !== 'undefined' && registroSeries[nombre]) ? registroSeries[nombre].slice().sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))) : []; }
+  function nombresDe(tipo) { const R = CT[tipo].R(), s = new Set(); Object.keys(R || {}).forEach(k => (R[k].ejercicios || []).forEach(e => s.add(e.nombre))); return [...s]; }
+  function senales(tipo) {
+    const m = motorDe(CT[tipo].B()), nombres = nombresDe(tipo);
+    let evals = 0, drops = 0, rir0 = 0, rirN = 0;
+    nombres.forEach(n => {
+      const h = histDe(n).map(limpia).filter(Boolean);
+      if (h.length >= 3) { evals++; const ref = Math.max(h[h.length - 2].e1, h[h.length - 3].e1); if (h[h.length - 1].e1 < ref * .95) drops++; }
+      h.slice(-2).forEach(x => x.todas.forEach(s => { if (s.rir != null) { rirN++; if (s.rir === 0) rir0++; } }));
+    });
+    const caida = evals >= 2 && drops >= Math.max(2, Math.ceil(evals / 3));
+    const fallo = rirN >= 8 && rir0 / rirN >= .6;
+    const ck = m.checkins.slice(-3);
+    const fatiga = ck.length >= 2 && ck.slice(-2).every(c => c.fatiga >= 4);
+    const dolor = ck.slice(-2).some(c => c.dolor >= 2);
+    const sintoma = ck.length > 0 && !!ck[ck.length - 1].sintoma;
+    let accion = 'continuar';
+    if (sintoma) accion = 'parar';
+    else if (dolor) accion = 'dolor';
+    else if (caida && fatiga) accion = 'descarga';
+    else if (caida || fatiga || fallo) accion = 'vigilar';
+    return { accion, caida, fatiga, fallo, dolor, sintoma, evals, drops };
+  }
+  const TXT_SENAL = {
+    parar: 'Reportaste un síntoma inusual (mareo, dolor en el pecho, falta de aire anormal…). Detén el entrenamiento y consulta a un profesional de la salud antes de seguir.',
+    dolor: 'Reportaste dolor en las últimas sesiones. No progreses carga en lo que duela; cambia la variante o baja la carga, y si persiste consulta a un profesional.',
+    descarga: 'Coinciden caída de rendimiento y fatiga alta: toca una semana de descarga (mitad de series, RIR 4+).',
+    vigilar: 'Hay una señal aislada (rendimiento, esfuerzo o fatiga). Mantén las cargas esta semana y no subas hasta confirmar la tendencia.',
+    continuar: 'Sin señales de fatiga: sigue progresando según tus registros.',
+  };
+  function guardarCheckin(tipo, c) {
+    const B = CT[tipo].B(), m = motorDe(B);
+    m.checkins.push({ fecha: fechaISO(), fatiga: clamp(num(c.fatiga) || 3, 1, 5), dolor: clamp(num(c.dolor) || 0, 0, 2), sintoma: !!c.sintoma });
+    m.checkins = m.checkins.slice(-12);
+    const s = senales(tipo); let msg = '';
+    if (s.accion === 'descarga' && !m.descarga) { m.descarga = true; msg = TXT_SENAL.descarga; }
+    else if (s.accion !== 'continuar') msg = TXT_SENAL[s.accion];
+    guardarBloque(tipo); aplicar(tipo);
+    return { senales: s, msg };
+  }
+
+  /* ---------- 4 · PERIODIZACIÓN POR BLOQUES ---------- */
+  function guardarBloque(tipo) { const c = CT[tipo]; try { localStorage.setItem(c.clave, JSON.stringify(c.B())); } catch (e) {} }
+  function tasaProgreso(tipo, hoy) {
+    let opp = 0, ev = 0;
+    nombresDe(tipo).forEach(n => {
+      const h = histDe(n).filter(x => difDias(x.fecha, hoy) <= 56).map(limpia).filter(Boolean);
+      for (let i = 1; i < h.length; i++) {
+        opp++;
+        const a = h[i - 1], b = h[i], sa = a.sets.reduce((t, s) => t + s.reps, 0), sb = b.sets.reduce((t, s) => t + s.reps, 0);
+        if (b.e1 >= a.e1 * 1.01 || (Math.abs(a.kg - b.kg) < .01 && sb > sa)) ev++;
+      }
+    });
+    return { opp, ev, tasa: opp ? ev / opp : null };
+  }
+  function cerrarSemana(tipo, hoy) {
+    hoy = hoy || fechaISO();
+    const B = CT[tipo].B(), m = motorDe(B), st = estado(tipo), sg = senales(tipo);
+    if (m.ultCierre === hoy) return { nota: 'Ya cerraste la semana hoy; no se avanza dos veces el mismo día.', senales: sg, repetido: true };
+    m.ultCierre = hoy;
+    let nota = '';
+    if (m.descarga) {                                   // terminó la descarga -> bloque nuevo
+      m.descarga = false; m.bloque++; m.tipo = m.tipo === 'A' ? 'B' : 'A'; B.semana = 1; m.sinDescarga = 0;
+      nota = 'Descarga completada. Empieza el bloque ' + m.bloque + (st.niv >= 2 && m.obj === 'hip' ? (m.tipo === 'B' ? ' (intensificación: básicos en 5–8 reps)' : ' (acumulación: básicos en 6–10 reps)') : '') + '.';
+    } else if (sg.accion === 'descarga') {
+      m.descarga = true; nota = TXT_SENAL.descarga;
+    } else if (B.semana >= st.largo) {                  // fin de bloque -> revisión de nivel y de fatiga
+      const t = tasaProgreso(tipo, hoy), umbral = [.45, .35, .25][st.niv];
+      const tope = st.decl >= 2 ? 3 : Math.min(2, st.decl + 1);
+      if (st.niv < tope && t.opp >= 12 && t.tasa < umbral && sg.accion === 'continuar' && (!m.ultReclas || difDias(m.ultReclas, hoy) >= 56)) {
+        m.nivelEf = st.niv + 1; m.ultReclas = hoy;
+        nota = 'Revisión de bloque: progresas en ' + Math.round(t.tasa * 100) + ' % de tus sesiones (' + t.ev + '/' + t.opp + '), por debajo de lo esperado en nivel ' + NIV_NOM[st.niv].toLowerCase() + '. Pasas a ' + NIV_NOM[m.nivelEf].toLowerCase() + ': más volumen, más confirmación antes de subir carga.';
+      }
+      if (sg.accion === 'vigilar' || m.sinDescarga >= 2) { m.descarga = true; nota = (nota ? nota + ' ' : '') + 'Descarga: ' + (sg.accion === 'vigilar' ? 'hay señales de fatiga.' : 'llevas varios bloques sin descargar.'); }
+      else { m.bloque++; m.tipo = m.tipo === 'A' ? 'B' : 'A'; B.semana = 1; m.sinDescarga++; nota = (nota ? nota + ' ' : '') + 'Sin fatiga relevante: no hace falta descargar. Empieza el bloque ' + m.bloque + '.'; }
+    } else { B.semana++; nota = 'Semana ' + B.semana + ' de ' + st.largo + '. ' + (B.semana >= 3 ? 'La reserva baja un punto, sin ir al fallo.' : ''); }
+    m.diario.push({ f: hoy, a: sg.accion }); m.diario = m.diario.slice(-20);
+    guardarBloque(tipo); aplicar(tipo);
+    return { nota, senales: sg };
+  }
+  function infoBloque(bloque) {
+    const tipo = TIPOS.find(t => CT[t].B() === bloque); if (!tipo) return { nombre: 'Bloque', desc: '' };
+    const st = estado(tipo);
+    if (st.desc) return { nombre: 'Descarga', desc: 'Mitad de series y RIR 4+. Recupera: la siguiente semana empieza un bloque nuevo.' };
+    const nom = st.semana <= 2 ? 'Adaptación' : (st.semana >= st.largo && st.niv >= 2 ? 'Intensificación' : 'Progresión');
+    return { nombre: nom + ' · semana ' + st.semana + ' de ' + st.largo, desc: 'Meta de esfuerzo: RIR ' + st.rirTxt + '. Sube carga solo si cumples el rango de reps con esa reserva; el calendario no obliga a subir.' };
+  }
+
+  /* ---------- 3b · puente con las pantallas ---------- */
+  function tipoDePerfil(perfil) { return TIPOS.find(t => CT[t].P() === perfil) || null; }
+  function sugerencia(nombre, repsRango, perfil, bloque) {
+    const tipo = tipoDePerfil(perfil) || TIPOS.find(t => CT[t].B() === bloque); if (!tipo) return null;
+    const st = estado(tipo), M = meta(nombre), r = parseRango(repsRango);
+    const d = decidir({ hist: histDe(nombre), repMin: r[0], repMax: r[1], rirLo: st.rirLo, niv: st.niv, desc: st.desc, paso: M.paso });
+    if (d.a === 'calibrar') return { tipo: 'calibrar', texto: 'Sin historial de este ejercicio: haz 1–2 series de aproximación y una serie con un peso con el que hagas unas ' + Math.round(mid(r)) + ' reps dejando ' + st.rirLo + ' en reserva. Anota reps y RIR; te diré el peso de trabajo.' };
+    const sg = senales(tipo);
+    if (sg.accion === 'vigilar' && /subir|ligero|condicional/.test(d.a)) return { tipo: 'cautela', texto: 'Cumples para subir, pero hay una señal de fatiga: mantén ' + d.kg + ' kg esta semana y confirma la tendencia.' };
+    return { tipo: d.a, texto: d.txt, d };
+  }
+  function carga(nombre, tipo, repsRango) { // sugerencia para precargar kg/reps en la sesión
+    const st = estado(tipo), M = meta(nombre), r = parseRango(repsRango);
+    return decidir({ hist: histDe(nombre), repMin: r[0], repMax: r[1], rirLo: st.rirLo, niv: st.niv, desc: st.desc, paso: M.paso });
+  }
+
+  /* ---------- 6 · VALIDACIÓN Y SEGURIDAD ---------- */
+  function validar(tipo) { // comprueba coherencia de lo que el motor prescribe; devuelve la lista de problemas (vacía = bien)
+    const out = [], c = CT[tipo], R = c.R(); if (!R) return ['sin plantilla'];
+    const st = estado(tipo);
+    Object.keys(R).forEach(k => (R[k].ejercicios || []).forEach(e => {
+      const s = parseRango(e.series)[0], r = parseRango(e.reps), M = meta(e.nombre);
+      if (!(s >= 1 && s <= 5)) out.push(k + ' ' + e.nombre + ': series ' + e.series);
+      if (!(r[0] >= 3 && r[1] <= 12 && r[0] < r[1])) out.push(k + ' ' + e.nombre + ': reps ' + e.reps);
+      if (st.obj === 'hip' && M.k === C && r[1] > 12) out.push(e.nombre + ': básico con demasiadas reps');
+      if (!/^\d/.test(e.descanso)) out.push(e.nombre + ': descanso');
+      if (!M.g) out.push(e.nombre + ': sin grupo muscular');
+    }));
+    return out;
+  }
+  function cargaValida(kg) { return typeof kg === 'number' && isFinite(kg) && kg > 0 && kg <= 1000; }
+
+  return { NIV, NIV_NOM, LARGO, GRUPOS, VOL, TIPOS, CT, META, meta, parseRango, rangoReps, descansoSeg, fmtDesc, minutosDia, asignar, plan, estado, estadoDe, aplicar,
+    decidir, limpia, incremento, calibrar, e1rm, senales, TXT_SENAL, guardarCheckin, cerrarSemana, tasaProgreso, infoBloque, sugerencia, carga, validar, cargaValida, motorDe, guardarBloque, tipoDePerfil, redon };
+})();
+
+/* ---------- puente motor ⇄ app ---------- */
+let AET_CK = { fatiga: 0, dolor: 0, sintoma: false };
+function aetCkSet(k, v) {
+  AET_CK[k] = v;
+  document.querySelectorAll('[data-ck="' + k + '"]').forEach(b => b.classList.toggle('on', String(b.dataset.v) === String(v)));
+}
+function aetCkListo(tipo) {
+  if (AET_CK.fatiga > 0 || AET_CK.dolor > 0 || AET_CK.sintoma) {
+    try {
+      const r = AETGYM.guardarCheckin(tipo, AET_CK);
+      aetMotorRerender(tipo);
+      if (r.msg && r.senales.accion !== 'continuar') {
+        aetCerrar(); aetRefrescar();
+        aetSheet('Revisión de tu entrenamiento', `<div class="ses-sug">${esc(r.msg)}</div><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Entendido</button>`);
+        return;
+      }
+    } catch (x) { console.error(x); }
+  }
+  aetCerrar(); aetRefrescar();
+}
+const AET_MOTOR_MAP = {
+  entrenamiento: { render: 'renderDiaGym', dia: () => gymDiaActual, pref: 'gy', perfil: () => perfilGym, bloque: () => bloqueGym },
+  h3: { render: 'renderDiaH3', dia: () => h3DiaActual, pref: 'h3', perfil: () => perfilH3, bloque: () => bloqueH3 },
+  m5: { render: 'renderDiaM5', dia: () => m5DiaActual, pref: 'm5', perfil: () => perfilM5, bloque: () => bloqueM5 },
+};
+function aetMotorRerender(tipo) {
+  try {
+    const m = AET_MOTOR_MAP[tipo]; if (!m) return;
+    if (typeof window[m.render] === 'function') window[m.render](m.dia());
+    if (typeof window.mostrarBloqueSiAplica === 'function') window.mostrarBloqueSiAplica(m.pref, m.perfil(), m.bloque());
+  } catch (e) { console.error(e); }
+}
+function aetMotorCerrar(tipo) { // botón "Completé esta semana del bloque" de la pantalla de perfil
+  try {
+    const r = AETGYM.cerrarSemana(tipo); aetMotorRerender(tipo); aetRefrescar();
+    aetSheet('Cierre de semana', `<div class="ses-sug">${esc(r.nota)}</div><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Entendido</button>`);
+  } catch (e) { console.error(e); }
+}
+function aetMotorEnganchar() { // sustituye, ya con el módulo cargado, la lógica antigua del programa por el motor
+  window.personalizarSeries = function () { return null; };           // las series ya vienen fijadas por el motor en la plantilla
+  window.aplicaBloque = function () { return true; };
+  window.sugerenciaSobrecarga = function (nombre, reps, musculo, prio, perfil, bloque) {
+    try { const s = AETGYM.sugerencia(nombre, reps, perfil, bloque); return s ? { texto: (prio ? '🎯 ' : '') + s.texto, tipo: s.tipo } : null; } catch (e) { return null; }
+  };
+  window.mostrarBloqueSiAplica = function (prefijo, perfil, bloque) {
+    const sec = document.getElementById(prefijo + '_bloqueSeccion'); if (!sec) return;
+    if (!perfil || !perfil.calculado) { sec.style.display = 'none'; return; }
+    sec.style.display = 'block';
+    const tipo = AETGYM.tipoDePerfil(perfil), st = tipo ? AETGYM.estado(tipo) : null, inf = AETGYM.infoBloque(bloque);
+    const d = document.getElementById(prefijo + '_bloqueDesc'), b = document.getElementById(prefijo + '_bloqueBadge'), n = document.getElementById(prefijo + '_bloqueNota');
+    if (d) d.textContent = st ? 'Bloque ' + st.bloqueN + ' · nivel ' + st.nivNom.toLowerCase() + (st.reclasificado ? ' (reevaluado con tu rendimiento)' : '') + '. Los bloques cambian cuando lo piden tu progreso o tu fatiga, no por calendario.' : '';
+    if (b) b.textContent = '⬤ ' + inf.nombre;
+    if (n) n.textContent = inf.desc;
+  };
+  window.avanzarBloqueGym = function () { aetMotorCerrar('entrenamiento'); };
+  window.avanzarBloqueH3 = function () { aetMotorCerrar('h3'); };
+  window.avanzarBloqueM5 = function () { aetMotorCerrar('m5'); };
+  [['calcularPerfilGym', 'entrenamiento'], ['calcularPerfilH3', 'h3'], ['calcularPerfilM5', 'm5']].forEach(([fn, tipo]) => {
+    const f = window[fn]; if (typeof f !== 'function' || f._motor) return;
+    const g = function () { const r = f.apply(this, arguments); try { AETGYM.aplicar(tipo); aetMotorRerender(tipo); aetRefrescar(); } catch (e) { console.error(e); } return r; };
+    g._motor = 1; window[fn] = g;
+  });
+  AETGYM.TIPOS.forEach(t => { try { AETGYM.aplicar(t); } catch (e) { console.error('motor', t, e); } });
+}
+function aetMotorSet(k, v) {
+  const pr = aetPrograma(); if (!pr || pr.tipo.indexOf('mma') === 0 || !aetModuloListo()) return;
+  const b = aetCfg(pr.tipo).bloque, m = AETGYM.motorDe(b);
+  if (k === 'obj' && (v === 'hip' || v === 'fue')) m.obj = v;
+  if (k === 'min') { const n = +v; if (n >= 30 && n <= 150) m.min = n; }
+  AETGYM.guardarBloque(pr.tipo); AETGYM.aplicar(pr.tipo); aetMotorRerender(pr.tipo); aetRefrescar();
+}
+function aetPanelMotor() {
+  const pr = aetPrograma();
+  if (!pr || pr.tipo.indexOf('mma') === 0 || !aetModuloListo() || typeof AETGYM === 'undefined') return '';
+  try {
+    const t = pr.tipo, cfg = aetCfg(t), st = AETGYM.estado(t), pl = AETGYM.plan(t), sg = AETGYM.senales(t), inf = AETGYM.infoBloque(cfg.bloque), m = AETGYM.motorDe(cfg.bloque);
+    const filas = AETGYM.GRUPOS.map(g => {
+      const v = pl.p.ef[g], [lo, hi] = pl.p.rangos[g], bajo = v < lo - .01, alto = v > hi + .01;
+      return `<tr><td>${g}</td><td>${Math.round(v * 2) / 2}</td><td>${lo}–${hi}</td><td style="color:${st.desc ? 'var(--gris)' : (bajo || alto) ? '#f5b73b' : '#3ecf8e'}">${st.desc ? 'descarga' : bajo ? 'bajo' : alto ? 'alto' : '✓'}</td></tr>`;
+    }).join('');
+    return `<div class="aet-panel" style="border-color:rgba(255,122,47,.3)">
+      <div class="aet-panel-t"><span style="color:var(--ac-e)">🧠 Mi motor de entrenamiento</span><span style="color:var(--blanco)">${esc(pr.n)}</span></div>
+      <p class="aet-nota" style="margin:-.3rem 0 .6rem"><b>${esc(st.nivNom)}</b>${st.reclasificado ? ' · reevaluado con tu rendimiento (declarado: ' + esc(AETGYM.NIV_NOM[st.decl]) + ')' : ''} · ${esc(inf.nombre)} · esfuerzo RIR ${esc(st.rirTxt)}${st.calc ? '' : ' · <i>sin perfil físico: calcula tu perfil para ajustar el volumen</i>'}</p>
+      <div>Objetivo: <button class="ses-ckb ${m.obj === 'hip' ? 'on' : ''}" onclick="aetMotorSet('obj','hip')">Hipertrofia</button><button class="ses-ckb ${m.obj === 'fue' ? 'on' : ''}" onclick="aetMotorSet('obj','fue')">Fuerza</button></div>
+      <div>Tiempo por sesión: ${[45, 60, 75, 90, 105].map(v => `<button class="ses-ckb ${m.min === v ? 'on' : ''}" onclick="aetMotorSet('min',${v})">${v} min</button>`).join('')}</div>
+      <div class="ses-sug" style="margin-top:.6rem">${esc(AETGYM.TXT_SENAL[sg.accion])}</div>
+      ${pl.p.recortado ? '<p class="aet-nota">Se recortaron series de aislamiento para que cada sesión quepa en tu tiempo; si el volumen sale bajo, sube el tiempo por sesión.</p>' : ''}
+      ${Object.keys(pl.p.min).some(k => pl.p.min[k] > st.min + 1) ? '<p class="aet-nota">Aun con el mínimo de 2 series por ejercicio, alguna sesión pasa de tu tiempo: sube el tiempo por sesión o salta accesorios ese día.</p>' : ''}
+      <details class="ses-det"><summary>Volumen semanal por grupo</summary><table class="mot-t"><tr><th>Grupo</th><th>Series efectivas</th><th>Rango</th><th></th></tr>${filas}</table>
+        <p class="aet-nota">Series efectivas = series directas + 0,5 por cada serie de un básico que lo trabaja como apoyo (criterio del motor). Glúteo/Isquios cuenta dos músculos, por eso su rango es mayor.</p></details>
+      <details class="ses-det"><summary>Cómo decide el motor</summary>
+        <p style="margin:.5rem 0 0"><b>Nivel:</b> parte de lo que declaras y se reevalúa al cerrar cada bloque con tu progreso real, no por el tiempo transcurrido. Los umbrales son criterios del motor, no normas publicadas.<br>
+        <b>Volumen:</b> series efectivas por grupo y semana según nivel y recuperación. La evidencia (ACSM 2026) respalda ≥ 10 por semana con rendimientos decrecientes hacia 18–20.<br>
+        <b>Repeticiones:</b> 6–12. La hipertrofia es similar con cargas de 30 a 100 % del 1RM si te acercas lo suficiente al fallo (ACSM 2026); el rango 6–12 es una elección práctica para progresar con seguridad.<br>
+        <b>Esfuerzo:</b> RIR 3 las dos primeras semanas y 2–3 después; nunca al fallo por calendario.<br>
+        <b>Sobrecarga:</b> solo sube la carga si llegas al tope del rango con la reserva indicada y buena técnica, sin dolor. Si no, mantienes o sumas repeticiones. Cada ejercicio progresa por separado; nunca se usa la marca de un ejercicio para otro.<br>
+        <b>Descanso:</b> básicos 3–5 min; aislamiento 2–3 min. La evidencia no fija un valor exacto: manda llegar recuperado para repetir la calidad.<br>
+        <b>Descarga:</b> solo si coinciden caída de rendimiento y fatiga alta, o al cerrar un bloque con señales; no por calendario.<br>
+        <b>Límites:</b> pensado para adultos sanos de 18 años o más. No es una valoración médica ni sustituye a un profesional si tienes lesiones o enfermedades.</p></details>
+      <div class="aet-fila"><button class="aet-btn sec mini" onclick="aetReiniciarSemana('${t}')">Cerrar semana del bloque</button></div>
+    </div>`;
+  } catch (e) { console.error(e); return ''; }
+}
+
 const AET_PROG_NOM = { entrenamiento: 'GYM Hombre 5 días', h3: 'GYM Hombre 3 días', m5: 'GYM Mujer 5 días', mma1: 'MMA Nivel 1', mma2: 'MMA Nivel 2', mma3: 'MMA Nivel 3' };
 let AET_SEL = {}, AET_S = null, AET_TMR = { fin: 0, label: '' }, AET_TICK = null;
 
@@ -7994,12 +8488,13 @@ function aetHeroGym(pr, el) {
     if (dia.tipo === 'descanso') cuerpo = `<div class="k">Hoy toca descanso</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.texto)}</p>`;
     else {
       let series = 0, seg = 0;
-      dia.ejercicios.forEach(ej => { const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = a !== null ? a : mn; series += n; seg += n * (40 + 180); });
+      dia.ejercicios.forEach(ej => { series += Math.max(1, parseRangoSeries(ej.series)[0]); });
+      try { seg = AETGYM.plan(pr.tipo).p.min[d.sel] * 60; } catch (e) { seg = series * 220; }
       const cont = draft && draft.tipo === pr.tipo && draft.key === d.sel && draft.fecha === AET.hoy();
-      const bl = (cfg.perfil && cfg.perfil.calculado && typeof aplicaBloque === 'function' && aplicaBloque(cfg.perfil.nivelKey)) ? `<span>Semana ${cfg.bloque.semana}/4 · ${BLOQUE_NOMBRES[cfg.bloque.semana].nombre}</span>` : '';
+      let bl = ''; try { bl = `<span>${esc(AETGYM.infoBloque(cfg.bloque).nombre)}</span>`; } catch (e) {}
       cuerpo = `<div class="k">${d.hecho(d.sel) ? 'Completado ✓' : 'Hoy'}</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.subtitulo || '')}</p>
         <div class="meta"><span>${dia.ejercicios.length} ejercicios</span><span>${series} series</span><span>~${Math.round(seg / 60 / 5) * 5 || 5} min</span>${bl}</div>
-        ${cfg.perfil && cfg.perfil.calculado ? '' : `<p style="color:#f5b73b">Sin tu perfil físico las series son las base. <a href="#" style="color:#f5b73b" onclick="abrirCalculadora('${pr.tipo}');return false">Calcúlalo →</a></p>`}
+        ${cfg.perfil && cfg.perfil.calculado ? '' : `<p style="color:#f5b73b">Sin tu perfil físico el motor asume nivel principiante–intermedio y volumen moderado. <a href="#" style="color:#f5b73b" onclick="abrirCalculadora('${pr.tipo}');return false">Calcúlalo →</a></p>`}
         <button class="aet-btn e" onclick="aetSesIniciar('${pr.tipo}','${d.sel}')">▶ ${cont ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button>`;
     }
   }
@@ -8009,8 +8504,10 @@ function aetHeroGym(pr, el) {
 }
 function aetReiniciarSemana(tipo) {
   if (!confirm('¿Empezar una semana nueva? Se limpian los checks de los días (tus series registradas se quedan).')) return;
-  const cfg = aetCfg(tipo); Object.keys(cfg.comp).forEach(k => delete cfg.comp[k]);
+  const cfg = aetCfg(tipo); let nota = ''; try { nota = AETGYM.cerrarSemana(tipo).nota; aetMotorRerender(tipo); } catch (e) { console.error(e); }
+  Object.keys(cfg.comp).forEach(k => delete cfg.comp[k]);
   guardarCompletados(cfg.clave, cfg.comp); AET_SEL[tipo] = null; aetRefrescar();
+  if (nota) aetSheet('Cierre de semana', `<div class="ses-sug">${esc(nota)}</div><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Entendido</button>`);
 }
 
 /* ---------- Sesión GYM ---------- */
@@ -8019,10 +8516,12 @@ function aetSesIniciar(tipo, key) {
   if (draft && draft.tipo === tipo && draft.key === key && draft.fecha === AET.hoy()) AET_S = draft;
   else {
     AET_S = { tipo, key, fecha: AET.hoy(), t0: Date.now(), vista: -1, ejs: dia.ejercicios.map((ej, idx) => {
-      const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = Math.max(1, a !== null ? a : mn);   // sin perfil: se empieza por el mínimo del rango (volumen de partida), no por el promedio redondeado hacia arriba
+      const n = Math.max(1, parseRangoSeries(ej.series)[0]);   // series: las fija el motor según nivel, objetivo y volumen semanal
       const h = registroSeries[ej.nombre], ult = h && h.length ? (h[h.length - 1].sets || []) : [], rmin = parseRangoSeries(String(ej.reps).replace(/\/.*$/, ''))[0];
-      return { idx, n: ej.nombre, m: ej.musculo, ser: ej.series, reps: ej.reps, des: ej.descanso, rpe: ej.rpe, nota: ej.nota,
-        sets: Array.from({ length: n }, (_, i) => { const u = ult[i] || ult[ult.length - 1]; return { r: u ? u.reps : (isFinite(rmin) ? rmin : ''), kg: u && u.peso ? u.peso : '', ok: false }; }) };
+      let dec = null; try { dec = AETGYM.carga(ej.nombre, tipo, ej.reps); } catch (x) {}
+      const cal = !dec || dec.a === 'calibrar';
+      return { idx, n: ej.nombre, m: ej.musculo, ser: ej.series, reps: ej.reps, des: ej.descanso, rpe: ej.rpe, nota: ej.nota, cal, tec: true, dolor: false,
+        sets: Array.from({ length: n }, (_, i) => { const u = ult[i] || ult[ult.length - 1]; const kg = cal ? '' : (dec.kg || (u && u.peso) || ''), r = cal ? (isFinite(rmin) ? rmin : '') : (dec.reps || (u ? u.reps : (isFinite(rmin) ? rmin : ''))); return { r, kg, rir: '', ok: false }; }) };
     }) };
   }
   document.body.style.overflow = 'hidden';
@@ -8048,15 +8547,17 @@ function aetSesRender() {
     const vid = (dia.ejercicios[e.idx] || {}).video || '';
     el.innerHTML = `<div class="ses-top"><button onclick="AET_S.vista=-1;aetSesRender()">←</button><div class="ses-title">Ejercicio ${i + 1} de ${AET_S.ejs.length}<small>${esc(dia.titulo)}</small></div><div class="ses-clock" id="sesClock">00:00</div></div>
       <div class="ses-body">${aetRestHtml()}<div class="ses-h">${esc(e.n)}</div><div class="ses-mus">${esc(e.m)}</div>
-      <div class="ses-chips"><div class="ses-chip"><b>${e.sets.length}</b><span>Series</span></div><div class="ses-chip"><b>${esc(e.reps)}</b><span>Reps</span></div><div class="ses-chip"><b>3–5 min</b><span>Descanso</span></div><div class="ses-chip"><b>${esc(e.rpe)}</b><span>Esfuerzo</span></div></div>
+      <div class="ses-chips"><div class="ses-chip"><b>${e.sets.length}</b><span>Series</span></div><div class="ses-chip"><b>${esc(e.reps)}</b><span>Reps</span></div><div class="ses-chip"><b>${esc(e.des)}</b><span>Descanso</span></div><div class="ses-chip"><b>${esc(e.rpe)}</b><span>Esfuerzo</span></div></div>
       ${vid ? `<video class="video-tecnica" data-psrc="tecnica-videos/${esc(vid)}" muted loop playsinline preload="metadata" onerror="videoFallo(this)" style="max-height:230px;margin:.2rem 0 .8rem"></video>` : ''}
       ${sug ? `<div class="ses-sug">📈 ${esc(sug.texto)}</div>` : ''}
-      <div class="ses-sug" style="border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.04)">⏱ Descansa lo que tarde tu recuperación, entre 3 y 5 minutos. Empieza el siguiente set cuando sientas que puedes repetir la técnica y el esfuerzo de la serie anterior.</div>
+      ${e.cal ? `<div class="ses-sug">🎯 <b>Calibración (primera vez con este ejercicio)</b><br>${e.calKg ? 'Peso de trabajo sugerido: <b>' + e.calKg + ' kg</b>. Las series que faltan ya lo llevan; ajústalo si hace falta.' : 'No uso pesos de otros ejercicios. Haz 1–2 series de aproximación y luego una serie con un peso con el que hagas unas ' + Math.round(AETGYM.parseRango(e.reps).reduce((x, y) => x + y) / 2) + ' repeticiones dejando ' + String(e.rpe).replace('RIR ', '') + ' en reserva. Anota repeticiones y RIR y marca ✓: te diré el peso de trabajo.'}</div>` : ''}
+      <div class="ses-sug" style="border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.04)">⏱ Descansa lo que tarde tu recuperación, dentro de ${esc(e.des)}. Empieza la siguiente serie cuando puedas repetir la técnica y el esfuerzo de la anterior. Esfuerzo: ${esc(e.rpe)} = deja esa cantidad de repeticiones en reserva; no hace falta llegar al fallo.</div>
       <details class="ses-det"><summary>Técnica</summary><p style="margin:.5rem 0 0">${esc(e.nota)}</p></details>
-      <div class="ses-tab"><div class="ses-fila cab"><div>#</div><div>Reps</div><div>Kg</div><div></div></div>
-      ${e.sets.map((s, j) => `<div class="ses-fila ${s.ok ? 'ok' : ''}"><span>${j + 1}</span><input type="number" inputmode="numeric" value="${s.r}" onchange="aetSesVal(${i},${j},'r',this.value)"><input type="number" inputmode="decimal" step="0.5" value="${s.kg}" placeholder="kg" onchange="aetSesVal(${i},${j},'kg',this.value)"><button class="ses-chk" onclick="aetSesCheck(${i},${j})">✓</button></div>`).join('')}
-      <div class="aet-fila" style="margin-top:.6rem"><button class="aet-btn sec mini" onclick="aetSesSerie(${i},-1)">− Serie</button><button class="aet-btn sec mini" onclick="aetSesSerie(${i},1)">＋ Serie</button><button class="aet-btn sec mini" onclick="aetDetalleEj(${JSON.stringify(e.n).replace(/"/g, '&quot;')})">📈 Historial</button></div></div>
-      <p class="aet-nota">Se precargan los kilos y repeticiones de tu última sesión. Marca ✓ al terminar cada serie y empieza el descanso solo.</p></div>
+      <div class="ses-tab"><div class="ses-fila cab"><div>#</div><div>Reps</div><div>Kg</div><div>RIR</div><div></div></div>
+      ${e.sets.map((s, j) => `<div class="ses-fila ${s.ok ? 'ok' : ''}"><span>${j + 1}</span><input type="number" inputmode="numeric" value="${s.r}" onchange="aetSesVal(${i},${j},'r',this.value)"><input type="number" inputmode="decimal" step="0.5" value="${s.kg}" placeholder="kg" onchange="aetSesVal(${i},${j},'kg',this.value)"><select aria-label="RIR" onchange="aetSesVal(${i},${j},'rir',this.value)">${['', 0, 1, 2, 3, 4].map(v => `<option value="${v}" ${String(s.rir) === String(v) ? 'selected' : ''}>${v === '' ? '—' : v === 4 ? '4+' : v}</option>`).join('')}</select><button class="ses-chk" onclick="aetSesCheck(${i},${j})">✓</button></div>`).join('')}
+      <div class="aet-fila" style="margin-top:.6rem"><button class="aet-btn sec mini" onclick="aetSesSerie(${i},-1)">− Serie</button><button class="aet-btn sec mini" onclick="aetSesSerie(${i},1)">＋ Serie</button><button class="aet-btn sec mini" onclick="aetDetalleEj(${JSON.stringify(e.n).replace(/"/g, '&quot;')})">📈 Historial</button></div>
+      <div class="aet-fila" style="margin-top:.5rem"><button class="aet-btn sec mini" style="${e.tec === false ? 'border-color:#f5b73b;color:#f5b73b' : ''}" onclick="aetSesTog(${i},'tec')">${e.tec === false ? '⚠ Técnica incompleta' : '✓ Técnica completa'}</button><button class="aet-btn sec mini" style="${e.dolor ? 'border-color:#e8504a;color:#e8504a' : ''}" onclick="aetSesTog(${i},'dolor')">${e.dolor ? '⚠ Dolor marcado' : 'Sin dolor'}</button></div></div>
+      <p class="aet-nota">Se precarga la meta de hoy según tu última sesión. RIR = repeticiones que te quedaron en reserva (0 = fallo). Marca ✓ al terminar cada serie y empieza el descanso solo.</p></div>
       <div class="ses-bar-bot">${ultimo ? `<button class="aet-btn e" onclick="aetSesTerminar()">Terminar entrenamiento</button>` : `<button class="aet-btn e" onclick="AET_S.vista=${i + 1};aetSesRender()">Siguiente ejercicio ›</button>`}</div>`;
   }
   if (AET_S.vista >= 0) { const vN = el.querySelector('video.video-tecnica'); if (vN && vOld && vOld.dataset.psrc === vN.dataset.psrc && vOld.getAttribute('src')) vN.replaceWith(vOld); }
@@ -8070,14 +8571,20 @@ function aetSesSerie(i, d) {
   else if (s.length > 1) s.pop();
   aetSesGuardar(); aetSesRender();
 }
+function aetSesTog(i, c) { const e = AET_S.ejs[i]; if (c === 'tec') e.tec = e.tec === false; else e.dolor = !e.dolor; aetSesGuardar(); aetSesRender(); }
 function aetSesCheck(i, j) {
   const e = AET_S.ejs[i], s = e.sets[j]; s.ok = !s.ok;
   // los valores escritos se leen antes de re-render
-  document.querySelectorAll('.ses-fila:not(.cab)')[j] && (() => { const f = document.querySelectorAll('.ses-fila:not(.cab)')[j].querySelectorAll('input'); const r = AET.num(f[0].value), k = AET.num(f[1].value); s.r = r == null ? '' : r; s.kg = k == null ? '' : k; })();
+  document.querySelectorAll('.ses-fila:not(.cab)')[j] && (() => { const fl = document.querySelectorAll('.ses-fila:not(.cab)')[j], f = fl.querySelectorAll('input'), sl = fl.querySelector('select'); const r = AET.num(f[0].value), k = AET.num(f[1].value); s.r = r == null ? '' : r; s.kg = k == null ? '' : k; if (sl) { const q = AET.num(sl.value); s.rir = q == null ? '' : q; } })();
   if (s.ok) {
-    const fin = e.sets.every(x => x.ok);
-    if (!(fin && i === AET_S.ejs.length - 1)) aetTimerIniciar(180, (fin ? 'Descanso · siguiente ejercicio' : 'Descanso · serie ' + (j + 2)) + ' · hasta 5 min si lo necesitas', 300);
+    const fin = e.sets.every(x => x.ok), dr = AETGYM.descansoSeg(e.n);
+    let ini = dr[0]; if (s.rir !== '' && +s.rir <= 1) ini = Math.min(dr[1], dr[0] + 60);   // serie muy cerca del fallo: pide más pausa
+    if (!(fin && i === AET_S.ejs.length - 1)) aetTimerIniciar(ini, (fin ? 'Descanso · siguiente ejercicio' : 'Descanso · serie ' + (j + 2)) + ' · hasta ' + Math.round(dr[1] / 60 * 10) / 10 + ' min si lo necesitas', dr[1]);
     if (fin) aetToast('✓ ' + e.n + ' completo');
+    if (e.cal && !e.calKg && +s.kg > 0 && +s.r > 0) {   // primera serie de un ejercicio nuevo: calcula el peso de trabajo de ESTE ejercicio
+      let c = null; try { c = AETGYM.calibrar(+s.kg, +s.r, s.rir === '' ? null : +s.rir, e.n, AETGYM.estado(AET_S.tipo)); } catch (x) {}
+      if (c) { e.calKg = c.kg; e.sets.forEach(x => { if (!x.ok) x.kg = c.kg; }); aetToast('Peso de trabajo sugerido: ' + c.kg + ' kg'); }
+    }
   }
   aetSesGuardar(); aetSesRender();
 }
@@ -8089,17 +8596,17 @@ function aetSesTerminar() {
   const { t, h } = aetSesSeries();
   if (!h) { aetToast('Marca al menos una serie con ✓'); return; }
   if (h < t && !confirm('Te quedan ' + (t - h) + ' series sin marcar. ¿Terminar de todos modos?')) return;
-  const cfg = aetCfg(AET_S.tipo), previos = aetLog(), utc = new Date().toISOString().slice(0, 10);
+  const tipoSes = AET_S.tipo, cfg = aetCfg(tipoSes), previos = aetLog(), utc = new Date().toISOString().slice(0, 10);
   let vol = 0; const prs = [];
   AET_S.ejs.forEach(e => {
     const hechas = e.sets.filter(s => s.ok && +s.r > 0);
     if (!hechas.length) return;
-    const sets = hechas.map(s => ({ peso: +s.kg || 0, reps: +s.r }));
+    const sets = hechas.map(s => ({ peso: AETGYM.cargaValida(+s.kg) ? +s.kg : 0, reps: Math.min(100, +s.r), rir: s.rir === '' || s.rir == null ? null : +s.rir }));
     vol += sets.reduce((a, s) => a + s.peso * s.reps, 0);
     const antes = Math.max(0, ...previos.filter(l => l.ej.toLowerCase() === e.n.toLowerCase()).map(aetMejorE1rm)), ahora = Math.max(0, ...sets.map(s => aetE1rm(s.peso, s.reps)));
     if (antes > 0 && ahora > antes) prs.push(e.n + ' · 1RM est. ' + ahora + ' kg');
     if (!registroSeries[e.n]) registroSeries[e.n] = [];
-    const ix = registroSeries[e.n].findIndex(r => r.fecha === utc), entrada = { fecha: utc, sets, rpe: null, tecnica: true };
+    const ix = registroSeries[e.n].findIndex(r => r.fecha === utc), entrada = { fecha: utc, sets, rpe: null, tecnica: e.tec !== false, dolor: !!e.dolor };
     if (ix >= 0) registroSeries[e.n][ix] = entrada; else registroSeries[e.n].push(entrada);
     if (e.sets.every(s => s.ok)) { if (!cfg.comp[AET_S.key]) cfg.comp[AET_S.key] = new Set(); cfg.comp[AET_S.key].add(e.idx); }
   });
@@ -8111,7 +8618,12 @@ function aetSesTerminar() {
   localStorage.removeItem('aet_sesion'); AET_S = null; aetSesCerrarEl(); aetRefrescar();
   aetSheet('¡Entrenamiento terminado! 💪', `<p class="aet-nota" style="margin-top:0">${esc(titulo)}</p><div class="ses-resu"><div><b>${aetMMSS(seg)}</b><span>Tiempo</span></div><div><b>${h}</b><span>Series</span></div><div><b>${Math.round(vol).toLocaleString('es-MX')}</b><span>Kg de volumen</span></div></div>
     ${prs.length ? `<div class="ses-sug">🏆 <b>Nuevos récords personales</b><br>${prs.map(esc).join('<br>')}</div>` : ''}
-    <p class="aet-nota">Se guardó en tu historial y sumó a tu racha. Descansa, come y duerme bien: ahí es donde creces.</p><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Listo</button>`);
+    <div class="ses-sug" style="margin-top:1rem"><b>¿Cómo quedaste?</b> (opcional; ayuda al motor a decidir si subir o descargar)<br>
+      <div style="margin-top:.4rem">Fatiga general: ${[1, 2, 3, 4, 5].map(v => `<button class="ses-ckb" data-ck="fatiga" data-v="${v}" onclick="aetCkSet('fatiga',${v})">${v}</button>`).join('')}<small style="color:var(--gris)"> 1 = fresco · 5 = agotado</small></div>
+      <div style="margin-top:.2rem">Dolor: ${[['Ninguno', 0], ['Leve', 1], ['Fuerte', 2]].map(([t, v]) => `<button class="ses-ckb" data-ck="dolor" data-v="${v}" onclick="aetCkSet('dolor',${v})">${t}</button>`).join('')}</div>
+      <label style="display:block;margin-top:.4rem;font-size:12px"><input type="checkbox" onchange="aetCkSet('sintoma',this.checked)" style="width:auto"> Tuve un síntoma inusual (mareo, dolor en el pecho, falta de aire anormal)</label></div>
+    <p class="aet-nota">Se guardó en tu historial y sumó a tu racha. Descansa, come y duerme bien: ahí es donde creces.</p><button class="aet-btn" style="margin-top:1rem" onclick="aetCkListo('${tipoSes}')">Listo</button>`);
+  AET_CK = { fatiga: 0, dolor: 0, sintoma: false }; aetCkSet('dolor', 0);
 }
 
 /* ---------- MMA ---------- */
