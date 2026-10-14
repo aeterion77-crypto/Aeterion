@@ -6887,6 +6887,7 @@ async function abrirCalculadora(tipo) {
   }
   const modal = document.getElementById('modalCalc' + tipo.charAt(0).toUpperCase() + tipo.slice(1));
   if (!modal) return;
+  document.body.appendChild(modal); // queda encima de cualquier otra ventana abierta (p. ej. catálogo abierto desde una dieta)
   modal.classList.add('activo');
   document.body.style.overflow = 'hidden';
   if (tipo === 'entrenamiento') inicializarRutinaH5();
@@ -6907,7 +6908,7 @@ async function abrirCalculadora(tipo) {
 function cerrarCalculadora(tipo) {
   const modal = document.getElementById('modalCalc' + tipo.charAt(0).toUpperCase() + tipo.slice(1));
   if (modal) modal.classList.remove('activo');
-  document.body.style.overflow = '';
+  document.body.style.overflow = document.querySelector('.modal-overlay.activo') ? 'hidden' : '';
   if (document.body.classList.contains('modo-app') && typeof aetRefrescar === 'function') aetRefrescar();
 }
 
