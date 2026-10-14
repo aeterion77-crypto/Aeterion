@@ -8086,6 +8086,15 @@ const AETGYM = (() => {
     const c = CT[tipo], R = c.R(), st = estado(tipo);
     return { st, p: asignar(diasDe(R), st) };
   }
+  /* Tiempo que hace falta para cubrir el volumen recomendado sin recortar nada */
+  function necesario(tipo) {
+    const c = CT[tipo], st = estado(tipo), R = c.R();
+    const p = asignar(diasDe(R), Object.assign({}, st, { min: 999 }));
+    const dias = Object.keys(p.min), mx = Math.max.apply(null, dias.map(k => p.min[k]));
+    const total = dias.reduce((a, k) => a + p.min[k], 0);
+    const pedido = Math.ceil(mx / 5) * 5;
+    return { min: mx, pedido, total, dias: dias.length, porDia: p.min, cabe: pedido <= 150, tiene: st.min };
+  }
   function estado(tipo) { const c = CT[tipo]; return estadoDe(c.P(), c.B()); }
   function aplicar(tipo) { // escribe la prescripción del motor en la plantilla que muestran las pantallas de detalle y la sesión
     const c = CT[tipo], R = c && c.R(); if (!R || !c.B()) return null;
@@ -8278,7 +8287,7 @@ const AETGYM = (() => {
   }
   function cargaValida(kg) { return typeof kg === 'number' && isFinite(kg) && kg > 0 && kg <= 1000; }
 
-  return { NIV, NIV_NOM, LARGO, GRUPOS, VOL, TIPOS, CT, META, meta, parseRango, rangoReps, descansoSeg, fmtDesc, minutosDia, asignar, plan, estado, estadoDe, aplicar,
+  return { NIV, NIV_NOM, LARGO, GRUPOS, VOL, TIPOS, CT, META, meta, parseRango, rangoReps, descansoSeg, fmtDesc, minutosDia, asignar, plan, necesario, estado, estadoDe, aplicar,
     decidir, limpia, incremento, calibrar, e1rm, senales, TXT_SENAL, guardarCheckin, cerrarSemana, tasaProgreso, infoBloque, sugerencia, carga, validar, cargaValida, motorDe, guardarBloque, tipoDePerfil, redon };
 })();
 
@@ -8366,9 +8375,19 @@ function aetPanelMotor() {
       <div class="aet-panel-t"><span style="color:var(--ac-e)">🧠 Mi motor de entrenamiento</span><span style="color:var(--blanco)">${esc(pr.n)}</span></div>
       <p class="aet-nota" style="margin:-.3rem 0 .6rem"><b>${esc(st.nivNom)}</b>${st.reclasificado ? ' · reevaluado con tu rendimiento (declarado: ' + esc(AETGYM.NIV_NOM[st.decl]) + ')' : ''} · ${esc(inf.nombre)} · esfuerzo RIR ${esc(st.rirTxt)}${st.calc ? '' : ' · <i>sin perfil físico: calcula tu perfil para ajustar el volumen</i>'}</p>
       <div>Objetivo: <button class="ses-ckb ${m.obj === 'hip' ? 'on' : ''}" onclick="aetMotorSet('obj','hip')">Hipertrofia</button><button class="ses-ckb ${m.obj === 'fue' ? 'on' : ''}" onclick="aetMotorSet('obj','fue')">Fuerza</button></div>
-      <div>Tiempo por sesión: ${[45, 60, 75, 90, 105].map(v => `<button class="ses-ckb ${m.min === v ? 'on' : ''}" onclick="aetMotorSet('min',${v})">${v} min</button>`).join('')}</div>
+      <div>Tiempo por sesión: ${[45, 60, 75, 90, 105].concat([45, 60, 75, 90, 105].indexOf(m.min) < 0 ? [m.min] : []).sort((x, y) => x - y).map(v => `<button class="ses-ckb ${m.min === v ? 'on' : ''}" onclick="aetMotorSet('min',${v})">${v} min</button>`).join('')}</div>
       <div class="ses-sug" style="margin-top:.6rem">${esc(AETGYM.TXT_SENAL[sg.accion])}</div>
-      ${pl.p.recortado ? '<p class="aet-nota">Se recortaron series de aislamiento para que cada sesión quepa en tu tiempo; si el volumen sale bajo, sube el tiempo por sesión.</p>' : ''}
+      ${(() => {
+        if (st.desc) return '';
+        const bajos = pl.p.fuera.filter(f => f[1] === 'bajo').map(f => f[0]);
+        if (!pl.p.recortado && !bajos.length) return '';
+        const nc = AETGYM.necesario(t);
+        if (nc.pedido <= st.min) return '';
+        const txt = nc.cabe
+          ? `Con ${st.min} min por sesión el motor tuvo que recortar series${bajos.length ? ' y quedan por debajo del volumen recomendado: ' + bajos.join(', ') : ''}. Para cubrir tu volumen sin recortar necesitas unos <b>${nc.pedido} min</b> en tu día más largo (con descansos de 3–5 min).`
+          : `Tu volumen recomendado necesita más de 150 min en el día más largo con ${nc.dias} días. Añade un día de entrenamiento a la semana para repartir las series.`;
+        return `<p class="aet-nota" style="border-left:3px solid #f5b73b;padding-left:.6rem">${txt}${nc.cabe ? ` <button class="ses-ckb" onclick="aetMotorSet('min',${nc.pedido})">Usar ${nc.pedido} min</button>` : ''}</p>`;
+      })()}
       ${Object.keys(pl.p.min).some(k => pl.p.min[k] > st.min + 1) ? '<p class="aet-nota">Aun con el mínimo de 2 series por ejercicio, alguna sesión pasa de tu tiempo: sube el tiempo por sesión o salta accesorios ese día.</p>' : ''}
       <details class="ses-det"><summary>Volumen semanal por grupo</summary><table class="mot-t"><tr><th>Grupo</th><th>Series efectivas</th><th>Rango</th><th></th></tr>${filas}</table>
         <p class="aet-nota">Series efectivas = series directas + 0,5 por cada serie de un básico que lo trabaja como apoyo (criterio del motor). Glúteo/Isquios cuenta dos músculos, por eso su rango es mayor.</p></details>
