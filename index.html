@@ -7992,7 +7992,7 @@ function aetHeroGym(pr, el) {
     if (dia.tipo === 'descanso') cuerpo = `<div class="k">Hoy toca descanso</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.texto)}</p>`;
     else {
       let series = 0, seg = 0;
-      dia.ejercicios.forEach(ej => { const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = a !== null ? a : Math.round((mn + mx) / 2); series += n; seg += n * (40 + 180); });
+      dia.ejercicios.forEach(ej => { const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = a !== null ? a : mn; series += n; seg += n * (40 + 180); });
       const cont = draft && draft.tipo === pr.tipo && draft.key === d.sel && draft.fecha === AET.hoy();
       const bl = (cfg.perfil && cfg.perfil.calculado && typeof aplicaBloque === 'function' && aplicaBloque(cfg.perfil.nivelKey)) ? `<span>Semana ${cfg.bloque.semana}/4 · ${BLOQUE_NOMBRES[cfg.bloque.semana].nombre}</span>` : '';
       cuerpo = `<div class="k">${d.hecho(d.sel) ? 'Completado ✓' : 'Hoy'}</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.subtitulo || '')}</p>
@@ -8017,7 +8017,7 @@ function aetSesIniciar(tipo, key) {
   if (draft && draft.tipo === tipo && draft.key === key && draft.fecha === AET.hoy()) AET_S = draft;
   else {
     AET_S = { tipo, key, fecha: AET.hoy(), t0: Date.now(), vista: -1, ejs: dia.ejercicios.map((ej, idx) => {
-      const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = Math.max(1, a !== null ? a : Math.round((mn + mx) / 2));
+      const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = Math.max(1, a !== null ? a : mn);   // sin perfil: se empieza por el mínimo del rango (volumen de partida), no por el promedio redondeado hacia arriba
       const h = registroSeries[ej.nombre], ult = h && h.length ? (h[h.length - 1].sets || []) : [], rmin = parseRangoSeries(String(ej.reps).replace(/\/.*$/, ''))[0];
       return { idx, n: ej.nombre, m: ej.musculo, ser: ej.series, reps: ej.reps, des: ej.descanso, rpe: ej.rpe, nota: ej.nota,
         sets: Array.from({ length: n }, (_, i) => { const u = ult[i] || ult[ult.length - 1]; return { r: u ? u.reps : (isFinite(rmin) ? rmin : ''), kg: u && u.peso ? u.peso : '', ok: false }; }) };
