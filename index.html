@@ -5935,7 +5935,8 @@ function cargarModuloPremium(nombre) {
     cont.innerHTML = data.html;
     document.body.appendChild(cont);
     const sc = document.createElement('script');
-    sc.textContent = data.js;
+    // GYM: descanso entre series de 3–5 min en todas las pantallas de detalle (se aplica al cargar, también con la copia sin conexión)
+    sc.textContent = nombre === 'programa' ? data.js.replace(/descanso:\s*'[^']*'/g, "descanso:'3–5 min'") : data.js;
     document.head.appendChild(sc);
     if (typeof renderDashboardApp === 'function' && document.getElementById('appDashboardCards')) { try { renderDashboardApp(); } catch (e) {} }
     return true;
@@ -7991,7 +7992,7 @@ function aetHeroGym(pr, el) {
     if (dia.tipo === 'descanso') cuerpo = `<div class="k">Hoy toca descanso</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.texto)}</p>`;
     else {
       let series = 0, seg = 0;
-      dia.ejercicios.forEach(ej => { const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = a !== null ? a : Math.round((mn + mx) / 2); series += n; seg += n * (40 + aetSeg(ej.descanso)); });
+      dia.ejercicios.forEach(ej => { const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = a !== null ? a : Math.round((mn + mx) / 2); series += n; seg += n * (40 + 180); });
       const cont = draft && draft.tipo === pr.tipo && draft.key === d.sel && draft.fecha === AET.hoy();
       const bl = (cfg.perfil && cfg.perfil.calculado && typeof aplicaBloque === 'function' && aplicaBloque(cfg.perfil.nivelKey)) ? `<span>Semana ${cfg.bloque.semana}/4 · ${BLOQUE_NOMBRES[cfg.bloque.semana].nombre}</span>` : '';
       cuerpo = `<div class="k">${d.hecho(d.sel) ? 'Completado ✓' : 'Hoy'}</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.subtitulo || '')}</p>
