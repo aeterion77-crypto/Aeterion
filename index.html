@@ -7519,7 +7519,7 @@ function aetGrafica(pts, color, mini) {
 
 /* ---------- registro de entrenos ---------- */
 const AET_EJERCICIOS = ['Press de banca', 'Press inclinado con mancuernas', 'Press militar', 'Sentadilla', 'Peso muerto', 'Peso muerto rumano', 'Prensa de piernas', 'Zancadas', 'Hip thrust', 'Dominadas', 'Jalón al pecho', 'Remo con barra', 'Remo con mancuerna', 'Curl de bíceps', 'Extensión de tríceps', 'Elevaciones laterales', 'Fondos', 'Curl femoral', 'Extensión de cuádriceps', 'Elevación de talones'];
-const aetE1rm = (kg, r) => (r > 0 && r <= 12 && kg > 0) ? Math.round(kg * (1 + r / 30) * 10) / 10 : 0;
+const aetE1rm = (kg, r) => (r > 0 && r <= 10 && kg > 0) ? Math.round(kg * (1 + r / 30) * 10) / 10 : 0;
 function aetLogPropio() { return AET.leer('aet_log_entreno', []); }
 function aetLog() { // mis registros + lo que guardas dentro de las rutinas
   const rs = AET.leer('gym_registro_series', {}), extra = [];
@@ -7581,11 +7581,11 @@ function aetDetalleEj(nombre) {
   const pts = ses.map(s => ({ l: AET.corta(s.fecha), y: aetMejorE1rm(s) }));
   const mejor = Math.max(0, ...pts.map(p => p.y));
   aetSheet(esc(nombre), `
-    <div class="aet-peso"><b style="color:var(--ac-e)">${mejor || '—'}</b><small>${mejor ? 'kg · mejor 1RM estimado' : 'sin 1RM: solo se estima con 1–12 repeticiones y peso'}</small></div>
+    <div class="aet-peso"><b style="color:var(--ac-e)">${mejor || '—'}</b><small>${mejor ? 'kg · mejor 1RM estimado' : 'sin 1RM: solo se estima con 1–10 repeticiones y peso'}</small></div>
     ${aetGrafica(pts, '#ff7a2f')}
     <button class="aet-btn e" style="margin:.6rem 0" onclick="aetFormEntreno(${JSON.stringify(nombre).replace(/"/g, '&quot;')})">＋ Registrar otra sesión</button>
     ${ses.slice().reverse().slice(0, 12).map(s => `<div class="aet-ses"><small>${AET.corta(s.fecha)}${s.rutina ? ' · de tu rutina' : ` · <a href="#" style="color:#e8504a" onclick="aetBorrarSesion(${s.id});return false">borrar</a>`}</small>${s.series.map(x => x.r + '×' + x.kg + ' kg').join(' · ')}</div>`).join('')}
-    <p class="aet-nota">1RM estimado con la fórmula de Epley (peso × (1 + reps/30)), válida para series de 1 a 12 repeticiones. Es una referencia, no una prueba de máximo.</p>`);
+    <p class="aet-nota">1RM estimado con la fórmula de Epley (peso × (1 + reps/30)), y se calcula solo con series de 1 a 10 repeticiones: más allá pierde precisión, y es más exacta cerca de 5 (Reynolds et al., 2006). Es una referencia por ejercicio, no una prueba de máximo.</p>`);
 }
 function aetBorrarSesion(id) {
   if (!confirm('¿Borrar esta sesión?')) return;
