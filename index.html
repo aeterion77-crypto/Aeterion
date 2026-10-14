@@ -5936,7 +5936,9 @@ function cargarModuloPremium(nombre) {
     document.body.appendChild(cont);
     const sc = document.createElement('script');
     // GYM: descanso entre series de 3–5 min en todas las pantallas de detalle (se aplica al cargar, también con la copia sin conexión)
-    sc.textContent = nombre === 'programa' ? data.js.replace(/descanso:\s*'[^']*'/g, "descanso:'3–5 min'") : data.js;
+    sc.textContent = nombre === 'programa' ? data.js.replace(/descanso:\s*'[^']*'/g, "descanso:'3–5 min'")
+      // Repeticiones: nada por encima de 12 (rango 6–12). Los rangos altos pasan a 10–12 / 8–12; doble progresión: al llegar a 12 con buena técnica, sube la carga
+      .replace(/reps:\s*'(12–15|15–20|12–20)'/g, "reps:'10–12'").replace(/reps:\s*'10–15'/g, "reps:'8–12'") : data.js;
     document.head.appendChild(sc);
     if (typeof renderDashboardApp === 'function' && document.getElementById('appDashboardCards')) { try { renderDashboardApp(); } catch (e) {} }
     return true;
