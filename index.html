@@ -2475,6 +2475,80 @@
     .rec-add { width: 100%; margin-top: 1rem; border: none; border-radius: 10px; padding: .75rem; color: #111; font-family: var(--font-ui); font-weight: 700; font-size: 13px; cursor: pointer; }
     .aet-toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 4000; background: #1b1b1b; border: 1px solid var(--oro); color: var(--blanco); font-family: var(--font-ui); font-size: 13px; padding: .6rem 1rem; border-radius: 24px; max-width: 90%; text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
     .aet-pr { color: #ffd54a; font-weight: 700; }
+    /* ===== MODO SESIÓN (entrenamiento guiado) ===== */
+    .ses { position: fixed; inset: 0; z-index: 2050; background: #0a0a0a; overflow-y: auto; display: none; --ac: #ff7a2f; padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+    .ses.abierto { display: block; }
+    .ses.mma { --ac: #e8504a; }
+    .ses-top { position: sticky; top: 0; z-index: 3; background: rgba(10,10,10,.96); backdrop-filter: blur(8px); display: flex; align-items: center; gap: .8rem; padding: .9rem 1rem; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .ses-top button { background: none; border: none; color: var(--blanco); font-size: 22px; cursor: pointer; padding: 0 .3rem; }
+    .ses-title { flex: 1; font-family: var(--font-ui); font-size: 14px; font-weight: 700; color: var(--blanco); letter-spacing: .02em; line-height: 1.25; }
+    .ses-title small { display: block; color: var(--gris); font-size: 11px; font-weight: 500; }
+    .ses-clock { font-family: var(--font-ui); font-size: 15px; font-weight: 700; color: var(--ac); background: color-mix(in srgb, var(--ac) 14%, transparent); border-radius: 20px; padding: .3rem .7rem; }
+    .ses-body { padding: 1rem 1rem 0; }
+    .ses-prog { display: flex; align-items: center; gap: .8rem; margin-bottom: 1rem; font-family: var(--font-ui); font-size: 12px; color: var(--blanco); }
+    .ses-prog .bar { flex: 1; height: 8px; border-radius: 6px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .ses-prog .bar i { display: block; height: 100%; background: var(--ac); border-radius: 6px; transition: width .3s; }
+    .ses-rest { display: none; align-items: center; gap: .6rem; background: color-mix(in srgb, var(--ac) 16%, #111); border: 1px solid var(--ac); border-radius: 14px; padding: .7rem .9rem; margin-bottom: 1rem; font-family: var(--font-ui); color: var(--blanco); position: sticky; top: 64px; z-index: 2; }
+    .ses-rest.on { display: flex; }
+    .ses-rest b { font-size: 1.5rem; color: var(--ac); min-width: 3.6rem; }
+    .ses-rest span { flex: 1; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--gris); }
+    .ses-rest button { background: rgba(255,255,255,.08); border: none; color: var(--blanco); border-radius: 8px; padding: .4rem .7rem; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .ses-ej { display: flex; align-items: center; gap: .9rem; width: 100%; text-align: left; background: var(--negro2); border: 1px solid rgba(255,255,255,.07); border-left: 4px solid var(--ac); border-radius: 14px; padding: .8rem .9rem; margin-bottom: .7rem; color: inherit; font: inherit; cursor: pointer; }
+    .ses-ej.ok { border-left-color: var(--ac-n); background: rgba(62,207,142,.06); }
+    .ses-ej b { display: block; color: var(--blanco); font-size: 15px; font-weight: 600; line-height: 1.25; }
+    .ses-ej small { display: block; color: var(--gris); font-size: 12px; margin-top: .1rem; }
+    .ses-ej em { display: block; font-style: normal; font-family: var(--font-ui); font-size: 12px; color: var(--ac); margin-top: .3rem; }
+    .ses-ej .go { margin-left: auto; color: var(--gris); font-size: 22px; }
+    .ses-aro { flex: 0 0 auto; position: relative; width: 46px; height: 46px; }
+    .ses-aro svg { display: block; }
+    .ses-aro span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-ui); font-size: 12px; font-weight: 700; color: var(--blanco); }
+    .ses-h { font-family: var(--font-display); font-size: 1.7rem; color: var(--blanco); line-height: 1.15; margin: .2rem 0 .3rem; }
+    .ses-mus { font-family: var(--font-ui); font-size: 12px; color: var(--ac); letter-spacing: .06em; text-transform: uppercase; }
+    .ses-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin: 1rem 0; }
+    .ses-chip { background: var(--negro2); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: .55rem .3rem; text-align: center; }
+    .ses-chip b { display: block; font-family: var(--font-ui); font-size: 13px; color: var(--blanco); }
+    .ses-chip span { font-family: var(--font-ui); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--gris); }
+    .ses-sug { background: rgba(201,168,76,.09); border: 1px solid rgba(201,168,76,.35); border-radius: 12px; padding: .7rem .9rem; font-size: 13px; line-height: 1.5; color: var(--blanco); margin-bottom: 1rem; }
+    .ses-det { background: var(--negro2); border-radius: 12px; padding: .7rem .9rem; margin-bottom: 1rem; font-size: 13px; line-height: 1.55; color: #cfcfcf; }
+    .ses-det summary { cursor: pointer; font-family: var(--font-ui); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--oro2); }
+    .ses-tab { background: var(--negro2); border-radius: 14px; padding: .7rem; }
+    .ses-fila { display: grid; grid-template-columns: 28px 1fr 1fr 44px; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+    .ses-fila.cab { font-family: var(--font-ui); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--gris); text-align: center; }
+    .ses-fila > span { text-align: center; font-family: var(--font-ui); font-weight: 700; color: var(--ac); }
+    .ses-fila input { width: 100%; text-align: center; background: #1a1a1a; border: 1px solid rgba(255,255,255,.1); border-radius: 9px; color: var(--blanco); font-size: 17px; font-weight: 600; padding: .6rem .2rem; font-family: var(--font-ui); }
+    .ses-fila.ok input { background: rgba(62,207,142,.12); border-color: rgba(62,207,142,.5); }
+    .ses-chk { width: 44px; height: 44px; border-radius: 10px; border: 2px solid rgba(255,255,255,.25); background: transparent; color: transparent; font-size: 20px; cursor: pointer; }
+    .ses-fila.ok .ses-chk { background: var(--ac-n); border-color: var(--ac-n); color: #04170e; font-weight: 800; }
+    .ses-bar-bot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, #0a0a0a 30%); display: flex; gap: .6rem; }
+    .ses-sets { display: flex; gap: .4rem; flex-wrap: wrap; margin: .6rem 0 .2rem; }
+    .ses-set { min-width: 40px; height: 40px; border-radius: 10px; border: 2px solid rgba(255,255,255,.2); background: transparent; color: var(--gris); font-family: var(--font-ui); font-weight: 700; font-size: 14px; cursor: pointer; }
+    .ses-set.on { background: var(--ac); border-color: var(--ac); color: #111; }
+    .ses-dosis { font-family: var(--font-ui); font-size: 1.15rem; font-weight: 700; color: var(--blanco); margin-top: .5rem; }
+    .ses-tag { display: inline-block; font-family: var(--font-ui); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--ac); background: color-mix(in srgb, var(--ac) 14%, transparent); border-radius: 20px; padding: .15rem .55rem; margin-top: .3rem; }
+    .ses-mcard { background: var(--negro2); border: 1px solid rgba(255,255,255,.07); border-left: 4px solid var(--ac); border-radius: 14px; padding: .9rem; margin-bottom: .8rem; }
+    .ses-mcard.ok { border-left-color: var(--ac-n); background: rgba(62,207,142,.06); }
+    .ses-mcard-top { display: flex; gap: .8rem; align-items: flex-start; }
+    .ses-mcard-top > div { flex: 1; }
+    .ses-mcard b { color: var(--blanco); font-size: 15px; font-weight: 600; line-height: 1.3; }
+    .ses-mcard .acc { display: flex; gap: .5rem; margin-top: .7rem; flex-wrap: wrap; }
+    .ses-mcard .acc button { border: 1px solid rgba(255,255,255,.2); background: transparent; color: var(--blanco); border-radius: 9px; padding: .45rem .8rem; font-family: var(--font-ui); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .ses-dias { display: flex; gap: .5rem; overflow-x: auto; padding: 0 0 .8rem; margin: 0 -.2rem; }
+    .ses-dia { flex: 0 0 auto; min-width: 64px; text-align: center; border: 1px solid rgba(255,255,255,.12); background: var(--negro2); border-radius: 12px; padding: .5rem .6rem; color: var(--gris); font-family: var(--font-ui); font-size: 11px; cursor: pointer; }
+    .ses-dia b { display: block; font-size: 14px; color: var(--blanco); }
+    .ses-dia.sel { border-color: var(--ac); background: color-mix(in srgb, var(--ac) 16%, #111); }
+    .ses-dia.ok b { color: var(--ac-n); }
+    .ses-dia.desc { opacity: .55; }
+    .ses-hero { border-radius: 16px; padding: 1.1rem; margin-bottom: 1rem; background: linear-gradient(150deg, color-mix(in srgb, var(--ac) 22%, #111), #111 70%); border: 1px solid color-mix(in srgb, var(--ac) 45%, transparent); --ac: #ff7a2f; }
+    .ses-hero.mma { --ac: #e8504a; }
+    .ses-hero .k { font-family: var(--font-ui); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ac); }
+    .ses-hero h3 { font-family: var(--font-display); font-size: 1.6rem; color: var(--blanco); margin: .3rem 0 .2rem; line-height: 1.15; }
+    .ses-hero p { font-size: 13px; color: #c8c8c8; line-height: 1.5; margin: 0 0 .8rem; }
+    .ses-hero .meta { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .9rem; }
+    .ses-hero .meta span { font-family: var(--font-ui); font-size: 12px; color: var(--blanco); background: rgba(255,255,255,.07); border-radius: 20px; padding: .25rem .65rem; }
+    .ses-resu { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin: .8rem 0; }
+    .ses-resu div { background: var(--negro2); border-radius: 12px; padding: .8rem .4rem; text-align: center; }
+    .ses-resu b { display: block; font-family: var(--font-ui); font-size: 1.4rem; color: var(--ac-e); }
+    .ses-resu span { font-family: var(--font-ui); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--gris); }
   </style>
 </head>
 
@@ -2502,10 +2576,11 @@
   <!-- ENTRENAR -->
   <div class="app-screen" id="app-screen-entrenar">
     <h2 class="app-titulo">Entrenar</h2>
-    <p class="app-subtitulo">Elige tu sistema</p>
+    <p class="app-subtitulo">Tu entrenamiento de hoy, paso a paso</p>
+    <div id="appEntrenarHero"></div>
     <div id="appEntrenarLog"></div>
 
-    <div class="app-seccion-titulo">GYM</div>
+    <div class="app-seccion-titulo">Programas GYM — ver detalle y perfil</div>
     <button class="app-card" onclick="abrirCalculadora('entrenamiento')">
       <div class="app-card-top"><span class="app-card-titulo">Hombre — 5 Días</span><span class="app-card-meta">Hipertrofia</span></div>
       <div class="app-card-desc">Push/Pull/Piernas + Upper + Piernas&Brazos. Perfil físico que ajusta tus series reales.</div>
@@ -2519,7 +2594,7 @@
       <div class="app-card-desc">Glúteo dominante, volumen auditado dentro del máximo recuperable.</div>
     </button>
 
-    <div class="app-seccion-titulo">MMA</div>
+    <div class="app-seccion-titulo">Programas MMA — ver detalle y semana</div>
     <button class="app-card" onclick="abrirCalculadora('mma1')">
       <div class="app-card-top"><span class="app-card-titulo">Nivel 1 — Armadura Estructural</span><span class="app-card-meta">Meses 1–4</span></div>
       <div class="app-card-desc">16 semanas resueltas automáticamente. Bompa/Issurin + Colquhoun et al. 2017.</div>
@@ -7148,7 +7223,7 @@ function cambiarPantallaApp(pantalla, btn) {
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
   btn.classList.add('activo');
   if (pantalla === 'inicio') renderDashboardApp();
-  if (pantalla === 'entrenar') aetRenderEntrenar();
+  if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); }
   if (pantalla === 'nutricion') aetRenderNutri();
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
   window.scrollTo(0, 0);
@@ -7780,8 +7855,305 @@ function renderDashboardApp() {
       <div class="app-card-desc">Recetas, Protocolos Avanzados, Bienestar, Salud &amp; Biohacking, Educación.</div></button>`;
   cont.innerHTML = html;
 }
+/* ============================================================
+   MODO SESIÓN — entrenamiento guiado (GYM y MMA)
+   Lee las rutinas reales del programa; lo que registras aquí
+   se guarda en el mismo lugar que el programa (series, checks).
+============================================================ */
+const AET_GYM = ['entrenamiento', 'h3', 'm5'];
+const AET_PROG_NOM = { entrenamiento: 'GYM Hombre 5 días', h3: 'GYM Hombre 3 días', m5: 'GYM Mujer 5 días', mma1: 'MMA Nivel 1', mma2: 'MMA Nivel 2', mma3: 'MMA Nivel 3' };
+let AET_SEL = {}, AET_S = null, AET_TMR = { fin: 0, label: '' }, AET_TICK = null;
+
+function aetModuloListo() { return typeof RUTINA_H5 !== 'undefined'; }
+async function aetAsegurarModulo(tipo) {
+  if (typeof tienePremiumLocal === 'function' && !tienePremiumLocal()) { pedirPremium(tipo); return false; }
+  return !!(await cargarModuloPremium('programa'));
+}
+function aetCfg(tipo) {
+  if (tipo === 'entrenamiento') return { R: RUTINA_H5, perfil: perfilGym, bloque: bloqueGym, comp: gymCompletados, clave: 'gym_completados_h5', render: 'renderDiaGym', pref: 'gy' };
+  if (tipo === 'h3') return { R: RUTINA_H3, perfil: perfilH3, bloque: bloqueH3, comp: h3Completados, clave: 'gym_completados_h3', render: 'renderDiaH3', pref: 'h3' };
+  return { R: RUTINA_M5, perfil: perfilM5, bloque: bloqueM5, comp: m5Completados, clave: 'gym_completados_m5', render: 'renderDiaM5', pref: 'm5' };
+}
+function aetSeg(txt) { // segundos de descanso a partir de "90–120s" o "2–3 min"
+  const t = String(txt || '').replace(/,/g, '.'), nums = (t.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+  if (!nums.length) return 90;
+  const mx = Math.max(...nums);
+  return Math.round(/min/i.test(t) ? mx * 60 : mx);
+}
+const aetMMSS = s => { s = Math.max(0, Math.round(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+function aetBeep() {
+  try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+  try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = .15; o.start(); setTimeout(() => { o.stop(); c.close(); }, 350); } catch (e) {}
+}
+function aetTimerIniciar(seg, label) { AET_TMR = { fin: Date.now() + seg * 1000, label }; aetTick(); }
+function aetTimerMas(s) { if (AET_TMR.fin) { AET_TMR.fin += s * 1000; aetTick(); } }
+function aetTimerParar() { AET_TMR = { fin: 0, label: '' }; aetTick(); }
+function aetTick() {
+  const ck = document.getElementById('sesClock');
+  if (ck && AET_S) ck.textContent = aetMMSS((Date.now() - AET_S.t0) / 1000);
+  const r = document.getElementById('sesRest');
+  if (r) {
+    if (AET_TMR.fin) {
+      const left = (AET_TMR.fin - Date.now()) / 1000;
+      if (left <= 0) { aetTimerParar(); aetBeep(); return; }
+      r.classList.add('on'); r.querySelector('b').textContent = aetMMSS(left); r.querySelector('span').textContent = AET_TMR.label;
+    } else r.classList.remove('on');
+  }
+}
+function aetRestHtml() { return `<div class="ses-rest" id="sesRest"><b>00:00</b><span></span><button onclick="aetTimerMas(15)">+15 s</button><button onclick="aetTimerParar()">Saltar</button></div>`; }
+function aetSesEl(mma) {
+  let s = document.getElementById('appSesion');
+  if (!s) { s = document.createElement('div'); s.id = 'appSesion'; document.body.appendChild(s); }
+  s.className = 'ses abierto' + (mma ? ' mma' : '');
+  if (!AET_TICK) AET_TICK = setInterval(aetTick, 500);
+  return s;
+}
+function aetSesCerrarEl() {
+  const s = document.getElementById('appSesion'); if (s) { s.classList.remove('abierto'); s.innerHTML = ''; }
+  clearInterval(AET_TICK); AET_TICK = null; AET_TMR = { fin: 0, label: '' };
+  document.body.style.overflow = '';
+}
+
+/* ---------- Entrenar: tarjeta "Hoy" ---------- */
+function aetElegirPrograma() {
+  aetSheet('Elige tu programa', `<div class="aet-ejs">${Object.keys(AET_PROG_NOM).map(k => `<button class="aet-ej" onclick="aetSetPrograma('${k}')"><b>${AET_PROG_NOM[k]}</b><span>${AET_PROGRAMAS[k].dias} días / sem</span></button>`).join('')}</div>
+    <p class="aet-nota">Tu programa define tu meta de entrenos por semana y la tarjeta "Hoy". Puedes cambiarlo cuando quieras.</p>`);
+}
+function aetSetPrograma(t) { AET.guardar('aet_programa', { tipo: t }); aetCerrar(); aetRefrescar(); }
+function aetDiaGymSel(pr, cfg) {
+  const keys = Object.keys(cfg.R);
+  const hecho = k => cfg.R[k].tipo !== 'descanso' && cfg.comp[k] && cfg.comp[k].size >= cfg.R[k].ejercicios.length;
+  const sig = keys.find(k => cfg.R[k].tipo !== 'descanso' && !hecho(k));
+  return { keys, hecho, sel: AET_SEL[pr.tipo] && cfg.R[AET_SEL[pr.tipo]] ? AET_SEL[pr.tipo] : (sig || null) };
+}
+function aetRenderHero() {
+  const el = document.getElementById('appEntrenarHero'); if (!el) return;
+  const pr = aetPrograma();
+  if (!pr) {
+    el.innerHTML = `<div class="ses-hero"><div class="k">Empieza aquí</div><h3>Elige tu programa</h3><p>Escoge GYM o MMA y la app te guía día por día: qué ejercicio sigue, cuántas series, qué peso y cuánto descansar.</p><button class="aet-btn e" onclick="aetElegirPrograma()">Elegir programa</button></div>`;
+    return;
+  }
+  const mma = pr.tipo.indexOf('mma') === 0;
+  if (!aetModuloListo()) {
+    if (typeof tienePremiumLocal === 'function' && !tienePremiumLocal()) {
+      el.innerHTML = `<div class="ses-hero ${mma ? 'mma' : ''}"><div class="k">${pr.n}</div><h3>Tu rutina guiada</h3><p>Con Premium se desbloquea tu programa día por día, con registro de series, temporizador y progreso.</p><button class="aet-btn e" onclick="pedirPremium('${pr.tipo}')">Activar Premium</button></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="ses-hero ${mma ? 'mma' : ''}"><div class="k">${pr.n}</div><h3>Cargando tu rutina…</h3></div>`;
+    if (!aetRenderHero._cargando) {
+      aetRenderHero._cargando = true;
+      cargarModuloPremium('programa').then(ok => { aetRenderHero._cargando = false; if (ok) aetRenderHero(); else el.innerHTML = `<div class="ses-hero"><div class="k">${pr.n}</div><h3>No se pudo cargar</h3><p>Revisa tu conexión.</p><button class="aet-btn sec" onclick="aetRenderHero()">Reintentar</button></div>`; });
+    }
+    return;
+  }
+  try { mma ? aetHeroMma(pr, el) : aetHeroGym(pr, el); } catch (e) { console.error(e); el.innerHTML = ''; }
+}
+function aetHeroGym(pr, el) {
+  const cfg = aetCfg(pr.tipo), d = aetDiaGymSel(pr, cfg), draft = AET.leer('aet_sesion', null);
+  const pills = d.keys.map(k => {
+    const x = cfg.R[k], desc = x.tipo === 'descanso', lbl = (x.navLabel || k).replace(/^D[ií]a\s*/i, 'D').split('·');
+    return `<button class="ses-dia ${k === d.sel ? 'sel' : ''} ${d.hecho(k) ? 'ok' : ''} ${desc ? 'desc' : ''}" onclick="AET_SEL['${pr.tipo}']='${k}';aetRenderHero()"><b>${d.hecho(k) ? '✓' : esc((lbl[0] || '').trim())}</b>${esc((lbl[1] || (desc ? 'Descanso' : '')).trim())}</button>`;
+  }).join('');
+  let cuerpo;
+  if (!d.sel) {
+    cuerpo = `<div class="k">Semana completa 🎉</div><h3>Terminaste todos tus días</h3><p>Si empiezas una semana nueva, reinicia los checks para volver a marcarlos. Tus registros de series se conservan.</p><button class="aet-btn e" onclick="aetReiniciarSemana('${pr.tipo}')">Empezar semana nueva</button>`;
+  } else {
+    const dia = cfg.R[d.sel];
+    if (dia.tipo === 'descanso') cuerpo = `<div class="k">Hoy toca descanso</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.texto)}</p>`;
+    else {
+      let series = 0, seg = 0;
+      dia.ejercicios.forEach(ej => { const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = a !== null ? a : Math.round((mn + mx) / 2); series += n; seg += n * (40 + aetSeg(ej.descanso)); });
+      const cont = draft && draft.tipo === pr.tipo && draft.key === d.sel && draft.fecha === AET.hoy();
+      const bl = (cfg.perfil && cfg.perfil.calculado && typeof aplicaBloque === 'function' && aplicaBloque(cfg.perfil.nivelKey)) ? `<span>Semana ${cfg.bloque.semana}/4 · ${BLOQUE_NOMBRES[cfg.bloque.semana].nombre}</span>` : '';
+      cuerpo = `<div class="k">${d.hecho(d.sel) ? 'Completado ✓' : 'Hoy'}</div><h3>${esc(dia.titulo)}</h3><p>${esc(dia.subtitulo || '')}</p>
+        <div class="meta"><span>${dia.ejercicios.length} ejercicios</span><span>${series} series</span><span>~${Math.round(seg / 60 / 5) * 5 || 5} min</span>${bl}</div>
+        ${cfg.perfil && cfg.perfil.calculado ? '' : `<p style="color:#f5b73b">Sin tu perfil físico las series son las base. <a href="#" style="color:#f5b73b" onclick="abrirCalculadora('${pr.tipo}');return false">Calcúlalo →</a></p>`}
+        <button class="aet-btn e" onclick="aetSesIniciar('${pr.tipo}','${d.sel}')">▶ ${cont ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button>`;
+    }
+  }
+  el.innerHTML = `<div class="ses-hero">${cuerpo}</div>
+    <div class="ses-dias">${pills}</div>
+    <div class="aet-fila" style="margin-bottom:.4rem"><button class="aet-btn sec mini" onclick="aetElegirPrograma()">Programa: ${pr.n} ⇄</button><button class="aet-btn sec mini" onclick="abrirCalculadora('${pr.tipo}')">Perfil y detalle</button></div>`;
+}
+function aetReiniciarSemana(tipo) {
+  if (!confirm('¿Empezar una semana nueva? Se limpian los checks de los días (tus series registradas se quedan).')) return;
+  const cfg = aetCfg(tipo); Object.keys(cfg.comp).forEach(k => delete cfg.comp[k]);
+  guardarCompletados(cfg.clave, cfg.comp); AET_SEL[tipo] = null; aetRefrescar();
+}
+
+/* ---------- Sesión GYM ---------- */
+function aetSesIniciar(tipo, key) {
+  const cfg = aetCfg(tipo), dia = cfg.R[key], draft = AET.leer('aet_sesion', null);
+  if (draft && draft.tipo === tipo && draft.key === key && draft.fecha === AET.hoy()) AET_S = draft;
+  else {
+    AET_S = { tipo, key, fecha: AET.hoy(), t0: Date.now(), vista: -1, ejs: dia.ejercicios.map((ej, idx) => {
+      const a = personalizarSeries(ej.series, cfg.perfil, cfg.bloque), [mn, mx] = parseRangoSeries(ej.series), n = Math.max(1, a !== null ? a : Math.round((mn + mx) / 2));
+      const h = registroSeries[ej.nombre], ult = h && h.length ? (h[h.length - 1].sets || []) : [], rmin = parseRangoSeries(String(ej.reps).replace(/\/.*$/, ''))[0];
+      return { idx, n: ej.nombre, m: ej.musculo, ser: ej.series, reps: ej.reps, des: ej.descanso, rpe: ej.rpe, nota: ej.nota,
+        sets: Array.from({ length: n }, (_, i) => { const u = ult[i] || ult[ult.length - 1]; return { r: u ? u.reps : (isFinite(rmin) ? rmin : ''), kg: u && u.peso ? u.peso : '', ok: false }; }) };
+    }) };
+  }
+  document.body.style.overflow = 'hidden';
+  aetSesRender();
+}
+function aetSesGuardar() { AET.guardar('aet_sesion', AET_S); }
+function aetSesSeries() { const t = AET_S.ejs.reduce((a, e) => a + e.sets.length, 0), h = AET_S.ejs.reduce((a, e) => a + e.sets.filter(s => s.ok).length, 0); return { t, h }; }
+function aetAro(h, t, size) {
+  const r = 19, c = 2 * Math.PI * r, p = t ? h / t : 0;
+  return `<span class="ses-aro"><svg width="${size}" height="${size}" viewBox="0 0 46 46"><circle cx="23" cy="23" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="23" cy="23" r="${r}" fill="none" stroke="${p >= 1 ? '#3ecf8e' : 'var(--ac)'}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c * p).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 23 23)"/></svg><span>${p >= 1 ? '✓' : h + '/' + t}</span></span>`;
+}
+function aetSesRender() {
+  const el = aetSesEl(false), cfg = aetCfg(AET_S.tipo), dia = cfg.R[AET_S.key], { t, h } = aetSesSeries();
+  const sc = el.scrollTop;
+  if (AET_S.vista < 0) {
+    el.innerHTML = `<div class="ses-top"><button onclick="aetSesSalir()">✕</button><div class="ses-title">${esc(dia.titulo)}<small>${AET_PROG_NOM[AET_S.tipo]}</small></div><div class="ses-clock" id="sesClock">00:00</div></div>
+      <div class="ses-body"><div class="ses-prog"><div class="bar"><i style="width:${t ? Math.round(h / t * 100) : 0}%"></i></div><span>${h}/${t} series</span></div>${aetRestHtml()}
+      ${AET_S.ejs.map((e, i) => { const hh = e.sets.filter(s => s.ok).length; return `<button class="ses-ej ${hh === e.sets.length ? 'ok' : ''}" onclick="aetSesAbrir(${i})">${aetAro(hh, e.sets.length, 46)}<div><b>${i + 1}. ${esc(e.n)}</b><small>${esc(e.m)}</small><em>${e.sets.length} series · ${esc(e.reps)} reps · ${esc(e.des)} · ${esc(e.rpe)}</em></div><span class="go">›</span></button>`; }).join('')}</div>
+      <div class="ses-bar-bot"><button class="aet-btn e" onclick="aetSesTerminar()">Terminar entrenamiento</button></div>`;
+  } else {
+    const e = AET_S.ejs[AET_S.vista], i = AET_S.vista, ultimo = i === AET_S.ejs.length - 1;
+    let sug = null; try { sug = sugerenciaSobrecarga(e.n, e.reps, e.m, i < 2, cfg.perfil, cfg.bloque); } catch (x) {}
+    el.innerHTML = `<div class="ses-top"><button onclick="AET_S.vista=-1;aetSesRender()">←</button><div class="ses-title">Ejercicio ${i + 1} de ${AET_S.ejs.length}<small>${esc(dia.titulo)}</small></div><div class="ses-clock" id="sesClock">00:00</div></div>
+      <div class="ses-body">${aetRestHtml()}<div class="ses-h">${esc(e.n)}</div><div class="ses-mus">${esc(e.m)}</div>
+      <div class="ses-chips"><div class="ses-chip"><b>${e.sets.length}</b><span>Series</span></div><div class="ses-chip"><b>${esc(e.reps)}</b><span>Reps</span></div><div class="ses-chip"><b>${esc(e.des)}</b><span>Descanso</span></div><div class="ses-chip"><b>${esc(e.rpe)}</b><span>Esfuerzo</span></div></div>
+      ${sug ? `<div class="ses-sug">📈 ${esc(sug.texto)}</div>` : ''}
+      <details class="ses-det"><summary>Técnica</summary><p style="margin:.5rem 0 0">${esc(e.nota)}</p></details>
+      <div class="ses-tab"><div class="ses-fila cab"><div>#</div><div>Reps</div><div>Kg</div><div></div></div>
+      ${e.sets.map((s, j) => `<div class="ses-fila ${s.ok ? 'ok' : ''}"><span>${j + 1}</span><input type="number" inputmode="numeric" value="${s.r}" onchange="aetSesVal(${i},${j},'r',this.value)"><input type="number" inputmode="decimal" step="0.5" value="${s.kg}" placeholder="kg" onchange="aetSesVal(${i},${j},'kg',this.value)"><button class="ses-chk" onclick="aetSesCheck(${i},${j})">✓</button></div>`).join('')}
+      <div class="aet-fila" style="margin-top:.6rem"><button class="aet-btn sec mini" onclick="aetSesSerie(${i},-1)">− Serie</button><button class="aet-btn sec mini" onclick="aetSesSerie(${i},1)">＋ Serie</button><button class="aet-btn sec mini" onclick="aetDetalleEj(${JSON.stringify(e.n).replace(/"/g, '&quot;')})">📈 Historial</button></div></div>
+      <p class="aet-nota">Se precargan los kilos y repeticiones de tu última sesión. Marca ✓ al terminar cada serie y empieza el descanso solo.</p></div>
+      <div class="ses-bar-bot">${ultimo ? `<button class="aet-btn e" onclick="aetSesTerminar()">Terminar entrenamiento</button>` : `<button class="aet-btn e" onclick="AET_S.vista=${i + 1};aetSesRender()">Siguiente ejercicio ›</button>`}</div>`;
+  }
+  el.scrollTop = sc; aetTick();
+}
+function aetSesAbrir(i) { AET_S.vista = i; aetSesGuardar(); aetSesRender(); document.getElementById('appSesion').scrollTop = 0; }
+function aetSesVal(i, j, c, v) { const n = AET.num(v); AET_S.ejs[i].sets[j][c] = n == null ? '' : n; aetSesGuardar(); }
+function aetSesSerie(i, d) {
+  const s = AET_S.ejs[i].sets;
+  if (d > 0) s.push({ r: s.length ? s[s.length - 1].r : '', kg: s.length ? s[s.length - 1].kg : '', ok: false });
+  else if (s.length > 1) s.pop();
+  aetSesGuardar(); aetSesRender();
+}
+function aetSesCheck(i, j) {
+  const e = AET_S.ejs[i], s = e.sets[j]; s.ok = !s.ok;
+  // los valores escritos se leen antes de re-render
+  document.querySelectorAll('.ses-fila:not(.cab)')[j] && (() => { const f = document.querySelectorAll('.ses-fila:not(.cab)')[j].querySelectorAll('input'); const r = AET.num(f[0].value), k = AET.num(f[1].value); s.r = r == null ? '' : r; s.kg = k == null ? '' : k; })();
+  if (s.ok) {
+    const fin = e.sets.every(x => x.ok);
+    if (!(fin && i === AET_S.ejs.length - 1)) aetTimerIniciar(aetSeg(e.des), fin ? 'Descanso · siguiente ejercicio' : 'Descanso · serie ' + (j + 2));
+    if (fin) aetToast('✓ ' + e.n + ' completo');
+  }
+  aetSesGuardar(); aetSesRender();
+}
+function aetSesSalir() {
+  if (AET_S && aetSesSeries().h && !confirm('Tu avance se guarda. ¿Salir de la sesión? Podrás continuarla desde Entrenar.')) return;
+  aetSesCerrarEl(); aetRefrescar();
+}
+function aetSesTerminar() {
+  const { t, h } = aetSesSeries();
+  if (!h) { aetToast('Marca al menos una serie con ✓'); return; }
+  if (h < t && !confirm('Te quedan ' + (t - h) + ' series sin marcar. ¿Terminar de todos modos?')) return;
+  const cfg = aetCfg(AET_S.tipo), previos = aetLog(), utc = new Date().toISOString().slice(0, 10);
+  let vol = 0; const prs = [];
+  AET_S.ejs.forEach(e => {
+    const hechas = e.sets.filter(s => s.ok && +s.r > 0);
+    if (!hechas.length) return;
+    const sets = hechas.map(s => ({ peso: +s.kg || 0, reps: +s.r }));
+    vol += sets.reduce((a, s) => a + s.peso * s.reps, 0);
+    const antes = Math.max(0, ...previos.filter(l => l.ej.toLowerCase() === e.n.toLowerCase()).map(aetMejorE1rm)), ahora = Math.max(0, ...sets.map(s => aetE1rm(s.peso, s.reps)));
+    if (antes > 0 && ahora > antes) prs.push(e.n + ' · 1RM est. ' + ahora + ' kg');
+    if (!registroSeries[e.n]) registroSeries[e.n] = [];
+    const ix = registroSeries[e.n].findIndex(r => r.fecha === utc), entrada = { fecha: utc, sets, rpe: null, tecnica: true };
+    if (ix >= 0) registroSeries[e.n][ix] = entrada; else registroSeries[e.n].push(entrada);
+    if (e.sets.every(s => s.ok)) { if (!cfg.comp[AET_S.key]) cfg.comp[AET_S.key] = new Set(); cfg.comp[AET_S.key].add(e.idx); }
+  });
+  localStorage.setItem('gym_registro_series', JSON.stringify(registroSeries));
+  guardarCompletados(cfg.clave, cfg.comp);
+  aetMarcar('e'); AET.guardar('aet_programa', { tipo: AET_S.tipo });
+  try { if (typeof window[cfg.render] === 'function') window[cfg.render](AET_S.key); ['gy', 'h3', 'm5'].forEach(renderVolumenSemanal); } catch (x) {}
+  const seg = (Date.now() - AET_S.t0) / 1000, titulo = cfg.R[AET_S.key].titulo;
+  localStorage.removeItem('aet_sesion'); AET_S = null; aetSesCerrarEl(); aetRefrescar();
+  aetSheet('¡Entrenamiento terminado! 💪', `<p class="aet-nota" style="margin-top:0">${esc(titulo)}</p><div class="ses-resu"><div><b>${aetMMSS(seg)}</b><span>Tiempo</span></div><div><b>${h}</b><span>Series</span></div><div><b>${Math.round(vol).toLocaleString('es-MX')}</b><span>Kg de volumen</span></div></div>
+    ${prs.length ? `<div class="ses-sug">🏆 <b>Nuevos récords personales</b><br>${prs.map(esc).join('<br>')}</div>` : ''}
+    <p class="aet-nota">Se guardó en tu historial y sumó a tu racha. Descansa, come y duerme bien: ahí es donde creces.</p><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Listo</button>`);
+}
+
+/* ---------- MMA ---------- */
+function aetMmaInfo(n) {
+  const r = { 1: { sem: () => mmaSemanaActual, tabla: () => MMA_SEMANAS, render: renderDiaMma, tog: toggleEjercicioMma, dias: 4, pre: 'mma', clave: 'mma_completados', comp: () => mmaCompletados, avanzar: avanzarSemanaMma },
+    2: { sem: () => mma2SemanaActual, tabla: () => MMA2_SEMANAS, render: renderDiaMma2, tog: toggleEjercicioMma2, dias: 5, pre: 'mma2', clave: 'mma2_completados', comp: () => mma2Completados, avanzar: avanzarSemanaMma2 },
+    3: { sem: () => mma3SemanaActual, tabla: () => MMA3_SEMANAS, render: renderDiaMma3, tog: toggleEjercicioMma3, dias: 6, pre: 'mma3', clave: 'mma3_completados', comp: () => mma3Completados, avanzar: avanzarSemanaMma3 } };
+  return r[n];
+}
+function aetMmaDia(n, dia) {
+  const I = aetMmaInfo(n); I.render(dia);
+  const cont = document.getElementById(I.pre + '_' + dia + '_contenido'), panel = document.getElementById('mma' + n + '-panel-' + dia);
+  const titulo = panel && panel.querySelector('h4') ? panel.querySelector('h4').textContent.trim() : 'Día ' + dia.slice(3);
+  const ejs = [...cont.querySelectorAll('.ejercicio-card')].map(c => {
+    const oc = (c.querySelector('.check-completado') || {}).getAttribute ? c.querySelector('.check-completado').getAttribute('onclick') : '', m = /,\s*'([^']+)'\)/.exec(oc || '');
+    return { id: m ? m[1] : '', nombre: (c.querySelector('.ejercicio-nombre') || {}).textContent || '', cap: (c.querySelector('.ejercicio-musculo') || {}).textContent || '', dosis: (c.querySelector('.ejercicio-dato-val') || {}).textContent || '', nota: (c.querySelector('.ejercicio-nota') || {}).textContent || '', hecho: c.classList.contains('completado') };
+  }).filter(e => e.id);
+  return { titulo, ejs };
+}
+function aetMmaDias(n) { const I = aetMmaInfo(n), out = []; for (let d = 1; d <= I.dias; d++) { const k = 'dia' + d, x = aetMmaDia(n, k); out.push({ k, d, titulo: x.titulo, tot: x.ejs.length, hechos: x.ejs.filter(e => e.hecho).length }); } return out; }
+function aetHeroMma(pr, el) {
+  const n = +pr.tipo.slice(3), I = aetMmaInfo(n), sem = I.tabla()[I.sem() - 1], dias = aetMmaDias(n);
+  const completo = d => d.tot && d.hechos >= d.tot;
+  const sig = dias.find(d => !completo(d)), sel = AET_SEL[pr.tipo] && dias.find(d => d.k === AET_SEL[pr.tipo]) ? AET_SEL[pr.tipo] : (sig ? sig.k : null);
+  const pills = dias.map(d => `<button class="ses-dia ${d.k === sel ? 'sel' : ''} ${completo(d) ? 'ok' : ''}" onclick="AET_SEL['${pr.tipo}']='${d.k}';aetRenderHero()"><b>${completo(d) ? '✓' : 'D' + d.d}</b>${d.hechos}/${d.tot}</button>`).join('');
+  const cur = dias.find(d => d.k === sel);
+  const cuerpo = cur ? `<div class="k">${pr.n} · Semana ${sem.s} de 16</div><h3>${esc(cur.titulo.replace(/^D[ií]a\s*\d+\s*[—-]\s*/, ''))}</h3>
+      <p>${cur.hechos}/${cur.tot} ejercicios hechos${sem.deload ? ' · semana de descarga: baja el volumen' : ''}.</p>
+      <div class="meta"><span>${esc(sem.bloque)}</span>${sem.pctRM ? `<span>${sem.pctRM}% RM</span>` : ''}${sem.indicador ? `<span>Meta: ${esc(sem.indicador)}</span>` : ''}</div>
+      <button class="aet-btn e" style="background:#e8504a;color:#fff" onclick="aetMmaAbrir(${n},'${cur.k}')">▶ ${cur.hechos ? 'Continuar' : 'Empezar'} entrenamiento</button>`
+    : `<div class="k">${pr.n} · Semana ${sem.s} de 16</div><h3>¡Semana completa! 🎉</h3><p>Terminaste los ${dias.length} días. Pasa a la semana siguiente para recibir su plan.</p><button class="aet-btn e" style="background:#e8504a;color:#fff" onclick="aetMmaAvanzar(${n})">Avanzar a la semana ${Math.min(16, sem.s + 1)}</button>`;
+  el.innerHTML = `<div class="ses-hero mma">${cuerpo}</div><div class="ses-dias" style="--ac:#e8504a">${pills}</div>
+    <div class="aet-fila" style="margin-bottom:.4rem"><button class="aet-btn sec mini" onclick="aetElegirPrograma()">Programa: ${pr.n} ⇄</button><button class="aet-btn sec mini" onclick="abrirCalculadora('${pr.tipo}')">Mi semana y detalle</button></div>`;
+}
+function aetMmaAvanzar(n) { if (confirm('¿Pasar a la semana siguiente? Se reinician los checks de la semana.')) { aetMmaInfo(n).avanzar(); aetRefrescar(); } }
+function aetMmaAbrir(n, dia) {
+  AET_S = { mma: { n, dia }, t0: AET_S && AET_S.mma ? AET_S.t0 : Date.now() };
+  document.body.style.overflow = 'hidden'; aetMmaRender();
+}
+function aetMmaRender() {
+  const { n, dia } = AET_S.mma, I = aetMmaInfo(n), sem = I.tabla()[I.sem() - 1], x = aetMmaDia(n, dia), el = aetSesEl(true), sc = el.scrollTop;
+  const h = x.ejs.filter(e => e.hecho).length, tot = x.ejs.length, sers = AET.leer('aet_mma_series', {});
+  const kp = e => n + '|' + sem.s + '|' + dia + '|' + e.id;
+  el.innerHTML = `<div class="ses-top"><button onclick="aetMmaSalir()">✕</button><div class="ses-title">${esc(x.titulo)}<small>MMA Nivel ${n} · Semana ${sem.s} · ${esc(sem.bloque)}${sem.pctRM ? ' · ' + sem.pctRM + '% RM' : ''}</small></div><div class="ses-clock" id="sesClock">00:00</div></div>
+    <div class="ses-body"><div class="ses-prog"><div class="bar"><i style="width:${tot ? Math.round(h / tot * 100) : 0}%"></i></div><span>${h}/${tot} hechos</span></div>${aetRestHtml()}
+    ${sem.indicador ? `<div class="ses-sug">🎯 <b>Meta de la semana:</b> ${esc(sem.indicador)}</div>` : ''}
+    ${x.ejs.map((e, i) => {
+      const m = /^\s*(\d+)\s*[×x]/.exec(e.dosis), N = m ? Math.min(12, +m[1]) : 0, hechas = Math.min(N, sers[kp(e)] || 0);
+      const tm = /(\d+)\s*(?:[–-]\s*\d+\s*)?(s|seg|min)\b/i.exec(e.dosis), seg = tm ? (/min/i.test(tm[2]) ? +tm[1] * 60 : +tm[1]) : 0;
+      return `<div class="ses-mcard ${e.hecho ? 'ok' : ''}"><div class="ses-mcard-top">${aetAro(e.hecho ? 1 : 0, 1, 40).replace('1/1', '').replace('0/1', i + 1)}<div><b>${esc(e.nombre)}</b><br><span class="ses-tag">${esc(e.cap)}</span><div class="ses-dosis">${esc(e.dosis)}</div></div></div>
+        ${N ? `<div class="ses-sets">${Array.from({ length: N }, (_, k) => `<button class="ses-set ${k < hechas ? 'on' : ''}" onclick="aetMmaSet(${i},${k},${N})">${k + 1}</button>`).join('')}</div>` : ''}
+        <details class="ses-det" style="margin:.6rem 0 0"><summary>Cómo hacerlo</summary><p style="margin:.5rem 0 0">${esc(e.nota)}</p></details>
+        <div class="acc">${seg ? `<button onclick="aetTimerIniciar(${seg},'${esc(e.nombre).replace(/'/g, '')}')">⏱ ${seg >= 60 ? Math.round(seg / 60) + ' min' : seg + ' s'}</button>` : ''}<button onclick="aetMmaCheck(${i})" style="${e.hecho ? 'background:#3ecf8e;border-color:#3ecf8e;color:#04170e' : ''}">${e.hecho ? '✓ Hecho' : 'Marcar hecho'}</button></div></div>`;
+    }).join('')}</div>
+    <div class="ses-bar-bot"><button class="aet-btn e" style="background:#e8504a;color:#fff" onclick="aetMmaFin()">${h === tot && tot ? 'Terminar día ✓' : 'Salir (guardado)'}</button></div>`;
+  el.scrollTop = sc; aetTick();
+}
+function aetMmaCheck(i) {
+  const { n, dia } = AET_S.mma, I = aetMmaInfo(n), x = aetMmaDia(n, dia), e = x.ejs[i], sem = I.tabla()[I.sem() - 1], sers = AET.leer('aet_mma_series', {}), k = n + '|' + sem.s + '|' + dia + '|' + e.id;
+  I.tog(dia, e.id);
+  const m = /^\s*(\d+)\s*[×x]/.exec(e.dosis); if (m) { sers[k] = e.hecho ? 0 : Math.min(12, +m[1]); AET.guardar('aet_mma_series', sers); }
+  aetMmaRender();
+}
+function aetMmaSet(i, k, N) {
+  const { n, dia } = AET_S.mma, I = aetMmaInfo(n), x = aetMmaDia(n, dia), e = x.ejs[i], sem = I.tabla()[I.sem() - 1], sers = AET.leer('aet_mma_series', {}), key = n + '|' + sem.s + '|' + dia + '|' + e.id;
+  const act = sers[key] || 0; sers[key] = act === k + 1 ? k : k + 1; AET.guardar('aet_mma_series', sers);
+  if (sers[key] >= N && !e.hecho) I.tog(dia, e.id); else if (sers[key] < N && e.hecho) I.tog(dia, e.id);
+  aetMmaRender();
+}
+function aetMmaSalir() { aetSesCerrarEl(); AET_S = null; aetRefrescar(); }
+function aetMmaFin() {
+  const { n, dia } = AET_S.mma, x = aetMmaDia(n, dia), ok = x.ejs.length && x.ejs.every(e => e.hecho), seg = (Date.now() - AET_S.t0) / 1000;
+  aetSesCerrarEl(); AET_S = null; aetRefrescar();
+  if (ok) { aetMarcar('e'); aetSheet('¡Día completado! 🥊', `<div class="ses-resu"><div><b>${aetMMSS(seg)}</b><span>Tiempo</span></div><div><b>${x.ejs.length}</b><span>Ejercicios</span></div><div><b>${aetRacha()}</b><span>Racha</span></div></div><p class="aet-nota">Sumó a tu racha. Recupera bien: el cuerpo se adapta cuando descansas.</p><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Listo</button>`); }
+}
+
 function aetRefrescar() {
-  try { renderDashboardApp(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); } catch (e) { console.error(e); }
+  try { renderDashboardApp(); aetRenderHero(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); } catch (e) { console.error(e); }
 }
 
 function renderPerfilResumenApp() {
