@@ -771,7 +771,7 @@
     .modal-overlay.activo { display: flex; }
 
     body.modo-app > nav, body.modo-app > section, body.modo-app > footer { display: none !important; }
-    body.modo-app #carrito-btn { display: none !important; }
+    body.modo-app #carrito-btn { display: flex !important; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); right: 1rem; width: 52px; height: 52px; z-index: 600; }
 
     #btnInstalarApp {
       display: none; align-items: center; justify-content: center; gap: .8rem;
@@ -862,6 +862,8 @@
       opacity: 1 !important; transform: none !important;
     }
     .app-visor-contenido .h-seccion { font-size: 1.6rem !important; }
+    .app-visor-contenido .contenedor { padding-left: 0 !important; padding-right: 0 !important; max-width: none !important; }
+    .app-visor-contenido .productos-header { margin-bottom: 1.2rem !important; }
 
     .app-nav-btn.activo { color: var(--oro); }
 
@@ -2594,6 +2596,10 @@
     <button class="app-card" onclick="abrirCalculadora('recetas')">
       <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
       <div class="app-card-desc">Cocina mexicana, ensaladas, postres, snacks y comidas saludables — con ingredientes y pasos.</div>
+    </button>
+    <button class="app-card ac-o" onclick="abrirContenidoApp('productos', 'Tienda')">
+      <div class="app-card-top"><span class="app-card-titulo">🛍 Tienda</span><span class="app-card-meta">Suplementos Aeterion</span></div>
+      <div class="app-card-desc">Creatina, magnesio y vitamina — compra con tarjeta y envío a todo México.</div>
     </button>
     <button class="app-card" onclick="abrirContenidoApp('protocolos-avanzados', 'Protocolos Avanzados')">
       <div class="app-card-top"><span class="app-card-titulo">Protocolos Avanzados</span><span class="app-card-meta">7 protocolos</span></div>
@@ -5898,11 +5904,43 @@ const SYNC_CLAVES = new Set([
   'medidas_historial','medidas_meta',
   'mma_completados','mma2_completados','mma3_completados','mma_1rm','mma_historial_semanas',
   'dieta_sano','dieta_sii','dieta_diabetes',
-  'gym_dia_h5','gym_dia_h3','gym_dia_m5','mma_semana','mma2_semana','mma3_semana'
+  'gym_dia_h5','gym_dia_h3','gym_dia_m5','mma_semana','mma2_semana','mma3_semana',
+  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua'
 ]);
 const SYNC_KEY = 'aeterion_sync';
 let _sync = { owner: null, ver: {}, sucias: {} };
 let _aplicandoRemoto = false, _timerPush = null, _sincronizando = false, _huboRedPendiente = false;
+
+// Datos del seguimiento diario (claves aet_*): si dos dispositivos cambiaron lo mismo, se FUSIONAN en vez de pisarse
+function _fusionAet(k, a, b) {
+  let L, R;
+  try { L = JSON.parse(a); R = JSON.parse(b); } catch (e) { return b; }
+  const uni = (x, y) => Array.from(new Set([...(x || []), ...(y || [])]));
+  const llaves = (x, y) => Array.from(new Set([...Object.keys(x || {}), ...Object.keys(y || {})]));
+  let M;
+  if (k === 'aet_actividad') { M = {}; llaves(R, L).forEach(d => { M[d] = uni(R[d], L[d]); }); }
+  else if (k === 'aet_log_entreno') { const m = new Map(); [...(R || []), ...(L || [])].forEach(x => m.set(x.id, x)); M = [...m.values()].sort((p, q) => p.id - q.id); }
+  else if (k === 'aet_composicion') { const m = new Map(); [...(R || []), ...(L || [])].forEach(x => m.set(x.fecha, x)); M = [...m.values()].sort((p, q) => String(p.fecha).localeCompare(String(q.fecha))); }
+  else if (k === 'aet_dia') {
+    M = {};
+    llaves(R, L).forEach(d => {
+      const x = (R && R[d]) || { comidas: [], agua: 0 }, y = (L && L[d]) || { comidas: [], agua: 0 };
+      const cuenta = lista => { const c = {}; (lista || []).forEach(i => { const t = JSON.stringify(i); c[t] = (c[t] || 0) + 1; }); return c; };
+      const cx = cuenta(x.comidas), cy = cuenta(y.comidas), comidas = [];
+      llaves(cx, cy).forEach(t => { for (let i = 0; i < Math.max(cx[t] || 0, cy[t] || 0); i++) comidas.push(JSON.parse(t)); });
+      M[d] = { comidas, agua: Math.max(x.agua || 0, y.agua || 0) };
+    });
+  } else M = Object.assign({}, R, L);
+  return JSON.stringify(M);
+}
+function _aplicarFusion(k, local, remotoVal, version) {
+  const m = _fusionAet(k, local, remotoVal);
+  _aplicandoRemoto = true;
+  try { localStorage.setItem(k, m); } finally { _aplicandoRemoto = false; }
+  _sync.ver[k] = version;
+  if (m !== remotoVal) _sync.sucias[k] = true; else delete _sync.sucias[k];
+  return m !== local;
+}
 
 function _cargarSync() {
   const s = _leerJSON(SYNC_KEY);
@@ -5953,7 +5991,8 @@ async function pushPendiente() {
         _sync.ver[k] = r.data.version;
         if (localStorage.getItem(k) === v) delete _sync.sucias[k];
       } else if (r.ok && r.data && r.data.conflicto) {
-        _aplicarRemoto(k, r.data.valor, r.data.version); aplicados++;
+        if (k.indexOf('aet_') === 0) { if (_aplicarFusion(k, v, r.data.valor, r.data.version)) aplicados++; }
+        else { _aplicarRemoto(k, r.data.valor, r.data.version); aplicados++; }
       } else if (r.ok && r.data && r.data.error) {
         delete _sync.sucias[k];                 // error permanente (clave/valor no válidos)
       } else { fallaRed = true; break; }       // sin red o sesión: se reintenta después
@@ -5980,6 +6019,7 @@ async function jalarProgreso() {
     const conocida = _sync.ver[row.clave];
     if (local === row.valor) { _sync.ver[row.clave] = row.version; delete _sync.sucias[row.clave]; }
     else if (local !== null && conocida === row.version) { _sync.sucias[row.clave] = true; }   // cambió aquí, el servidor no
+    else if (local !== null && row.clave.indexOf('aet_') === 0) { if (_aplicarFusion(row.clave, local, row.valor, row.version)) cambios++; }   // seguimiento: se fusiona
     else { _aplicarRemoto(row.clave, row.valor, row.version); cambios++; }                       // servidor más nuevo (o primera vez)
   }
   // lo que solo existe aquí se sube
@@ -7734,6 +7774,8 @@ function renderDashboardApp() {
       <div class="app-card-desc">3 rutinas de GYM personalizadas + MMA Niveles 1, 2 y 3.</div></button>
     <button class="app-card ac-n" onclick="aetIr('nutricion')"><div class="app-card-top"><span class="app-card-titulo">🥗 Nutrición</span><span class="app-card-meta">3 planes</span></div>
       <div class="app-card-desc">Calculadora de macros según tu objetivo y condición.</div></button>
+    <button class="app-card ac-o" onclick="abrirContenidoApp('productos', 'Tienda')"><div class="app-card-top"><span class="app-card-titulo">🛍 Tienda</span><span class="app-card-meta">Suplementos</span></div>
+      <div class="app-card-desc">Creatina, magnesio y vitamina de Aeterion, con envío.</div></button>
     <button class="app-card ac-o" onclick="aetIr('mas')"><div class="app-card-top"><span class="app-card-titulo">📚 Más</span><span class="app-card-meta">Recetas · Protocolos</span></div>
       <div class="app-card-desc">Recetas, Protocolos Avanzados, Bienestar, Salud &amp; Biohacking, Educación.</div></button>`;
   cont.innerHTML = html;
