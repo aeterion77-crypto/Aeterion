@@ -2358,6 +2358,121 @@
     /* ============================================================
        CARRITO — FIN
     ============================================================ */
+    /* ============================================================
+       APP V2 — acentos de color sobre la identidad negro/dorado
+    ============================================================ */
+    body.modo-app { --ac-e: #ff7a2f; --ac-n: #3ecf8e; --ac-p: #4aa8ff; --ac-a: #38bdf8; }
+    .app-card.ac-e { border-left: 3px solid var(--ac-e); }
+    .app-card.ac-n { border-left: 3px solid var(--ac-n); }
+    .app-card.ac-p { border-left: 3px solid var(--ac-p); }
+    .app-card.ac-o { border-left: 3px solid var(--oro); }
+    .app-card.ac-e .app-card-meta { color: var(--ac-e); }
+    .app-card.ac-n .app-card-meta { color: var(--ac-n); }
+    .app-card.ac-p .app-card-meta { color: var(--ac-p); }
+
+    .app-nav-btn { position: relative; }
+    .app-nav-btn::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 2px; border-radius: 0 0 3px 3px; background: transparent; transition: background .2s; }
+    .app-nav-btn.activo::before { background: currentColor; }
+    .app-nav-btn:nth-child(2).activo { color: var(--ac-e); }
+    .app-nav-btn:nth-child(3).activo { color: var(--ac-n); }
+    .app-nav-btn:nth-child(5).activo { color: var(--ac-p); }
+    .app-nav-btn span.icono { filter: saturate(1.15); }
+
+    .app-header-sub { color: var(--oro2); font-weight: 600; }
+
+    .aet-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-bottom: 1.1rem; }
+    .aet-tile { background: var(--negro2); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: .8rem .5rem; text-align: center; border-top: 3px solid var(--tc, var(--oro)); cursor: pointer; }
+    .aet-tile b { display: block; font-family: var(--font-ui); font-size: 1.55rem; font-weight: 700; color: var(--tc, var(--oro)); line-height: 1.1; }
+    .aet-tile span { display: block; font-family: var(--font-ui); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--gris); margin-top: .3rem; }
+
+    .aet-panel { background: var(--negro2); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 1rem 1rem 1.1rem; margin-bottom: 1rem; }
+    .aet-panel-t { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-ui); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--oro2); margin-bottom: .8rem; }
+    .aet-panel-t a, .aet-panel-t button.lnk { color: var(--ac-p); background: none; border: none; font: inherit; letter-spacing: .04em; text-transform: none; cursor: pointer; padding: 0; }
+
+    .aros { display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+    .aro { text-align: center; cursor: pointer; }
+    .aro svg { display: block; margin: 0 auto; }
+    .aro-n { font-family: var(--font-ui); font-size: 15px; font-weight: 700; fill: var(--blanco); }
+    .aro-e { font-family: var(--font-ui); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--gris); margin-top: .25rem; }
+    .aro-s { font-family: var(--font-ui); font-size: 10px; color: var(--blanco); opacity: .75; }
+
+    .aet-peso { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+    .aet-peso b { font-family: var(--font-ui); font-size: 2rem; color: var(--blanco); font-weight: 700; }
+    .aet-peso em { font-style: normal; font-family: var(--font-ui); font-size: 11px; padding: .15rem .5rem; border-radius: 20px; background: rgba(74,168,255,.15); color: var(--ac-p); }
+    .aet-peso small { color: var(--gris); font-size: 11px; font-family: var(--font-ui); }
+    .aet-graf { width: 100%; height: auto; display: block; }
+    .aet-graf text { font-family: var(--font-ui); font-size: 8.5px; fill: #8a8a8a; }
+    .vacio-g { color: var(--gris); font-size: 12.5px; padding: .8rem 0; font-family: var(--font-ui); }
+
+    .aet-btn { background: var(--oro); color: var(--negro); border: none; border-radius: 10px; padding: .75rem 1rem; font-family: var(--font-ui); font-weight: 700; font-size: 13px; letter-spacing: .04em; cursor: pointer; width: 100%; }
+    .aet-btn.e { background: var(--ac-e); color: #1a0c02; }
+    .aet-btn.n { background: var(--ac-n); color: #052015; }
+    .aet-btn.p { background: var(--ac-p); color: #04162a; }
+    .aet-btn.sec { background: transparent; border: 1px solid rgba(201,168,76,.4); color: var(--oro); }
+    .aet-btn.mini { width: auto; padding: .45rem .8rem; font-size: 12px; }
+    .aet-btn.peligro { background: transparent; border: 1px solid rgba(232,80,74,.5); color: #e8504a; }
+    .aet-fila { display: flex; gap: .6rem; }
+    .aet-fila > * { flex: 1; }
+    .aet-nota { font-size: 11.5px; color: var(--gris); line-height: 1.5; margin: .6rem 0 0; }
+
+    .aet-ejs { display: flex; flex-direction: column; gap: .5rem; }
+    .aet-ej { display: flex; justify-content: space-between; align-items: center; gap: .6rem; background: rgba(255,122,47,.06); border: 1px solid rgba(255,122,47,.2); border-radius: 10px; padding: .65rem .8rem; cursor: pointer; text-align: left; color: inherit; font: inherit; width: 100%; }
+    .aet-ej b { color: var(--blanco); font-size: 14px; font-weight: 600; }
+    .aet-ej span { font-family: var(--font-ui); font-size: 11px; color: var(--ac-e); white-space: nowrap; }
+
+    .aet-comida { display: flex; justify-content: space-between; align-items: center; gap: .6rem; padding: .55rem 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 13.5px; color: var(--blanco); }
+    .aet-comida small { display: block; color: var(--gris); font-family: var(--font-ui); font-size: 11px; margin-top: .1rem; }
+    .aet-x { background: none; border: none; color: var(--gris); font-size: 18px; cursor: pointer; padding: .2rem .5rem; }
+    .aet-mbar { display: flex; height: 9px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,.07); margin: .8rem 0 .4rem; }
+    .aet-mbar i { display: block; height: 100%; }
+    .aet-mleg { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: 11px; color: var(--blanco); }
+    .aet-mleg span i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .3rem; }
+    .aet-agua { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .9rem; padding-top: .8rem; border-top: 1px dashed rgba(255,255,255,.1); font-family: var(--font-ui); font-size: 13px; color: var(--blanco); }
+    .aet-agua .vasos { letter-spacing: .1em; color: var(--ac-a); }
+    .aet-agua button { background: rgba(56,189,248,.14); border: 1px solid rgba(56,189,248,.4); color: var(--ac-a); border-radius: 8px; padding: .4rem .8rem; font-weight: 700; cursor: pointer; font-size: 14px; }
+
+    .aet-comp { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; margin-bottom: .8rem; }
+    .aet-cc { border-radius: 10px; padding: .6rem .7rem; background: color-mix(in srgb, var(--cc) 12%, transparent); border: 1px solid color-mix(in srgb, var(--cc) 45%, transparent); }
+    .aet-cc b { display: block; font-family: var(--font-ui); font-size: 1.35rem; color: var(--cc); }
+    .aet-cc span { font-family: var(--font-ui); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--gris); }
+    .aet-cc em { font-style: normal; font-size: 11px; color: var(--blanco); opacity: .8; margin-left: .3rem; }
+
+    .aet-logros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+    .aet-logro { text-align: center; padding: .7rem .3rem; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); opacity: .45; filter: grayscale(1); }
+    .aet-logro.ok { opacity: 1; filter: none; background: linear-gradient(160deg, rgba(201,168,76,.18), rgba(201,168,76,.04)); border-color: rgba(201,168,76,.5); }
+    .aet-logro i { display: block; font-style: normal; font-size: 1.6rem; margin-bottom: .2rem; }
+    .aet-logro b { display: block; font-family: var(--font-ui); font-size: 10.5px; color: var(--blanco); line-height: 1.25; font-weight: 600; }
+    .aet-logro span { font-size: 9.5px; color: var(--gris); font-family: var(--font-ui); }
+
+    .app-sheet { position: fixed; inset: 0; z-index: 2100; display: none; }
+    .app-sheet.abierto { display: block; }
+    .app-sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.72); }
+    .app-sheet-panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90vh; overflow-y: auto; background: #131313; border-top: 2px solid var(--oro); border-radius: 18px 18px 0 0; padding: 1.1rem 1.2rem calc(1.4rem + env(safe-area-inset-bottom, 0px)); }
+    .app-sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; }
+    .app-sheet-head h3 { font-family: var(--font-display); font-size: 1.35rem; color: var(--blanco); margin: 0; }
+    .app-sheet-head button { background: none; border: none; color: var(--gris); font-size: 20px; cursor: pointer; }
+    .aet-lbl { display: block; font-family: var(--font-ui); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--oro2); margin: .8rem 0 .3rem; }
+    .aet-in { width: 100%; background: #0b0b0b; border: 1px solid rgba(201,168,76,.28); color: var(--blanco); border-radius: 9px; padding: .7rem .8rem; font-size: 16px; font-family: inherit; }
+    .aet-in:focus { outline: none; border-color: var(--oro); }
+    .aet-serie { display: grid; grid-template-columns: 28px 1fr 1fr 34px; gap: .5rem; align-items: center; margin-bottom: .45rem; }
+    .aet-serie span { font-family: var(--font-ui); font-size: 12px; color: var(--ac-e); text-align: center; font-weight: 700; }
+    .aet-ses { border-top: 1px solid rgba(255,255,255,.07); padding: .6rem 0; font-size: 12.5px; color: var(--blanco); }
+    .aet-ses small { color: var(--gris); font-family: var(--font-ui); display: block; margin-bottom: .15rem; }
+
+    /* Recetario con color */
+    .rec-card { border-left: 4px solid var(--rc, var(--oro)); }
+    .rec-head { align-items: center; }
+    .rec-emoji { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; border: 1px solid; display: flex; align-items: center; justify-content: center; font-size: 23px; }
+    .rec-info { flex: 1; min-width: 0; }
+    .rec-kc { font-family: var(--font-ui); font-size: 12px; color: var(--gris); margin-top: .6rem; }
+    .rec-kc b { font-size: 1.1rem; }
+    .rec-barra { display: flex; height: 7px; border-radius: 5px; overflow: hidden; margin: .45rem 0 .35rem; background: rgba(255,255,255,.07); }
+    .rec-barra i { display: block; height: 100%; }
+    .rec-macros { display: flex; gap: .9rem; font-family: var(--font-ui); font-size: 11px; color: var(--blanco); }
+    .rec-macros i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .3rem; }
+    .rec-add { width: 100%; margin-top: 1rem; border: none; border-radius: 10px; padding: .75rem; color: #111; font-family: var(--font-ui); font-weight: 700; font-size: 13px; cursor: pointer; }
+    .aet-toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 4000; background: #1b1b1b; border: 1px solid var(--oro); color: var(--blanco); font-family: var(--font-ui); font-size: 13px; padding: .6rem 1rem; border-radius: 24px; max-width: 90%; text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+    .aet-pr { color: #ffd54a; font-weight: 700; }
   </style>
 </head>
 
@@ -2386,6 +2501,7 @@
   <div class="app-screen" id="app-screen-entrenar">
     <h2 class="app-titulo">Entrenar</h2>
     <p class="app-subtitulo">Elige tu sistema</p>
+    <div id="appEntrenarLog"></div>
 
     <div class="app-seccion-titulo">GYM</div>
     <button class="app-card" onclick="abrirCalculadora('entrenamiento')">
@@ -2425,7 +2541,8 @@
   <!-- NUTRICIÓN -->
   <div class="app-screen" id="app-screen-nutricion">
     <h2 class="app-titulo">Nutrición</h2>
-    <p class="app-subtitulo">Elige tu plan</p>
+    <p class="app-subtitulo">Registra tu día y elige tu plan</p>
+    <div id="appNutriHoy"></div>
     <button class="app-card" onclick="abrirCalculadora('sano')">
       <div class="app-card-top"><span class="app-card-titulo">Plan General</span><span class="app-card-meta">Personas sanas</span></div>
       <div class="app-card-desc">Macros ajustados a tu objetivo, con guía de alimentación y equivalencias.</div>
@@ -2448,6 +2565,9 @@
   <div class="app-screen" id="app-screen-perfil">
     <h2 class="app-titulo">Tu progreso</h2>
     <p class="app-subtitulo">Guardado en este dispositivo</p>
+    <div id="appProgPeso"></div>
+    <div id="appProgComp"></div>
+    <div id="appProgLogros"></div>
     <div id="appPerfilResumen"></div>
     <button class="app-card continuar" onclick="abrirCalculadora('dashboard')" style="margin-top:.5rem;">
       <div class="app-card-top"><span class="app-card-titulo">📊 Tu Dashboard</span><span class="app-card-meta">Semanal + Mensual</span></div>
@@ -6645,6 +6765,7 @@ const RESPALDO_VALIDADORES = {
   medidas_historial: v => Array.isArray(v), medidas_meta: v => _esObj(v),
   mma_completados: v => _esObj(v), mma2_completados: v => _esObj(v), mma3_completados: v => _esObj(v),
   mma_1rm: v => _esObj(v), mma_historial_semanas: v => Array.isArray(v),
+  aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
 };
 // Valores que se guardan como texto plano (no JSON)
@@ -6756,7 +6877,7 @@ function notaRespaldoHtml() {
 }
 
 /* [Contenido Premium: se carga desde el almacenamiento privado] */
-function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
 async function abrirCalculadora(tipo) {
   if (TIPOS_PREMIUM.includes(tipo)) {
@@ -6973,7 +7094,7 @@ function detectarModoApp() {
   if (esStandalone) {
     const h = new Date().getHours();
     document.getElementById('appSaludo').textContent = (h < 12 ? 'Buenos días 👋' : h < 19 ? 'Buenas tardes 👋' : 'Buenas noches 👋');
-    renderDashboardApp();
+    aetRefrescar();
     renderPerfilResumenApp();
   }
 }
@@ -6984,7 +7105,10 @@ function cambiarPantallaApp(pantalla, btn) {
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
   btn.classList.add('activo');
   if (pantalla === 'inicio') renderDashboardApp();
-  if (pantalla === 'perfil') renderPerfilResumenApp();
+  if (pantalla === 'entrenar') aetRenderEntrenar();
+  if (pantalla === 'nutricion') aetRenderNutri();
+  if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
+  window.scrollTo(0, 0);
 }
 
 /* ============================================================
@@ -7097,44 +7221,406 @@ function fraseDeLaSemana() {
   return { texto: FRASES_SEMANA[i], num: i + 1, total: n };
 }
 
-function renderDashboardApp() {
-  const cont = document.getElementById('appDashboardCards');
-  const fr = fraseDeLaSemana();
-  let html = `<div class="app-frase"><div class="app-frase-top"><span>✦ Frase de la semana</span><span>${fr.num} / ${fr.total}</span></div><p>“${fr.texto}”</p></div>`;
+/* ============================================================
+   APP V2 — métricas, registro de entrenos, Mi día, composición,
+   logros. Todo local en este dispositivo (claves aet_*).
+============================================================ */
+const AET = {
+  leer(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } },
+  guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  fmt(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); },
+  hoy() { return AET.fmt(new Date()); },
+  dia(off) { const d = new Date(); d.setDate(d.getDate() - off); return AET.fmt(d); },
+  corta(f) { const p = f.split('-'); return p[2] + '/' + p[1]; },
+  metas() { return Object.assign({ kcal: 2000, prot: 120, entrenos: 4, agua: 8 }, AET.leer('aet_metas', {})); },
+  num(v) { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; },
+  pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
+  idg: 0,
+};
+const AET_IR = { inicio: 0, entrenar: 1, nutricion: 2, mas: 3, perfil: 4 };
+function aetIr(p) { cambiarPantallaApp(p, document.querySelectorAll('.app-nav-btn')[AET_IR[p]]); }
+function aetToast(m) {
+  const t = document.createElement('div'); t.className = 'aet-toast'; t.textContent = m;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+function aetSheet(t, html) {
+  let s = document.getElementById('appSheet');
+  if (!s) { s = document.createElement('div'); s.id = 'appSheet'; s.className = 'app-sheet'; document.getElementById('appShell').appendChild(s); }
+  s.innerHTML = `<div class="app-sheet-bg" onclick="aetCerrar()"></div><div class="app-sheet-panel"><div class="app-sheet-head"><h3>${t}</h3><button onclick="aetCerrar()">✕</button></div>${html}</div>`;
+  s.classList.add('abierto');
+}
+function aetCerrar() { const s = document.getElementById('appSheet'); if (s) s.classList.remove('abierto'); }
 
-  // Tarjeta "continuar" real, basada en el progreso guardado de cada nivel de MMA
+/* ---------- actividad / racha ---------- */
+function aetMarcar(t) {
+  const a = AET.leer('aet_actividad', {}), h = AET.hoy();
+  a[h] = a[h] || [];
+  if (!a[h].includes(t)) a[h].push(t);
+  AET.guardar('aet_actividad', a);
+}
+function aetRacha() {
+  const a = AET.leer('aet_actividad', {});
+  let off = (a[AET.dia(0)] || []).length ? 0 : 1, n = 0;
+  while ((a[AET.dia(off)] || []).length) { n++; off++; }
+  return n;
+}
+function aetEntrenosSemana() {
+  const a = AET.leer('aet_actividad', {}), dow = (new Date().getDay() + 6) % 7;
+  let n = 0;
+  for (let i = 0; i <= dow; i++) if ((a[AET.dia(i)] || []).includes('e')) n++;
+  return n;
+}
+function aetEntrenosTotal() {
+  const a = AET.leer('aet_actividad', {});
+  return Object.values(a).filter(v => v.includes('e')).length;
+}
+function aetMarcarEntreno() {
+  aetMarcar('e'); aetToast('💪 Entreno de hoy marcado'); aetRefrescar();
+}
+
+/* ---------- Mi día ---------- */
+function aetDia(f) {
+  const d = AET.leer('aet_dia', {});
+  return d[f || AET.hoy()] || { comidas: [], agua: 0 };
+}
+function aetGuardarDia(dia) {
+  const d = AET.leer('aet_dia', {});
+  d[AET.hoy()] = dia;
+  AET.guardar('aet_dia', d);
+}
+function aetTotDia(dia) {
+  return dia.comidas.reduce((t, c) => ({ k: t.k + (c.k || 0), p: t.p + (c.p || 0), c: t.c + (c.c || 0), g: t.g + (c.g || 0) }), { k: 0, p: 0, c: 0, g: 0 });
+}
+function aetAgregarComida(c) {
+  const dia = aetDia();
+  dia.comidas.push({ n: String(c.n || 'Comida').slice(0, 60), k: Math.round(+c.k || 0), p: Math.round(+c.p || 0), c: Math.round(+c.c || 0), g: Math.round(+c.g || 0) });
+  aetGuardarDia(dia); aetMarcar('c');
+  aetToast('✓ Agregado a tu día'); aetRefrescar();
+}
+function aetAgua(d) {
+  const dia = aetDia(), m = AET.metas();
+  dia.agua = Math.max(0, Math.min(30, (dia.agua || 0) + d));
+  aetGuardarDia(dia);
+  if (dia.agua >= m.agua) aetMarcar('a');
+  aetRefrescar();
+}
+function aetQuitarComida(i) {
+  const dia = aetDia(); dia.comidas.splice(i, 1); aetGuardarDia(dia); aetRefrescar();
+}
+function aetFormComida() {
+  aetSheet('Agregar comida', `
+    <label class="aet-lbl">Nombre</label><input class="aet-in" id="aetCn" maxlength="60" placeholder="Ej. Pollo con arroz">
+    <div class="aet-fila"><div><label class="aet-lbl">Calorías</label><input class="aet-in" id="aetCk" type="number" inputmode="decimal" placeholder="kcal"></div>
+    <div><label class="aet-lbl">Proteína (g)</label><input class="aet-in" id="aetCp" type="number" inputmode="decimal"></div></div>
+    <div class="aet-fila"><div><label class="aet-lbl">Carbos (g)</label><input class="aet-in" id="aetCc" type="number" inputmode="decimal"></div>
+    <div><label class="aet-lbl">Grasa (g)</label><input class="aet-in" id="aetCg" type="number" inputmode="decimal"></div></div>
+    <p class="aet-nota">Solo las calorías son obligatorias. También puedes agregar una receta desde Más → Recetas.</p>
+    <button class="aet-btn n" style="margin-top:1rem" onclick="aetGuardarComida()">Agregar</button>`);
+}
+function aetGuardarComida() {
+  const g = id => AET.num(document.getElementById(id).value);
+  const k = g('aetCk');
+  if (k == null || k < 0) { aetToast('Pon las calorías'); return; }
+  const n = document.getElementById('aetCn').value.trim() || 'Comida';
+  aetCerrar();
+  aetAgregarComida({ n, k, p: g('aetCp') || 0, c: g('aetCc') || 0, g: g('aetCg') || 0 });
+}
+function aetFormMetas() {
+  const m = AET.metas();
+  aetSheet('Mis metas diarias', `
+    <div class="aet-fila"><div><label class="aet-lbl">Calorías</label><input class="aet-in" id="aetMk" type="number" inputmode="numeric" value="${m.kcal}"></div>
+    <div><label class="aet-lbl">Proteína (g)</label><input class="aet-in" id="aetMp" type="number" inputmode="numeric" value="${m.prot}"></div></div>
+    <div class="aet-fila"><div><label class="aet-lbl">Entrenos / semana</label><input class="aet-in" id="aetMe" type="number" inputmode="numeric" value="${m.entrenos}"></div>
+    <div><label class="aet-lbl">Vasos de agua</label><input class="aet-in" id="aetMa" type="number" inputmode="numeric" value="${m.agua}"></div></div>
+    <p class="aet-nota">Si hiciste tu plan en la calculadora de Nutrición, usa esas calorías y proteína.</p>
+    <button class="aet-btn" style="margin-top:1rem" onclick="aetGuardarMetas()">Guardar</button>`);
+}
+function aetGuardarMetas() {
+  const v = (id, a, b, d) => { const n = AET.num(document.getElementById(id).value); return n != null && n >= a && n <= b ? Math.round(n) : d; };
+  const m = AET.metas();
+  AET.guardar('aet_metas', { kcal: v('aetMk', 500, 10000, m.kcal), prot: v('aetMp', 10, 500, m.prot), entrenos: v('aetMe', 1, 7, m.entrenos), agua: v('aetMa', 1, 30, m.agua) });
+  aetCerrar(); aetRefrescar();
+}
+
+/* ---------- componentes visuales ---------- */
+function aetAnillo(pct, color, centro, etiq, sub, ir) {
+  const r = 30, c = 2 * Math.PI * r, p = Math.max(0, Math.min(1, pct || 0));
+  return `<div class="aro" onclick="${ir}"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * p).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 36 36)"/><text x="36" y="41" text-anchor="middle" class="aro-n">${centro}</text></svg><div class="aro-e" style="color:${color}">${etiq}</div><div class="aro-s">${sub}</div></div>`;
+}
+function aetGrafica(pts, color, mini) {
+  if (pts.length < 2) return mini ? '' : '<div class="vacio-g">Registra al menos 2 veces para ver tu gráfica.</div>';
+  pts = pts.slice(-30);
+  const W = 300, H = mini ? 60 : 120, pl = mini ? 6 : 30, pr = 8, pt = 10, pb = mini ? 6 : 20;
+  const ys = pts.map(p => p.y); let mn = Math.min(...ys), mx = Math.max(...ys);
+  if (mx - mn < 0.001) { mx += 1; mn -= 1; }
+  const pad = (mx - mn) * 0.12; mn -= pad; mx += pad;
+  const X = i => pl + i * (W - pl - pr) / (pts.length - 1);
+  const Y = v => pt + (1 - (v - mn) / (mx - mn)) * (H - pt - pb);
+  const linea = pts.map((p, i) => X(i).toFixed(1) + ',' + Y(p.y).toFixed(1)).join(' ');
+  const gid = 'ag' + (++AET.idg);
+  const area = `${X(0).toFixed(1)},${H - pb} ${linea} ${X(pts.length - 1).toFixed(1)},${H - pb}`;
+  let extra = '';
+  if (!mini) {
+    extra = `<text x="2" y="${Y(Math.max(...ys)) + 3}">${Math.round(Math.max(...ys) * 10) / 10}</text><text x="2" y="${Y(Math.min(...ys)) + 3}">${Math.round(Math.min(...ys) * 10) / 10}</text>
+      <text x="${pl}" y="${H - 4}">${pts[0].l}</text><text x="${W - pr}" y="${H - 4}" text-anchor="end">${pts[pts.length - 1].l}</text>`;
+  }
+  const dots = pts.map((p, i) => (mini && i < pts.length - 1) ? '' : `<circle cx="${X(i).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${mini ? 3.5 : 3}" fill="${color}"/>`).join('');
+  return `<svg class="aet-graf" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><polygon points="${area}" fill="url(#${gid})"/><polyline points="${linea}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${extra}</svg>`;
+}
+
+/* ---------- registro de entrenos ---------- */
+const AET_EJERCICIOS = ['Press de banca', 'Press inclinado con mancuernas', 'Press militar', 'Sentadilla', 'Peso muerto', 'Peso muerto rumano', 'Prensa de piernas', 'Zancadas', 'Hip thrust', 'Dominadas', 'Jalón al pecho', 'Remo con barra', 'Remo con mancuerna', 'Curl de bíceps', 'Extensión de tríceps', 'Elevaciones laterales', 'Fondos', 'Curl femoral', 'Extensión de cuádriceps', 'Elevación de talones'];
+const aetE1rm = (kg, r) => r > 0 ? Math.round(kg * (1 + r / 30) * 10) / 10 : 0;
+function aetLog() { return AET.leer('aet_log_entreno', []); }
+function aetMejorE1rm(ses) { return Math.max(0, ...ses.series.map(s => aetE1rm(s.kg, s.r))); }
+function aetFormEntreno(nombre) {
+  const nombres = [...new Set([...aetLog().map(l => l.ej), ...AET_EJERCICIOS])];
+  aetSheet('Registrar ejercicio', `
+    <label class="aet-lbl">Ejercicio</label>
+    <input class="aet-in" id="aetEj" list="aetEjList" maxlength="50" autocomplete="off" placeholder="Ej. Press de banca" value="${esc(nombre || '')}" onchange="aetPrefill()">
+    <datalist id="aetEjList">${nombres.map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+    <label class="aet-lbl">Series (repeticiones · kg)</label>
+    <div id="aetSeries"></div>
+    <button class="aet-btn sec mini" style="margin:.4rem 0 .2rem" onclick="aetAddSerie()">＋ Serie</button>
+    <button class="aet-btn e" style="margin-top:1rem" onclick="aetGuardarEntreno()">Guardar</button>`);
+  if (nombre) aetPrefill(); else { aetAddSerie(); aetAddSerie(); aetAddSerie(); }
+}
+function aetAddSerie(r, kg) {
+  const cont = document.getElementById('aetSeries'); if (!cont) return;
+  const d = document.createElement('div'); d.className = 'aet-serie';
+  d.innerHTML = `<span></span><input class="aet-in" data-r type="number" inputmode="numeric" placeholder="reps" value="${r ?? ''}"><input class="aet-in" data-k type="number" inputmode="decimal" placeholder="kg" value="${kg ?? ''}"><button class="aet-x" onclick="this.parentNode.remove();aetNumSeries()">✕</button>`;
+  cont.appendChild(d); aetNumSeries();
+}
+function aetNumSeries() { document.querySelectorAll('#aetSeries .aet-serie span').forEach((s, i) => s.textContent = i + 1); }
+function aetPrefill() {
+  const n = document.getElementById('aetEj').value.trim().toLowerCase();
+  const cont = document.getElementById('aetSeries'); cont.innerHTML = '';
+  const prev = aetLog().filter(l => l.ej.toLowerCase() === n).sort((a, b) => b.id - a.id)[0];
+  if (prev) prev.series.forEach(s => aetAddSerie(s.r, s.kg)); else { aetAddSerie(); aetAddSerie(); aetAddSerie(); }
+}
+function aetGuardarEntreno() {
+  const ej = document.getElementById('aetEj').value.trim().slice(0, 50);
+  if (!ej) { aetToast('Escribe el ejercicio'); return; }
+  const series = [];
+  document.querySelectorAll('#aetSeries .aet-serie').forEach(f => {
+    const r = AET.num(f.querySelector('[data-r]').value), kg = AET.num(f.querySelector('[data-k]').value);
+    if (r && r > 0 && r <= 100 && (kg == null || (kg >= 0 && kg <= 1000))) series.push({ r: Math.round(r), kg: kg || 0 });
+  });
+  if (!series.length) { aetToast('Agrega al menos una serie con repeticiones'); return; }
+  const log = aetLog();
+  const previos = log.filter(l => l.ej.toLowerCase() === ej.toLowerCase());
+  const nueva = { id: Date.now(), fecha: AET.hoy(), ej, series };
+  const mejorAntes = previos.length ? Math.max(...previos.map(aetMejorE1rm)) : 0;
+  const pr = previos.length > 0 && aetMejorE1rm(nueva) > mejorAntes && aetMejorE1rm(nueva) > 0;
+  log.push(nueva);
+  AET.guardar('aet_log_entreno', log.slice(-1500));
+  aetMarcar('e'); aetCerrar();
+  aetToast(pr ? '🏆 ¡Nuevo récord personal en ' + ej + '!' : '✓ Ejercicio guardado');
+  aetRefrescar();
+}
+function aetDetalleEj(nombre) {
+  const ses = aetLog().filter(l => l.ej === nombre).sort((a, b) => a.id - b.id);
+  const pts = ses.map(s => ({ l: AET.corta(s.fecha), y: aetMejorE1rm(s) }));
+  const mejor = Math.max(0, ...pts.map(p => p.y));
+  aetSheet(esc(nombre), `
+    <div class="aet-peso"><b style="color:var(--ac-e)">${mejor}</b><small>kg · mejor 1RM estimado</small></div>
+    ${aetGrafica(pts, '#ff7a2f')}
+    <button class="aet-btn e" style="margin:.6rem 0" onclick="aetFormEntreno(${JSON.stringify(nombre).replace(/"/g, '&quot;')})">＋ Registrar otra sesión</button>
+    ${ses.slice().reverse().slice(0, 12).map(s => `<div class="aet-ses"><small>${AET.corta(s.fecha)} · <a href="#" style="color:#e8504a" onclick="aetBorrarSesion(${s.id});return false">borrar</a></small>${s.series.map(x => x.r + '×' + x.kg + ' kg').join(' · ')}</div>`).join('')}
+    <p class="aet-nota">1RM estimado con la fórmula de Epley (peso × (1 + reps/30)). Es una referencia, no una prueba de máximo.</p>`);
+}
+function aetBorrarSesion(id) {
+  if (!confirm('¿Borrar esta sesión?')) return;
+  AET.guardar('aet_log_entreno', aetLog().filter(l => l.id !== id));
+  aetCerrar(); aetRefrescar();
+}
+function aetRenderEntrenar() {
+  const el = document.getElementById('appEntrenarLog'); if (!el) return;
+  const log = aetLog(), m = AET.metas(), sem = aetEntrenosSemana();
+  const grupos = {};
+  log.forEach(l => { (grupos[l.ej] = grupos[l.ej] || []).push(l); });
+  const lista = Object.keys(grupos).map(n => ({ n, ult: Math.max(...grupos[n].map(s => s.id)), k: grupos[n].length, mejor: Math.max(...grupos[n].map(aetMejorE1rm)) })).sort((a, b) => b.ult - a.ult).slice(0, 6);
+  const hoyMarcado = (AET.leer('aet_actividad', {})[AET.hoy()] || []).includes('e');
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(255,122,47,.3)">
+    <div class="aet-panel-t"><span style="color:var(--ac-e)">📓 Mi registro</span><span style="color:var(--blanco)">${sem}/${m.entrenos} esta semana</span></div>
+    <div class="aet-fila"><button class="aet-btn e" onclick="aetFormEntreno()">＋ Registrar ejercicio</button>
+    <button class="aet-btn sec" onclick="aetMarcarEntreno()">${hoyMarcado ? '✓ Hoy marcado' : 'Marcar entreno de hoy'}</button></div>
+    ${lista.length ? `<div class="aet-ejs" style="margin-top:.9rem">${lista.map(x => `<button class="aet-ej" onclick="aetDetalleEj(${JSON.stringify(x.n).replace(/"/g, '&quot;')})"><b>${esc(x.n)}</b><span>${x.k} ses. · 1RM ${x.mejor} kg</span></button>`).join('')}</div>`
+      : '<p class="aet-nota">Registra series, repeticiones y kilos. Verás tu historial, tu 1RM estimado y tus récords.</p>'}
+  </div>`;
+}
+
+/* ---------- Mi día (Nutrición) ---------- */
+function aetRenderNutri() {
+  const el = document.getElementById('appNutriHoy'); if (!el) return;
+  const dia = aetDia(), t = aetTotDia(dia), m = AET.metas();
+  const tot = Math.max(1, t.p * 4 + t.c * 4 + t.g * 9);
+  const vasos = Math.min(dia.agua, 30);
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)">
+    <div class="aet-panel-t"><span style="color:var(--ac-n)">🍽 Mi día</span><button class="lnk" onclick="aetFormMetas()">Metas ⚙</button></div>
+    <div class="aros" style="grid-template-columns:repeat(3,1fr)">
+      ${aetAnillo(t.k / m.kcal, '#3ecf8e', Math.round(t.k), 'Calorías', 'de ' + m.kcal, '')}
+      ${aetAnillo(t.p / m.prot, '#4aa8ff', Math.round(t.p), 'Proteína', 'de ' + m.prot + ' g', '')}
+      ${aetAnillo(dia.agua / m.agua, '#38bdf8', dia.agua, 'Agua', 'de ' + m.agua + ' vasos', '')}
+    </div>
+    <div class="aet-mbar"><i style="width:${t.p * 4 / tot * 100}%;background:#4aa8ff"></i><i style="width:${t.c * 4 / tot * 100}%;background:#f5b73b"></i><i style="width:${t.g * 9 / tot * 100}%;background:#ff7a2f"></i></div>
+    <div class="aet-mleg"><span><i style="background:#4aa8ff"></i>Prot ${Math.round(t.p)} g</span><span><i style="background:#f5b73b"></i>Carbos ${Math.round(t.c)} g</span><span><i style="background:#ff7a2f"></i>Grasa ${Math.round(t.g)} g</span></div>
+    <div style="margin-top:.8rem">${dia.comidas.length ? dia.comidas.map((c, i) => `<div class="aet-comida"><div>${esc(c.n)}<small>${c.k} kcal · P ${c.p} · C ${c.c} · G ${c.g}</small></div><button class="aet-x" onclick="aetQuitarComida(${i})">✕</button></div>`).join('') : '<p class="aet-nota">Aún no registras comidas hoy.</p>'}</div>
+    <div class="aet-agua"><span class="vasos">${'💧'.repeat(Math.min(vasos, 12)) || '—'}</span><span><button onclick="aetAgua(-1)">−</button> <button onclick="aetAgua(1)">＋ vaso</button></span></div>
+    <div class="aet-fila" style="margin-top:.9rem"><button class="aet-btn n" onclick="aetFormComida()">＋ Agregar comida</button><button class="aet-btn sec" onclick="abrirCalculadora('recetas')">Ver recetas</button></div>
+  </div>`;
+}
+
+/* ---------- Peso (usa Medidas) ---------- */
+function aetFormPeso() {
+  const u = AET.pesos().slice(-1)[0];
+  aetSheet('Registrar peso', `<label class="aet-lbl">Peso de hoy (kg)</label><input class="aet-in" id="aetPeso" type="number" inputmode="decimal" step="0.1" value="${u ? u.peso : ''}">
+    <button class="aet-btn p" style="margin-top:1rem" onclick="aetGuardarPeso()">Guardar</button>
+    <p class="aet-nota">Se guarda también en Medidas Corporales.</p>`);
+}
+function aetGuardarPeso() {
+  const p = AET.num(document.getElementById('aetPeso').value);
+  if (p == null || p < 20 || p > 400) { aetToast('Peso no válido'); return; }
+  const hist = AET.leer('medidas_historial', []);
+  const f = AET.hoy(), i = hist.findIndex(m => m.fecha === f);
+  if (i >= 0) hist[i].peso = p;
+  else {
+    const ult = hist.slice().sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(-1)[0] || {};
+    const e = {}; Object.keys(ult).forEach(k => e[k] = null);
+    e.fecha = f; e.peso = p; if (ult.altura != null) e.altura = ult.altura;
+    hist.push(e);
+  }
+  hist.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  AET.guardar('medidas_historial', hist);
+  try { medidasHistorial = hist; } catch (e) {}
+  aetMarcar('m'); aetCerrar(); aetToast('✓ Peso guardado'); aetRefrescar();
+}
+function aetRenderPeso() {
+  const el = document.getElementById('appProgPeso'); if (!el) return;
+  const ps = AET.pesos(), u = ps[ps.length - 1], a = ps[ps.length - 2];
+  const dif = u && a ? Math.round((u.peso - a.peso) * 10) / 10 : null;
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(74,168,255,.3)">
+    <div class="aet-panel-t"><span style="color:var(--ac-p)">⚖ Peso</span><button class="lnk" onclick="abrirCalculadora('medidas')">Medidas →</button></div>
+    ${u ? `<div class="aet-peso"><b>${u.peso} kg</b>${dif != null ? `<em>${dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : ''}${dif} kg</em>` : ''}<small>${AET.corta(u.fecha)}</small></div>` : ''}
+    ${aetGrafica(ps.map(p => ({ l: AET.corta(p.fecha), y: p.peso })), '#4aa8ff') || ''}
+    ${u ? '' : '<p class="aet-nota">Registra tu peso para ver tu evolución.</p>'}
+    <button class="aet-btn p" style="margin-top:.8rem" onclick="aetFormPeso()">＋ Registrar peso</button></div>`;
+}
+
+/* ---------- Composición corporal (manual) ---------- */
+const AET_COMP = [['grasa', 'Grasa corporal', '#ff6b9d'], ['musculo', 'Músculo', '#3ecf8e'], ['agua', 'Agua corporal', '#38bdf8'], ['hueso', 'Masa ósea', '#f5b73b']];
+function aetComp() { return AET.leer('aet_composicion', []).sort((a, b) => a.fecha.localeCompare(b.fecha)); }
+function aetFormComp() {
+  const u = aetComp().slice(-1)[0] || {};
+  aetSheet('Composición corporal', `<p class="aet-nota" style="margin-top:0">Si conoces tus valores (báscula de bioimpedancia, DEXA o un profesional), regístralos. Deja en blanco lo que no sepas.</p>
+    ${AET_COMP.map(([k, n]) => `<label class="aet-lbl">${n} (%)</label><input class="aet-in" id="aetCo_${k}" type="number" inputmode="decimal" step="0.1" value="${u[k] ?? ''}">`).join('')}
+    <button class="aet-btn" style="margin-top:1rem" onclick="aetGuardarComp()">Guardar</button>`);
+}
+function aetGuardarComp() {
+  const e = { fecha: AET.hoy() }; let alguno = false;
+  for (const [k, n] of AET_COMP) {
+    const v = AET.num(document.getElementById('aetCo_' + k).value);
+    if (v != null) { if (v < 0 || v > 100) { aetToast(n + ' debe estar entre 0 y 100'); return; } e[k] = v; alguno = true; } else e[k] = null;
+  }
+  if (!alguno) { aetToast('Escribe al menos un valor'); return; }
+  const h = aetComp(), i = h.findIndex(x => x.fecha === e.fecha);
+  if (i >= 0) h[i] = e; else h.push(e);
+  AET.guardar('aet_composicion', h.slice(-400));
+  aetMarcar('m'); aetCerrar(); aetToast('✓ Composición guardada'); aetRefrescar();
+}
+function aetRenderComp() {
+  const el = document.getElementById('appProgComp'); if (!el) return;
+  const h = aetComp(), u = h[h.length - 1];
+  const prev = k => { for (let i = h.length - 2; i >= 0; i--) if (h[i][k] != null) return h[i][k]; return null; };
+  const conGrasa = h.filter(x => x.grasa != null).map(x => ({ l: AET.corta(x.fecha), y: x.grasa }));
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(255,107,157,.3)">
+    <div class="aet-panel-t"><span style="color:#ff6b9d">🧬 Composición corporal</span><span style="color:var(--gris)">${u ? AET.corta(u.fecha) : ''}</span></div>
+    ${u ? `<div class="aet-comp">${AET_COMP.filter(([k]) => u[k] != null).map(([k, n, c]) => { const p = prev(k), d = p != null ? Math.round((u[k] - p) * 10) / 10 : null; return `<div class="aet-cc" style="--cc:${c}"><b>${u[k]}%</b><span>${n}</span>${d ? `<em>${d > 0 ? '+' : ''}${d}</em>` : ''}</div>`; }).join('')}</div>
+    ${conGrasa.length > 1 ? '<div class="aet-lbl" style="margin-top:0">Grasa corporal</div>' + aetGrafica(conGrasa, '#ff6b9d') : ''}` : '<p class="aet-nota" style="margin-top:0">Registra tu % de grasa, músculo, agua y masa ósea si los conoces, y sigue su evolución.</p>'}
+    <button class="aet-btn sec" style="margin-top:.8rem" onclick="aetFormComp()">＋ Registrar composición</button></div>`;
+}
+
+/* ---------- Logros ---------- */
+function aetLogros() {
+  const act = AET.leer('aet_actividad', {}), dias = AET.leer('aet_dia', {}), r = aetRacha();
+  const maxRacha = (() => { const f = Object.keys(act).filter(k => act[k].length).sort(); let m = 0, c = 0, p = null; f.forEach(x => { const d = new Date(x + 'T00:00'); if (p && Math.round((d - p) / 864e5) === 1) c++; else c = 1; p = d; m = Math.max(m, c); }); return m; })();
+  const ent = aetEntrenosTotal(), ses = aetLog().length;
+  const diasComida = Object.values(dias).filter(d => d.comidas && d.comidas.length).length;
+  const aguaOk = Object.values(dias).some(d => (d.agua || 0) >= AET.metas().agua);
+  return [
+    { i: '🔥', n: 'Racha de 3 días', ok: maxRacha >= 3 }, { i: '⚡', n: 'Racha de 7 días', ok: maxRacha >= 7 },
+    { i: '🌋', n: 'Racha de 14 días', ok: maxRacha >= 14 }, { i: '👑', n: 'Racha de 30 días', ok: maxRacha >= 30 },
+    { i: '💪', n: 'Primer entreno', ok: ent >= 1 }, { i: '🏋️', n: '10 entrenos', ok: ent >= 10 },
+    { i: '🏆', n: '25 entrenos', ok: ent >= 25 }, { i: '📓', n: 'Primer registro de ejercicio', ok: ses >= 1 },
+    { i: '🥗', n: 'Primera comida registrada', ok: diasComida >= 1 }, { i: '📅', n: '7 días con comidas', ok: diasComida >= 7 },
+    { i: '⚖️', n: 'Primer peso', ok: AET.pesos().length >= 1 }, { i: '🧬', n: 'Primera composición', ok: aetComp().length >= 1 },
+    { i: '💧', n: 'Meta de agua', ok: aguaOk },
+  ];
+}
+function aetRenderLogros() {
+  const el = document.getElementById('appProgLogros'); if (!el) return;
+  const l = aetLogros(), n = l.filter(x => x.ok).length;
+  el.innerHTML = `<div class="aet-panel"><div class="aet-panel-t"><span>🏅 Logros</span><span style="color:var(--blanco)">${n}/${l.length}</span></div>
+    <div class="aet-logros">${l.map(x => `<div class="aet-logro ${x.ok ? 'ok' : ''}"><i>${x.i}</i><b>${x.n}</b></div>`).join('')}</div></div>`;
+}
+function aetRenderProgreso() { aetRenderPeso(); aetRenderComp(); aetRenderLogros(); }
+
+/* ---------- Inicio ---------- */
+function renderDashboardApp() {
+  const cont = document.getElementById('appDashboardCards'); if (!cont) return;
+  const m = AET.metas(), dia = aetDia(), t = aetTotDia(dia), racha = aetRacha(), sem = aetEntrenosSemana();
+  const logros = aetLogros().filter(x => x.ok).length;
+  const hs = document.getElementById('appHeaderSub'); if (hs) hs.textContent = racha ? '🔥 ' + racha + (racha === 1 ? ' día' : ' días') : '';
+  const fr = fraseDeLaSemana();
+  const ps = AET.pesos(), u = ps[ps.length - 1], a = ps[ps.length - 2];
+  const dif = u && a ? Math.round((u.peso - a.peso) * 10) / 10 : null;
+  let html = `<div class="aet-tiles">
+      <div class="aet-tile" style="--tc:#ff7a2f" onclick="aetIr('perfil')"><b>🔥 ${racha}</b><span>Racha (días)</span></div>
+      <div class="aet-tile" style="--tc:#3ecf8e" onclick="aetIr('entrenar')"><b>${sem}/${m.entrenos}</b><span>Entrenos semana</span></div>
+      <div class="aet-tile" style="--tc:#C9A84C" onclick="aetIr('perfil')"><b>🏅 ${logros}</b><span>Logros</span></div>
+    </div>
+    <div class="aet-panel"><div class="aet-panel-t"><span>Tu día</span><button class="lnk" onclick="aetIr('nutricion')">Mi día →</button></div>
+      <div class="aros">
+        ${aetAnillo(sem / m.entrenos, '#ff7a2f', sem, 'Entrenos', 'de ' + m.entrenos, "aetIr('entrenar')")}
+        ${aetAnillo(t.k / m.kcal, '#3ecf8e', Math.round(t.k), 'Calorías', 'de ' + m.kcal, "aetIr('nutricion')")}
+        ${aetAnillo(t.p / m.prot, '#4aa8ff', Math.round(t.p), 'Proteína', 'de ' + m.prot + 'g', "aetIr('nutricion')")}
+        ${aetAnillo(dia.agua / m.agua, '#38bdf8', dia.agua, 'Agua', 'de ' + m.agua, "aetIr('nutricion')")}
+      </div>
+      <div class="aet-fila" style="margin-top:1rem"><button class="aet-btn e" onclick="aetFormEntreno()">＋ Ejercicio</button><button class="aet-btn n" onclick="aetFormComida()">＋ Comida</button><button class="aet-btn p" onclick="aetAgua(1)">＋ 💧</button></div>
+    </div>
+    <div class="aet-panel" style="border-color:rgba(74,168,255,.3)"><div class="aet-panel-t"><span style="color:var(--ac-p)">⚖ Peso</span><button class="lnk" onclick="aetIr('perfil')">Ver progreso →</button></div>
+      ${u ? `<div class="aet-peso"><b>${u.peso} kg</b>${dif != null ? `<em>${dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : ''}${dif} kg</em>` : ''}<small>${AET.corta(u.fecha)}</small></div>${aetGrafica(ps.map(p => ({ l: AET.corta(p.fecha), y: p.peso })), '#4aa8ff', true)}`
+        : '<p class="aet-nota" style="margin:0 0 .7rem">Aún no registras tu peso.</p>'}
+      <button class="aet-btn sec" style="margin-top:.6rem" onclick="aetFormPeso()">＋ Registrar peso</button></div>
+    <div class="app-frase"><div class="app-frase-top"><span>✦ Frase de la semana</span><span>${fr.num} / ${fr.total}</span></div><p>“${fr.texto}”</p></div>`;
+
   const nivelesMma = [
-    { n: 1, clave: 'mma_semana',  tabla: (typeof MMA_SEMANAS  === 'undefined' ? null : MMA_SEMANAS),  tipo: 'mma1', nombre: 'Nivel 1' },
-    { n: 2, clave: 'mma2_semana', tabla: (typeof MMA2_SEMANAS === 'undefined' ? null : MMA2_SEMANAS), tipo: 'mma2', nombre: 'Nivel 2' },
-    { n: 3, clave: 'mma3_semana', tabla: (typeof MMA3_SEMANAS === 'undefined' ? null : MMA3_SEMANAS), tipo: 'mma3', nombre: 'Nivel 3' },
+    { clave: 'mma_semana', tabla: (typeof MMA_SEMANAS === 'undefined' ? null : MMA_SEMANAS), tipo: 'mma1', nombre: 'Nivel 1' },
+    { clave: 'mma2_semana', tabla: (typeof MMA2_SEMANAS === 'undefined' ? null : MMA2_SEMANAS), tipo: 'mma2', nombre: 'Nivel 2' },
+    { clave: 'mma3_semana', tabla: (typeof MMA3_SEMANAS === 'undefined' ? null : MMA3_SEMANAS), tipo: 'mma3', nombre: 'Nivel 3' },
   ];
   let continuar = '';
   nivelesMma.forEach(nv => {
     const g = localStorage.getItem(nv.clave);
-    const sem = g ? (nv.tabla ? nv.tabla[parseInt(g, 10) - 1] : { s: parseInt(g, 10), bloque: null, pctRM: null }) : null;
-    if (!sem) return;
-    continuar += `<button class="app-card continuar" onclick="abrirCalculadora('${nv.tipo}')">
-        <div class="app-card-top"><span class="app-card-titulo">MMA — ${nv.nombre}</span><span class="app-card-meta">Semana ${sem.s} de 16</span></div>
-        <div class="app-card-desc">${sem.bloque ? `Bloque ${sem.bloque} · ${sem.pctRM}% RM esta semana. ` : ''}Toca para continuar.</div>
-      </button>`;
+    const sm = g ? (nv.tabla ? nv.tabla[parseInt(g, 10) - 1] : { s: parseInt(g, 10), bloque: null, pctRM: null }) : null;
+    if (!sm) return;
+    continuar += `<button class="app-card continuar ac-e" onclick="abrirCalculadora('${nv.tipo}')">
+        <div class="app-card-top"><span class="app-card-titulo">MMA — ${nv.nombre}</span><span class="app-card-meta">Semana ${sm.s} de 16</span></div>
+        <div class="app-card-desc">${sm.bloque ? `Bloque ${sm.bloque} · ${sm.pctRM}% RM esta semana. ` : ''}Toca para continuar.</div></button>`;
   });
   if (continuar) html += `<div class="app-seccion-titulo">Continuar</div>` + continuar;
 
   html += `<div class="app-seccion-titulo">Accesos rápidos</div>
-    <button class="app-card" onclick="cambiarPantallaApp('entrenar', document.querySelectorAll('.app-nav-btn')[1])">
-      <div class="app-card-top"><span class="app-card-titulo">Entrenar</span><span class="app-card-meta">GYM · MMA</span></div>
-      <div class="app-card-desc">3 rutinas de GYM personalizadas + MMA Niveles 1, 2 y 3.</div>
-    </button>
-    <button class="app-card" onclick="cambiarPantallaApp('nutricion', document.querySelectorAll('.app-nav-btn')[2])">
-      <div class="app-card-top"><span class="app-card-titulo">Nutrición</span><span class="app-card-meta">3 planes</span></div>
-      <div class="app-card-desc">Calculadora de macros según tu objetivo y condición.</div>
-    </button>
-    <button class="app-card" onclick="cambiarPantallaApp('mas', document.querySelectorAll('.app-nav-btn')[3])">
-      <div class="app-card-top"><span class="app-card-titulo">Más</span><span class="app-card-meta">Recetas · Protocolos</span></div>
-      <div class="app-card-desc">Recetas, Protocolos Avanzados, Bienestar, Salud &amp; Biohacking, Educación.</div>
-    </button>`;
-
+    <button class="app-card ac-e" onclick="aetIr('entrenar')"><div class="app-card-top"><span class="app-card-titulo">💪 Entrenar</span><span class="app-card-meta">GYM · MMA</span></div>
+      <div class="app-card-desc">3 rutinas de GYM personalizadas + MMA Niveles 1, 2 y 3.</div></button>
+    <button class="app-card ac-n" onclick="aetIr('nutricion')"><div class="app-card-top"><span class="app-card-titulo">🥗 Nutrición</span><span class="app-card-meta">3 planes</span></div>
+      <div class="app-card-desc">Calculadora de macros según tu objetivo y condición.</div></button>
+    <button class="app-card ac-o" onclick="aetIr('mas')"><div class="app-card-top"><span class="app-card-titulo">📚 Más</span><span class="app-card-meta">Recetas · Protocolos</span></div>
+      <div class="app-card-desc">Recetas, Protocolos Avanzados, Bienestar, Salud &amp; Biohacking, Educación.</div></button>`;
   cont.innerHTML = html;
+}
+function aetRefrescar() {
+  try { renderDashboardApp(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); } catch (e) { console.error(e); }
 }
 
 function renderPerfilResumenApp() {
