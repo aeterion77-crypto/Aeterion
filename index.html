@@ -822,6 +822,9 @@
     .app-card-progreso { margin-top: .6rem; }
     .app-card.continuar { border-color: rgba(201,168,76,.35); background: linear-gradient(135deg, rgba(201,168,76,.08), var(--negro2)); }
 
+    .app-frase { background: linear-gradient(135deg, rgba(201,168,76,.16), rgba(201,168,76,.03)); border: 1px solid rgba(201,168,76,.4); border-radius: 12px; padding: 1.2rem 1.3rem; margin-bottom: 1.4rem; }
+    .app-frase-top { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--oro2); margin-bottom: .7rem; }
+    .app-frase p { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.45; color: var(--blanco); font-style: italic; margin: 0; }
     .app-seccion-titulo {
       font-family: var(--font-ui); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
       color: var(--oro2); margin: 1.6rem 0 .8rem; padding-top: .4rem; border-top: 1px solid rgba(201,168,76,.08);
@@ -7030,9 +7033,74 @@ function volverDeVisorApp(cambiarPantalla = true) {
   }
 }
 
+const FRASES_SEMANA = [
+ "La disciplina es hacerle caso a lo que decidiste, no a lo que sientes hoy.",
+ "No te falta motivación. Te falta empezar con lo poco que tienes, hoy, ahora.",
+ "Nadie ve las repeticiones que haces cuando nadie mira, pero tu cuerpo las guarda todas.",
+ "El progreso casi nunca se siente día a día. Se nota meses después, cuando miras atrás.",
+ "Una mala semana no es un mal año. Retoma sin drama y sin castigarte.",
+ "Cuida tu sueño como cuidas tu entrenamiento: también es parte del trabajo.",
+ "Compararte con otros te roba energía. Mídete contra quien eras hace tres meses.",
+ "Hacerlo imperfecto hoy le gana a hacerlo perfecto nunca.",
+ "Lo que repites te construye. Elige con cuidado qué repites.",
+ "Sentir nervios antes de empezar no significa que no estés listo. Significa que te importa.",
+ "Descansar no es rendirse. Es parte de volverte más fuerte.",
+ "No tienes que ver toda la escalera. Solo da el siguiente escalón.",
+ "Tu cuerpo es el lugar donde vas a vivir toda tu vida. Trátalo como tal.",
+ "La constancia aburrida le gana al entusiasmo de una semana.",
+ "Cada comida es un voto por la persona que quieres ser. No tiene que ser perfecta, solo intencional.",
+ "Pedir ayuda no te hace débil. Te ahorra años.",
+ "Lo que evitas hoy suele pesar más mañana. Hazlo pequeño, pero hazlo.",
+ "No eres tus errores. Eres lo que haces después de ellos.",
+ "El esfuerzo se nota menos que el talento, pero dura más.",
+ "Cuando no tengas ganas, haz cinco minutos. Casi siempre seguirás.",
+ "Quien se levanta una vez más que las veces que cae, ya ganó el camino.",
+ "Tu energía es limitada: gástala en lo que de verdad te acerca a donde quieres ir.",
+ "Habla contigo como le hablarías a alguien a quien quieres ver crecer.",
+ "La fuerza no es no sentir miedo ni cansancio. Es avanzar con ellos puestos.",
+ "Los resultados llegan tarde, pero los hábitos empiezan hoy.",
+ "No tienes que ser el más fuerte del gimnasio. Solo mejor que tu versión de ayer.",
+ "El silencio también entrena: aprende a estar contigo sin distracciones.",
+ "Si algo vale la pena, probablemente se sienta incómodo al principio.",
+ "Rodéate de quienes te empujan a mejorar, no de quienes te acompañan a quedarte igual.",
+ "Tu rutina es tu promesa más honesta. Cúmplela aunque nadie la revise.",
+ "Dormir bien, comer bien y moverte a diario no es glamoroso. Es lo que funciona.",
+ "El agradecimiento no te frena: te recuerda lo que ya construiste mientras sigues construyendo.",
+ "No esperes el lunes perfecto. El mejor día para empezar es el que tienes enfrente.",
+ "A veces avanzar es caminar; otras veces es simplemente no soltar. Ambas cuentan.",
+ "No todo progreso se ve en el espejo. Mira también tu ánimo, tu energía y tu paz.",
+ "Soltar lo que no puedes controlar te devuelve fuerzas para lo que sí puedes.",
+ "Un cuerpo fuerte te da opciones. Una mente tranquila te da dirección.",
+ "Hacer lo difícil hoy es el regalo que le dejas al tú de mañana.",
+ "La paciencia es una forma de confianza en el proceso.",
+ "No necesitas que todo salga bien. Necesitas seguir presente cuando no salga.",
+ "Quien cuida su descanso rinde más que quien presume de dormir poco.",
+ "Los límites no son egoísmo: son lo que te permite dar sin vaciarte.",
+ "El orden en tu entorno ayuda al orden en tu cabeza. Empieza por tu cama.",
+ "Cada vez que cumples contigo, te vuelves más digno de tu propia confianza.",
+ "No midas el día por lo que lograste, sino por si fuiste fiel a lo que importa.",
+ "Aprender a decir 'no' abre espacio para tus 'sí' más importantes.",
+ "La salud es la base silenciosa de casi todo lo que quieres lograr.",
+ "Hay días de avanzar y días de sostener. Un año se arma con los dos.",
+ "Cuando dudes de ti, recuerda todo lo que ya cumpliste y creías imposible.",
+ "Mejorar un 1 % cada día no se siente, pero en un año te vuelve irreconocible.",
+ "Termina el año agradeciéndote por no haberte rendido, aunque a veces fuera lento.",
+ "Hoy empiezas de nuevo, y eso no es un fracaso: es lo que hacen quienes mejoran."
+];
+
+// Frase de la semana: cambia cada lunes y es la misma para todos. Con 52 frases cubre el año completo.
+function fraseDeLaSemana() {
+  const inicio = new Date(2026, 9, 12); // lunes 12 oct 2026 = semana 1
+  const semanas = Math.floor((new Date() - inicio) / (7 * 864e5));
+  const n = FRASES_SEMANA.length;
+  const i = ((semanas % n) + n) % n;
+  return { texto: FRASES_SEMANA[i], num: i + 1, total: n };
+}
+
 function renderDashboardApp() {
   const cont = document.getElementById('appDashboardCards');
-  let html = '';
+  const fr = fraseDeLaSemana();
+  let html = `<div class="app-frase"><div class="app-frase-top"><span>✦ Frase de la semana</span><span>${fr.num} / ${fr.total}</span></div><p>“${fr.texto}”</p></div>`;
 
   // Tarjeta "continuar" real, basada en el progreso guardado de cada nivel de MMA
   const nivelesMma = [
