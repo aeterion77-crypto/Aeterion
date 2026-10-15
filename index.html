@@ -7550,7 +7550,7 @@ function fraseDeLaSemana() {
 }
 // Las frases se editan desde el admin: se bajan en segundo plano y se guardan para la próxima vez.
 function aetFrasesRefrescar() {
-  fetch(SUPABASE_URL + '/rest/v1/frases_semana?select=num,texto&order=num.asc', { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } })
+  fetch(SUPABASE_URL + '/rest/v1/frases_semana?select=num,texto&activa=eq.true&order=num.asc', { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } })
     .then(r => r.ok ? r.json() : null)
     .then(a => {
       if (!Array.isArray(a) || !a.length) return;

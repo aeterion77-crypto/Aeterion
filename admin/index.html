@@ -191,7 +191,7 @@
     <section id="tFrases" class="oculto">
       <div class="card" style="margin-bottom:14px">
         <b>Frase de la semana</b>
-        <div class="peq" style="margin:4px 0 0">Cada lunes cambia la frase en la app, y es la misma para todos. Al terminar la lista vuelve a empezar. Los cambios se ven en la app de inmediato (a más tardar la próxima vez que se abra). Una frase puede tener un título en la primera línea y el texto debajo.</div>
+        <div class="peq" style="margin:4px 0 0">Cada lunes cambia la frase en la app, y es la misma para todos. Al terminar la lista vuelve a empezar. Los cambios se ven en la app de inmediato (a más tardar la próxima vez que se abra). Puedes subir, bajar, mover o eliminar cada una (al mover o eliminar, las demás se recorren). Una frase puede tener un título en la primera línea y el texto debajo.</div>
         <div id="frEsta" class="peq" style="margin-top:8px"></div>
       </div>
       <div id="listaFrases"><div class="vacio">Cargando…</div></div>
@@ -610,7 +610,8 @@ function pintarFrases() {
     return `<div class="card" data-fr="${esc(f.num)}" style="margin-bottom:10px${hoy ? ';border-color:var(--oro,#c9a84c)' : ''}">
       <div class="cab"><div class="nom">Semana ${esc(f.num)} de ${n}${hoy ? ' <span class="tag v">Esta semana</span>' : ''}</div><div class="peq">${esc(frFechas(f.num, n))}</div></div>
       <div class="campo" style="margin-top:8px"><textarea class="fr-txt" maxlength="800" rows="${Math.min(8, Math.max(3, Math.ceil(String(f.texto).length / 40)))}">${esc(f.texto)}</textarea></div>
-      <div class="acciones" style="margin-top:8px"><button class="mini" data-fr-guardar disabled>Guardar</button><button class="sec mini" data-fr-deshacer disabled>Deshacer</button></div></div>`;
+      <div class="acciones" style="margin-top:8px"><button class="mini" data-fr-guardar disabled>Guardar</button><button class="sec mini" data-fr-deshacer disabled>Deshacer</button></div>
+      <div class="acciones" style="margin-top:8px"><button class="sec mini" data-fr-sube ${f.num === 1 ? 'disabled' : ''} aria-label="Subir">↑ Subir</button><button class="sec mini" data-fr-baja ${f.num === n ? 'disabled' : ''} aria-label="Bajar">↓ Bajar</button><button class="sec mini" data-fr-mover>Mover a…</button><button class="mal mini" data-fr-borrar ${n <= 1 ? 'disabled' : ''}>Eliminar</button></div></div>`;
   }).join('');
 }
 $('listaFrases').addEventListener('input', (e) => {
@@ -622,6 +623,25 @@ $('listaFrases').addEventListener('click', async (e) => {
   const c = e.target.closest('[data-fr]'), b = e.target.closest('button'); if (!c || !b) return;
   const f = (datosFr || []).find((x) => String(x.num) === c.dataset.fr); if (!f) return;
   const ta = c.querySelector('.fr-txt');
+  if (b.hasAttribute('data-fr-sube') || b.hasAttribute('data-fr-baja') || b.hasAttribute('data-fr-mover') || b.hasAttribute('data-fr-borrar')) {
+    if (document.querySelector('#listaFrases [data-fr-guardar]:not([disabled])')) { aviso('Primero guarda o deshaz los cambios de texto pendientes.'); return; }
+    const L = (datosFr || []).map((x) => x.texto), i = f.num - 1;
+    if (b.hasAttribute('data-fr-sube') && i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]];
+    else if (b.hasAttribute('data-fr-baja') && i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]];
+    else if (b.hasAttribute('data-fr-mover')) {
+      const d = Number((prompt('¿A qué semana la mueves? (1 a ' + L.length + ')', String(f.num)) || '').trim());
+      if (!(d >= 1 && d <= L.length) || d !== Math.floor(d) || d === f.num) return;
+      const [x] = L.splice(i, 1); L.splice(d - 1, 0, x);
+    } else if (b.hasAttribute('data-fr-borrar')) {
+      if (L.length <= 1) return;
+      if (!confirm('¿Eliminar la frase de la semana ' + f.num + '?\n\n«' + String(f.texto).slice(0, 80).replace(/\n/g, ' ') + '…»\n\nLas que sigan se recorren una semana hacia arriba.')) return;
+      L.splice(i, 1);
+    } else return;
+    b.disabled = true;
+    try { const r = await rpc('panel_frases_reemplazar', { p_textos: L }); if (r.ok) { aviso('Listo.', true); await cargarTab('frases', false); } else { aviso('No se pudo guardar el cambio.'); b.disabled = false; } }
+    catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); b.disabled = false; }
+    return;
+  }
   if (b.hasAttribute('data-fr-deshacer')) { ta.value = f.texto; c.querySelector('[data-fr-guardar]').disabled = true; b.disabled = true; return; }
   if (b.hasAttribute('data-fr-guardar')) {
     const t = ta.value.trim(); if (!t) { aviso('La frase no puede quedar vacía.'); return; }
