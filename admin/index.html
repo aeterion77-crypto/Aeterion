@@ -439,7 +439,7 @@ function pintarAccesos() {
   const f = accesos.filter((a) => !q || String(a.email).toLowerCase().includes(q));
   $('listaAccesos').innerHTML = f.length ? f.map((a) => {
     const est = a.revocado_en ? '<span class="tag x">Quitado</span>' : a.vigente ? '<span class="tag v">Activo</span>' : '<span class="tag x">Vencido</span>';
-    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div>${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}</div>`;
+    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : a.origen === 'codigo' ? 'Código' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div><div class="acciones">${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}<button class="sec mini" data-dar="${esc(a.email)}">Dar días</button></div></div>`;
   }).join('') : '<div class="vacio">Sin accesos.</div>';
 }
 
@@ -541,11 +541,20 @@ $('btnDar').onclick = async () => {
 };
 async function quitar(email) {
   if (!confirm('¿Quitar Premium a ' + email + '? Perderá el acceso de inmediato.')) return;
-  try { const r = await rpc('panel_quitar', { p_email: email }); if (r.ok) { aviso('Acceso quitado a ' + email + '.', true); await cargar(false); } else aviso(r.error === 'usuario_no_encontrado' ? 'No existe una cuenta con ese correo.' : 'No se pudo: ' + r.error); }
+  try { const r = await rpc('panel_quitar', { p_email: email }); if (r.ok) { aviso('Acceso quitado a ' + email + '.', true); await cargar(false); if (datosCli) await cargarTab('clientes', true); if (cgGym) await cargarGym(); } else aviso(r.error === 'usuario_no_encontrado' ? 'No existe una cuenta con ese correo.' : 'No se pudo: ' + r.error); }
   catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
 }
+async function darPremium(email) {
+  const d = Number((prompt('¿Cuántos días de Premium le das a ' + email + '? (1 a 365)', '30') || '').trim());
+  if (!(d >= 1 && d <= 365) || d !== Math.floor(d)) return;
+  try {
+    const r = await rpc('panel_dar', { p_email: email, p_dias: d });
+    if (r.ok) { aviso(email + ' tiene Premium hasta ' + fechaCorta(r.vence_en) + '.', true); await cargar(false); if (datosCli) await cargarTab('clientes', true); if (cgGym) await cargarGym(); }
+    else aviso(r.error === 'usuario_no_encontrado' ? 'Esa persona aún no tiene cuenta.' : 'No se pudo: ' + r.error);
+  } catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+}
 $('btnQuitar').onclick = () => { const e = $('aEmail').value.trim(); if (!e.includes('@')) { aviso('Escribe el correo de la cuenta.'); return; } quitar(e); };
-$('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-quitar]'); if (b) quitar(b.dataset.quitar); });
+$('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-quitar]'); if (b) { quitar(b.dataset.quitar); return; } const d = ev.target.closest('[data-dar]'); if (d) darPremium(d.dataset.dar); });
 
 /* ============================================================
    RESUMEN · PRODUCTOS · CLIENTES · CUPONES
@@ -676,6 +685,7 @@ function pintarClientes() {
       <div class="campo"><label>Nota interna (solo tú la ves)</label><textarea class="c-nota" maxlength="1000">${esc(c.nota || '')}</textarea></div>
       <div class="campo" style="margin-top:8px"><label>Etiqueta (ej. VIP, mayorista)</label><input class="c-etq" maxlength="30" value="${esc(c.etiqueta || '')}"></div>
       <div class="acciones" style="margin-top:10px"><button data-cli-guardar>Guardar nota</button>${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}<button class="sec" data-cli-copiar>Copiar correo</button></div>
+      <div class="acciones" style="margin-top:8px"><button class="sec" data-cli-dar>Dar Premium</button>${c.premium_hasta ? '<button class="mal" data-cli-quitar>Quitar Premium</button>' : ''}</div>
     </details>`;
   }).join('') : '<div class="vacio">No hay clientes en esta vista.</div>';
 }
@@ -683,6 +693,8 @@ $('buscarCli').oninput = pintarClientes;
 $('filtrosCli').addEventListener('click', (e) => { const b = e.target.closest('[data-fc]'); if (b) { filtroCli = b.dataset.fc; pintarClientes(); } });
 $('listaClientes').addEventListener('click', async (e) => {
   const d = e.target.closest('details.cli'); if (!d) return; const email = d.dataset.email;
+  if (e.target.closest('[data-cli-dar]')) { await darPremium(email); return; }
+  if (e.target.closest('[data-cli-quitar]')) { await quitar(email); return; }
   if (e.target.closest('[data-cli-copiar]')) { await copiar(email); aviso('Correo copiado.', true); return; }
   if (e.target.closest('[data-cli-guardar]')) {
     const b = e.target.closest('button'); b.disabled = true;
@@ -850,7 +862,7 @@ const codsLote = {}, lotesAbiertos = new Set();
 const fmtCod = (c) => (c ? c.replace(/(.{4})(?=.)/g, '$1-') : null);
 function botonesCodigo(c, lote) {
   const q = c.acceso_quitado, a = `data-cod-id="${esc(c.id)}" data-cod-lote="${esc(lote)}"`;
-  return (c.codigo ? `<button class="sec mini" data-cod-act="copiar" data-cod="${esc(fmtCod(c.codigo))}">Copiar</button>` : '') + (c.codigo && c.estado === 'disponible' ? `<button class="sec mini" data-cod-act="imprimir" data-cod="${esc(fmtCod(c.codigo))}" ${a}>Imprimir</button>` : '') + (c.estado === 'disponible' ? `<button class="mal mini" data-cod-act="anular" ${a}>Anular</button>` : '') + (c.estado === 'revocado' ? `<button class="sec mini" data-cod-act="reactivar" ${a}>Reactivar</button>` : '') + (c.estado === 'canjeado' && !q ? `<button class="mal mini" data-cod-act="quitar" ${a}>Quitar Premium</button>` : '');
+  return (c.codigo ? `<button class="sec mini" data-cod-act="copiar" data-cod="${esc(fmtCod(c.codigo))}">Copiar</button>` : '') + (c.codigo && c.estado === 'disponible' ? `<button class="sec mini" data-cod-act="imprimir" data-cod="${esc(fmtCod(c.codigo))}" ${a}>Imprimir</button>` : '') + (c.estado === 'disponible' ? `<button class="mal mini" data-cod-act="anular" ${a}>Anular</button>` : '') + (c.estado === 'revocado' ? `<button class="sec mini" data-cod-act="reactivar" ${a}>Reactivar</button>` : '') + (c.estado === 'canjeado' && !q ? `<button class="mal mini" data-cod-act="quitar" ${a}>Quitar Premium</button>` : '') + (c.estado === 'canjeado' && q ? `<button class="sec mini" data-cod-act="devolver" ${a}>Devolver Premium</button>` : '') + (c.estado === 'canjeado' && c.email ? `<button class="sec mini" data-cod-act="dar" data-email="${esc(c.email)}" ${a}>Dar días</button>` : '');
 }
 function filaCodigo(c, lote, extra) {
   const q = c.acceso_quitado;
@@ -901,6 +913,8 @@ $('tGimnasios').addEventListener('click', async (e) => {
   let rpcN, args, msg;
   if (act === 'anular') { if (!confirm('¿Anular este código? Ya no se podrá canjear (puedes reactivarlo después).')) return; rpcN = 'panel_codigo_estado'; args = { p_id: id, p_estado: 'revocado' }; msg = 'Código anulado.'; }
   else if (act === 'reactivar') { rpcN = 'panel_codigo_estado'; args = { p_id: id, p_estado: 'disponible' }; msg = 'Código reactivado.'; }
+  else if (act === 'devolver') { rpcN = 'panel_codigo_restaurar_acceso'; args = { p_id: id }; msg = 'Premium devuelto.'; }
+  else if (act === 'dar') { await darPremium(b.dataset.email); return; }
   else if (act === 'quitar') { if (!confirm('¿Quitar el Premium a la persona que canjeó este código? Pierde el acceso de inmediato y el código no se puede volver a usar.')) return; rpcN = 'panel_codigo_quitar_acceso'; args = { p_id: id }; msg = 'Premium quitado.'; }
   else return;
   b.disabled = true;
