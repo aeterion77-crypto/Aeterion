@@ -6268,6 +6268,83 @@ const PRODUCTOS = {
 };
 
 /* ============================================================
+   CATÁLOGO EN VIVO (precio, disponibilidad) Y CUPÓN
+   Los precios reales los fija el servidor; aquí solo se muestran.
+============================================================ */
+let cuponAplicado = { codigo: '', descuento: 0 };
+let _catalogo = {};
+async function aetRpcPublico(nombre, args) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + nombre, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
+    body: JSON.stringify(args || {})
+  });
+  if (!r.ok) throw new Error('rpc ' + r.status);
+  return r.json();
+}
+function aetBtnProducto(btn, id) {
+  const p = PRODUCTOS[id], c = _catalogo[id] || {};
+  const mas = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> ';
+  if (c.activo === false) { btn.disabled = true; btn.textContent = 'No disponible'; return; }
+  if (c.disponible === false) { btn.disabled = true; btn.textContent = 'Agotado'; return; }
+  btn.disabled = false;
+  btn.innerHTML = mas + 'Agregar al carrito — $' + p.precio + (c.quedan ? ' · quedan ' + c.quedan : '');
+}
+function aetPintarCatalogo() {
+  Object.keys(PRODUCTOS).forEach(id => {
+    document.querySelectorAll(`.btn-agregar[onclick="agregarAlCarrito('${id}')"]`).forEach(b => aetBtnProducto(b, id));
+  });
+}
+async function aetCargarCatalogo() {
+  try {
+    const lista = await aetRpcPublico('catalogo_publico');
+    if (!Array.isArray(lista)) return;
+    lista.forEach(c => {
+      _catalogo[c.id] = c;
+      if (PRODUCTOS[c.id] && Number(c.precio) > 0) PRODUCTOS[c.id].precio = Number(c.precio);
+    });
+    // sacar del carrito lo que ya no se vende
+    Object.keys(carrito).forEach(id => { const c = _catalogo[id]; if (c && (c.activo === false || c.disponible === false)) delete carrito[id]; });
+    aetPintarCatalogo();
+    if (typeof actualizarCarritoUI === 'function') actualizarCarritoUI();
+  } catch (e) { /* sin conexión: se queda con los precios que trae la página; el servidor valida al pagar */ }
+}
+const AET_ERR_COMPRA = {
+  cupon_invalido: 'Ese cupón no existe o ya no está activo.',
+  cupon_vencido: 'Ese cupón ya venció.',
+  cupon_agotado: 'Ese cupón ya alcanzó su límite de usos.',
+  carrito_invalido: 'Revisa tu carrito e inténtalo de nuevo.'
+};
+function aetTextoErrorCompra(d) {
+  if (!d) return 'No pudimos validar tu compra.';
+  if (d.error === 'cupon_minimo') return 'Este cupón requiere una compra mínima de $' + Number(d.minimo || 0).toLocaleString('es-MX') + '.';
+  if (d.error === 'sin_stock') { const p = PRODUCTOS[d.id]; return 'No hay suficientes piezas de ' + (p ? p.nombre : 'ese producto') + (d.quedan != null ? ' (quedan ' + d.quedan + ')' : '') + '. Baja la cantidad e inténtalo de nuevo.'; }
+  if (d.error === 'producto_invalido') { const p = PRODUCTOS[d.id]; return (p ? p.nombre : 'Ese producto') + ' ya no está disponible.'; }
+  return AET_ERR_COMPRA[d.error] || 'No pudimos validar tu compra.';
+}
+function aetItemsCarrito() { return Object.values(carrito).map(({ producto: p, cantidad }) => ({ id: p.id, qty: cantidad })); }
+async function aetAplicarCupon(silencioso) {
+  const inp = document.getElementById('cupon-input'), msg = document.getElementById('cupon-msg');
+  const codigo = (silencioso ? cuponAplicado.codigo : (inp ? inp.value : '')).trim().toUpperCase();
+  if (!codigo) { cuponAplicado = { codigo: '', descuento: 0 }; if (msg) msg.textContent = ''; actualizarTotales(true); return; }
+  const items = aetItemsCarrito(); if (!items.length) return;
+  try {
+    const d = await aetRpcPublico('validar_carrito_publico', { p_items: items, p_codigo: codigo });
+    if (d && d.ok) {
+      cuponAplicado = { codigo: d.cupon || codigo, descuento: Number(d.descuento) || 0 };
+      if (msg) { msg.style.color = '#2ecc71'; msg.textContent = '✓ Cupón ' + cuponAplicado.codigo + ' aplicado: −$' + cuponAplicado.descuento.toLocaleString('es-MX'); }
+    } else {
+      cuponAplicado = { codigo: '', descuento: 0 };
+      if (msg) { msg.style.color = '#e74c3c'; msg.textContent = aetTextoErrorCompra(d); }
+    }
+  } catch (e) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No pudimos validar el cupón. Revisa tu conexión.'; } }
+  actualizarTotales(true);
+}
+function aetQuitarCupon() { cuponAplicado = { codigo: '', descuento: 0 }; const i = document.getElementById('cupon-input'), m = document.getElementById('cupon-msg'); if (i) i.value = ''; if (m) m.textContent = ''; actualizarTotales(true); }
+let _cupTimer = null;
+function aetRevalidarCupon() { if (!cuponAplicado.codigo) return; clearTimeout(_cupTimer); _cupTimer = setTimeout(() => aetAplicarCupon(true), 350); }
+document.addEventListener('DOMContentLoaded', () => { aetCargarCatalogo(); });
+
+/* ============================================================
    ZONAS DE ENVÍO — BASADAS EN CP
    CP Origen: 09839 (Iztapalapa, CDMX)
    Zona 1: CDMX y área metropolitana (Estado de México cercano)
@@ -6347,6 +6424,7 @@ let envioGratis = false;
 function agregarAlCarrito(id) {
   const prod = PRODUCTOS[id];
   if (!prod) return;
+  if (_catalogo[id] && (_catalogo[id].activo === false || _catalogo[id].disponible === false)) return;
 
   if (carrito[id]) {
     carrito[id].cantidad++;
@@ -6361,7 +6439,7 @@ function agregarAlCarrito(id) {
     btn.textContent = '✓ Agregado';
     setTimeout(() => {
       btn.classList.remove('listo');
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Agregar al carrito — $${prod.precio}`;
+      aetBtnProducto(btn, id);
     }, 1800);
   });
 
@@ -6432,12 +6510,17 @@ function actualizarCarritoUI() {
   actualizarTotales();
 }
 
-function actualizarTotales() {
+function actualizarTotales(sinRevalidar) {
   const subtotal = calcularSubtotal();
   const el = document.getElementById('t-subtotal');
   if (el) el.textContent = '$' + subtotal.toLocaleString('es-MX');
+  const dto = cuponAplicado.codigo ? Math.min(cuponAplicado.descuento, Math.max(0, subtotal - 10)) : 0;
+  const fDto = document.getElementById('t-dto-fila');
+  if (fDto) { fDto.style.display = dto > 0 ? 'flex' : 'none'; const v = document.getElementById('t-dto'); if (v) v.textContent = '−$' + dto.toLocaleString('es-MX'); }
+  const rq = document.getElementById('cupon-quitar'); if (rq) rq.style.display = cuponAplicado.codigo ? 'inline' : 'none';
   const elTotal = document.getElementById('t-total');
-  if (elTotal) elTotal.textContent = '$' + subtotal.toLocaleString('es-MX');
+  if (elTotal) elTotal.textContent = '$' + (subtotal - dto).toLocaleString('es-MX');
+  if (!sinRevalidar) aetRevalidarCupon();
   // Siempre habilitar el botón pagar
   const btn = document.getElementById('btn-pagar');
   if (btn) btn.disabled = false;
@@ -6484,6 +6567,7 @@ function abrirCheckout() {
     `<div class="co-fila"><span>${p.nombre} × ${cantidad}</span><span>$${(p.precio * cantidad).toLocaleString('es-MX')}</span></div>`
   ).join('');
   resumenHTML += `<div class="co-fila total"><span>Subtotal</span><span>$${subtotal.toLocaleString('es-MX')} MXN</span></div>`;
+  if (cuponAplicado.codigo && cuponAplicado.descuento > 0) resumenHTML += `<div class="co-fila" style="color:#2ecc71;"><span>Cupón ${cuponAplicado.codigo}</span><span>−$${cuponAplicado.descuento.toLocaleString('es-MX')} MXN</span></div>`;
   resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal, con la paquetería más económica (gratis desde $1,500)</span></div>`;
 
   document.getElementById('checkout-resumen').innerHTML = resumenHTML;
@@ -6508,7 +6592,7 @@ function estimarEnvio() {
       const d = await r.json();
       if (seq !== _estSeq) return;
       if (!d.mejor) { el.textContent = 'Calcularemos tu envío al pagar.'; return; }
-      const gratis = calcularSubtotal() >= 1500;
+      const gratis = (calcularSubtotal() - (cuponAplicado.codigo ? cuponAplicado.descuento : 0)) >= 1500;
       const dias = d.mejor.dias ? ' · ' + d.mejor.dias + (d.mejor.dias === 1 ? ' día' : ' días') + ' hábiles aprox.' : '';
       el.textContent = gratis ? 'Envío GRATIS con ' + d.mejor.paqueteria + dias : 'Envío: $' + d.mejor.precio + ' MXN con ' + d.mejor.paqueteria + dias;
     } catch (e) { if (seq === _estSeq) el.textContent = 'Calcularemos tu envío al pagar.'; }
@@ -6542,14 +6626,18 @@ async function procesarPago() {
     const r = await fetch(SUPABASE_URL + '/functions/v1/crear-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-      body: JSON.stringify({ items, cliente })
+      body: JSON.stringify({ items, cliente, cupon: cuponAplicado.codigo || undefined })
     });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok || !d.url) throw new Error(d.error || 'sin_url');
+    if (!r.ok || !d.url) { const er = new Error(d.error || 'sin_url'); er.datos = d; throw er; }
     location.href = d.url;
   } catch (e) {
     btn.disabled = false; btn.textContent = txt;
-    alert('No pudimos iniciar el pago. Revisa tu conexión e inténtalo de nuevo.');
+    if (e && e.datos && (AET_ERR_COMPRA[e.datos.error] || ['cupon_minimo', 'sin_stock', 'producto_invalido'].indexOf(e.datos.error) >= 0)) {
+      alert(aetTextoErrorCompra(e.datos));
+      if (/^cupon_/.test(e.datos.error)) aetQuitarCupon();
+      aetCargarCatalogo();
+    } else alert('No pudimos iniciar el pago. Revisa tu conexión e inténtalo de nuevo.');
   }
 }
 
@@ -8831,10 +8919,22 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
         <p style="font-size:11px; color:var(--gris); margin:0; line-height:1.5;">📦 El envío se calcula según tu código postal. Gratis en compras desde $1,500.</p>
       </div>
 
+    <!-- Cupón -->
+    <div style="padding:.2rem 0 .3rem;">
+      <div style="display:flex; gap:.5rem;">
+        <input type="text" id="cupon-input" placeholder="Código de cupón" maxlength="24" autocomplete="off" style="flex:1; min-width:0; background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.25); color:var(--blanco); padding:.55rem .7rem; border-radius:4px; font-family:var(--font-ui); font-size:13px; text-transform:uppercase;" onkeydown="if(event.key==='Enter'){event.preventDefault();aetAplicarCupon();}" />
+        <button type="button" onclick="aetAplicarCupon()" style="background:transparent; border:1px solid var(--oro); color:var(--oro); padding:.55rem .9rem; border-radius:4px; cursor:pointer; font-family:var(--font-ui); font-size:12px; letter-spacing:.08em; text-transform:uppercase;">Aplicar</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; min-height:1.2rem; margin-top:.35rem;">
+        <span id="cupon-msg" style="font-size:12px;"></span>
+        <a id="cupon-quitar" href="#" onclick="aetQuitarCupon();return false;" style="display:none; font-size:11px; color:var(--gris);">Quitar</a>
+      </div>
+    </div>
+
     <!-- Totales -->
     <div class="totales" id="totales-wrap">
       <div class="total-fila"><span>Subtotal</span><span id="t-subtotal">$0</span></div>
-      
+      <div class="total-fila" id="t-dto-fila" style="display:none; color:#2ecc71;"><span>Descuento</span><span id="t-dto">−$0</span></div>
       <div class="total-fila grande"><span>Total</span><span id="t-total">$0</span></div>
     </div>
 

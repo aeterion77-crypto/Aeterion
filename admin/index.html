@@ -88,6 +88,44 @@
   .vacio { text-align:center; color:var(--gris); padding:30px 10px; }
   details.menu { position:relative; } details.menu > summary { list-style:none; } details.menu > summary::-webkit-details-marker { display:none; }
   .menu-caja { position:absolute; right:0; top:48px; width:min(300px,86vw); background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:12px; z-index:40; box-shadow:0 12px 40px rgba(0,0,0,.6); display:grid; gap:8px; }
+
+  /* Pestañas con desplazamiento */
+  .tabs { overflow-x:auto; scrollbar-width:none; } .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:1 0 auto; padding:11px 16px; }
+
+  /* Resumen · métricas */
+  .kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:10px 0 14px; }
+  @media (min-width:700px) { .kpis { grid-template-columns:repeat(4,1fr); } }
+  .kpi { background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:12px 14px; }
+  .kpi small { display:block; color:var(--gris); font-size:12px; }
+  .kpi b { display:block; font-size:22px; line-height:1.2; margin:2px 0; }
+  .kpi i { font-style:normal; font-size:12px; font-weight:700; }
+  .sube { color:var(--verde); } .baja { color:var(--rojo); } .igual { color:var(--gris); }
+  .bloque { background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .bloque h3 { margin:0 0 10px; font-size:14px; letter-spacing:.04em; color:var(--gris); text-transform:uppercase; font-weight:700; }
+  .grafica { width:100%; height:150px; display:block; }
+  .grafica .barra { fill:var(--oro); } .grafica .barra:hover { fill:#e6c667; }
+  .grafica text { fill:var(--gris); font-size:10px; }
+  .hbar { margin:8px 0; } .hbar .t { display:flex; justify-content:space-between; gap:8px; font-size:13px; } .hbar .t span:last-child { color:var(--gris); white-space:nowrap; }
+  .hbar .p { height:8px; background:#0f0f13; border-radius:6px; overflow:hidden; margin-top:4px; } .hbar .p div { height:100%; background:var(--oro); border-radius:6px; }
+  .aviso-caja { padding:10px 12px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:12px; background:rgba(241,196,15,.1); color:var(--amar); border:1px solid rgba(241,196,15,.3); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { background:var(--card2); border:1px solid var(--linea); border-radius:20px; padding:4px 11px; font-size:12px; color:var(--gris); }
+  .chip b { color:var(--txt); }
+
+  /* Formularios del panel */
+  .rejilla { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media (min-width:700px) { .rejilla.c4 { grid-template-columns:repeat(4,1fr); } }
+  .campo label { display:block; font-size:12px; color:var(--gris); margin-bottom:4px; }
+  .campo.chk { display:flex; align-items:center; gap:8px; padding-top:20px; } .campo.chk input { width:auto; min-height:0; }
+  textarea { width:100%; background:#0f0f13; border:1px solid var(--linea); color:var(--txt); border-radius:10px; padding:11px 12px; font:inherit; min-height:70px; resize:vertical; }
+  textarea:focus { outline:none; border-color:var(--oro); }
+  .fila-item { border-bottom:1px solid var(--linea); padding:12px 0; } .fila-item:last-child { border-bottom:0; }
+  .fila-item .cab { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .fila-item .nom { font-weight:700; word-break:break-word; } .fila-item .monto { font-weight:800; color:var(--oro); white-space:nowrap; }
+  details.cli > summary { list-style:none; cursor:pointer; } details.cli > summary::-webkit-details-marker { display:none; }
+  details.cli[open] { background:rgba(255,255,255,.02); border-radius:10px; }
+  .tag.o { background:rgba(201,168,76,.16); color:var(--oro); } .tag.r { background:rgba(231,76,60,.14); color:#ff8a7d; } .tag.a { background:rgba(93,173,226,.16); color:var(--azul); }
 </style>
 </head>
 <body>
@@ -128,7 +166,7 @@
 
   <div id="panel" class="oculto">
     <div class="stats" id="stats"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="premium">Premium</button></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="premium">Premium</button></div>
 
     <section id="tPedidos">
       <div class="filtros" id="filtros"></div>
@@ -148,6 +186,37 @@
       </div>
       <input type="search" id="buscarAcc" placeholder="Buscar correo…" style="margin-bottom:12px">
       <div class="card" id="listaAccesos"></div>
+    </section>
+
+    <section id="tResumen" class="oculto"><div id="cuerpoResumen"><div class="vacio">Cargando…</div></div></section>
+
+    <section id="tProductos" class="oculto">
+      <div class="peq" style="margin-bottom:10px">Los cambios se ven en la tienda de inmediato y el cobro usa siempre el precio guardado aquí. Si dejas las existencias vacías, ese producto no controla inventario.</div>
+      <div id="cuerpoProductos"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tClientes" class="oculto">
+      <input type="search" id="buscarCli" placeholder="Buscar por nombre, correo o teléfono…" style="margin-bottom:10px">
+      <div class="filtros" id="filtrosCli"></div>
+      <div class="card" id="listaClientes"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tCupones" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b id="cupTitulo">Crear o editar un cupón</b>
+        <div class="rejilla c4" style="margin-top:10px">
+          <div class="campo"><label>Código</label><input id="cCodigo" maxlength="24" placeholder="BIENVENIDA10" style="text-transform:uppercase"></div>
+          <div class="campo"><label>Tipo</label><select id="cTipo"><option value="porcentaje">Porcentaje (%)</option><option value="monto">Monto fijo ($)</option></select></div>
+          <div class="campo"><label>Valor</label><input id="cValor" type="number" min="1" step="1" placeholder="10"></div>
+          <div class="campo"><label>Compra mínima ($)</label><input id="cMin" type="number" min="0" step="1" placeholder="0"></div>
+          <div class="campo"><label>Usos máximos</label><input id="cUsos" type="number" min="1" step="1" placeholder="sin límite"></div>
+          <div class="campo"><label>Vence (último día)</label><input id="cVence" type="date"></div>
+          <div class="campo chk"><input id="cActivo" type="checkbox" checked><label for="cActivo" style="margin:0">Activo</label></div>
+        </div>
+        <div class="fila" style="margin-top:12px"><button id="btnCupon">Guardar cupón</button><button class="sec" id="btnCuponNuevo">Limpiar</button></div>
+        <div class="peq" style="margin-top:8px">Porcentaje hasta 90 %, monto fijo hasta $5,000. Siempre se cobra al menos $10. El cupón se cuenta cuando el pago se confirma. Los cupones usados no se borran: se desactivan.</div>
+      </div>
+      <div class="card" id="listaCupones"><div class="vacio">Cargando…</div></div>
     </section>
   </div>
 </main>
@@ -284,7 +353,7 @@ function tarjeta(p) {
     <div class="prod">${esc(p.productos)}</div>
     <dl class="datos">
       <dt>Teléfono</dt><dd>${esc(p.tel)}</dd><dt>Correo</dt><dd>${esc(p.email)}</dd><dt>Entrega</dt><dd>${esc(p.direccion)}</dd>
-      <dt>Envío</dt><dd>$${esc(p.envio)} · ${esc(p.paqueteria)}</dd><dt>Pagado</dt><dd>${fechaCorta(p.creado_en)}${p.actualizado_en && p.estado !== 'pagado' ? ' · actualizado ' + fechaCorta(p.actualizado_en) : ''}</dd>
+      <dt>Envío</dt><dd>$${esc(p.envio)} · ${esc(p.paqueteria)}</dd>${p.cupon ? '<dt>Cupón</dt><dd>' + esc(p.cupon) + ' (−$' + esc(p.descuento) + ')</dd>' : ''}<dt>Pagado</dt><dd>${fechaCorta(p.creado_en)}${p.actualizado_en && p.estado !== 'pagado' ? ' · actualizado ' + fechaCorta(p.actualizado_en) : ''}</dd>
     </dl>
     <div class="acciones">
       ${puedeGuia ? '<button data-guia>⚡ Crear guía automática</button>' : ''}
@@ -326,7 +395,7 @@ function pintarAccesos() {
 /* ---------- Carga ---------- */
 async function cargar(silencioso) {
   try {
-    const [p, a] = await Promise.all([rpc('panel_pedidos_v4'), rpc('panel_listar')]);
+    const [p, a] = await Promise.all([rpc('panel_pedidos_v5'), rpc('panel_listar')]);
     const nuevos = pedidos.length && p.some((x) => !pedidos.find((y) => y.id === x.id));
     // No pisar lo que estás editando
     const editando = document.querySelector('.ped[data-dirty]') || (document.activeElement && document.activeElement.closest && document.activeElement.closest('.ped'));
@@ -335,6 +404,7 @@ async function cargar(silencioso) {
     $('quien').textContent = (sesion.user && sesion.user.email) || '';
     vista(true);
     if (nuevos && silencioso) aviso('Llegó un pedido nuevo', true);
+    if (tabActiva !== 'pedidos' && tabActiva !== 'premium') cargarTab(tabActiva, true);
   } catch (e) {
     if (e.status === 401 || e.status === 403 || /autorizado/.test(e.message)) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
     else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
@@ -361,10 +431,15 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-document.querySelectorAll('.tab').forEach((b) => b.onclick = () => {
-  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
-  $('tPedidos').classList.toggle('oculto', b.dataset.tab !== 'pedidos'); $('tPremium').classList.toggle('oculto', b.dataset.tab !== 'premium');
-});
+const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', premium: 'tPremium' };
+let tabActiva = 'pedidos';
+function abrirTab(t) {
+  tabActiva = t;
+  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.dataset.tab === t));
+  Object.keys(TABS).forEach((k) => $(TABS[k]).classList.toggle('oculto', k !== t));
+  cargarTab(t, false);
+}
+document.querySelectorAll('.tab').forEach((b) => b.onclick = () => abrirTab(b.dataset.tab));
 $('stats').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; pintarPedidos(); } });
 $('filtros').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; pintarPedidos(); } });
 $('buscar').oninput = pintarPedidos; $('buscarAcc').oninput = pintarAccesos;
@@ -420,6 +495,210 @@ async function quitar(email) {
 }
 $('btnQuitar').onclick = () => { const e = $('aEmail').value.trim(); if (!e.includes('@')) { aviso('Escribe el correo de la cuenta.'); return; } quitar(e); };
 $('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-quitar]'); if (b) quitar(b.dataset.quitar); });
+
+/* ============================================================
+   RESUMEN · PRODUCTOS · CLIENTES · CUPONES
+============================================================ */
+const money = (n) => '$' + Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
+const fechaDia = (s) => s ? new Date(s).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, filtroCli = 'todos';
+function falloTab(e, silencioso) {
+  if (e && (e.status === 401 || e.status === 403 || /autorizado/.test(e.message || ''))) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
+  else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
+}
+async function cargarTab(t, silencioso) {
+  try {
+    if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
+    else if (t === 'productos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#cuerpoProductos')) return; datosProd = await rpc('panel_productos'); pintarProductos(); }
+    else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
+    else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
+  } catch (e) { falloTab(e, silencioso); }
+}
+
+/* ---- Resumen ---- */
+function delta(a, b) {
+  a = Number(a || 0); b = Number(b || 0);
+  if (!b) return a ? '<i class="sube">nuevo</i>' : '<i class="igual">sin datos previos</i>';
+  const p = Math.round((a - b) / b * 100);
+  return `<i class="${p > 0 ? 'sube' : p < 0 ? 'baja' : 'igual'}">${p > 0 ? '▲' : p < 0 ? '▼' : '='} ${Math.abs(p)} % vs periodo anterior</i>`;
+}
+function grafica(serie) {
+  const W = 600, H = 150, pb = 18, pt = 8, n = serie.length || 1, max = Math.max(1, ...serie.map((d) => Number(d.ventas)));
+  const bw = W / n, cada = n > 60 ? 14 : n > 30 ? 7 : n > 14 ? 5 : 1;
+  const barras = serie.map((d, i) => {
+    const h = Math.round((H - pb - pt) * Number(d.ventas) / max), x = i * bw;
+    const f = new Date(d.dia + 'T12:00:00');
+    return `<g><rect class="barra" x="${(x + bw * .12).toFixed(1)}" y="${H - pb - h}" width="${(bw * .76).toFixed(1)}" height="${Math.max(h, Number(d.ventas) > 0 ? 2 : 0)}" rx="2"><title>${f.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}: ${money(d.ventas)} · ${d.pedidos} pedido(s)</title></rect>` +
+      (i % cada === 0 ? `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 4}" text-anchor="middle">${f.getDate()}/${f.getMonth() + 1}</text>` : '') + '</g>';
+  }).join('');
+  return `<svg class="grafica" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Ventas por día">${barras}</svg>`;
+}
+function pintarResumen() {
+  const r = datosRes; if (!r) return;
+  const a = r.actual || {}, pv = r.previo || {}, pr = r.premium || {}, cl = r.clientes || {};
+  const ticket = a.pedidos ? a.ventas / a.pedidos : 0;
+  const canc = a.total_creados ? Math.round(a.cancelados / a.total_creados * 100) : 0;
+  const maxProd = Math.max(1, ...(r.productos || []).map((p) => Number(p.importe)));
+  const est = r.estados || {}, ORD = ['pagado', 'preparando', 'enviado', 'entregado', 'cancelado'];
+  const pills = [7, 30, 90, 365].map((d) => `<button class="pill${diasRes === d ? ' on' : ''}" data-dias="${d}">${d === 365 ? '1 año' : d + ' días'}</button>`).join('');
+  $('cuerpoResumen').innerHTML = `
+    <div class="filtros">${pills}</div>
+    ${(r.stock_bajo || []).length ? `<div class="aviso-caja">⚠ Stock bajo: ${(r.stock_bajo).map((p) => esc(p.nombre) + ' (' + p.stock + ')').join(' · ')}</div>` : ''}
+    <div class="kpis">
+      <div class="kpi"><small>Ventas (con envío)</small><b>${money(a.ventas)}</b>${delta(a.ventas, pv.ventas)}</div>
+      <div class="kpi"><small>Pedidos</small><b>${a.pedidos || 0}</b>${delta(a.pedidos, pv.pedidos)}</div>
+      <div class="kpi"><small>Ticket promedio</small><b>${money(ticket)}</b><i class="igual">${a.pedidos ? 'por pedido' : '—'}</i></div>
+      <div class="kpi"><small>Cancelación</small><b>${canc} %</b><i class="igual">${a.cancelados || 0} de ${a.total_creados || 0} pedidos</i></div>
+      <div class="kpi"><small>Productos (sin envío)</small><b>${money(a.subtotal)}</b><i class="igual">envíos cobrados ${money(a.envios)}</i></div>
+      <div class="kpi"><small>Descuentos dados</small><b>${money(a.descuentos)}</b><i class="igual">${(r.cupones || []).reduce((s, c) => s + c.usos, 0)} uso(s) de cupón</i></div>
+      <div class="kpi"><small>Pago → envío (aprox.)</small><b>${a.horas_envio != null ? (a.horas_envio < 48 ? a.horas_envio + ' h' : Math.round(a.horas_envio / 24) + ' días') : '—'}</b><i class="igual">usa la última actualización del pedido</i></div>
+      <div class="kpi"><small>Clientes con compra</small><b>${cl.total || 0}</b><i class="igual">${cl.nuevos || 0} nuevos · ${cl.recurrentes || 0} recurrentes</i></div>
+    </div>
+    <div class="bloque"><h3>Ventas por día</h3>${grafica(r.serie || [])}</div>
+    <div class="bloque"><h3>Productos más vendidos</h3>${(r.productos || []).length ? r.productos.map((p) => `<div class="hbar"><div class="t"><span>${esc(p.producto)}</span><span>${p.unidades} u. · ${money(p.importe)}</span></div><div class="p"><div style="width:${Math.max(3, Math.round(Number(p.importe) / maxProd * 100))}%"></div></div></div>`).join('') : '<div class="peq">Sin ventas en este periodo.</div>'}</div>
+    <div class="bloque"><h3>Pedidos por estado (histórico)</h3><div class="chips">${ORD.map((k) => `<span class="chip">${NOMBRE_ESTADO[k] || k}: <b>${est[k] || 0}</b></span>`).join('')}</div></div>
+    <div class="bloque"><h3>Premium</h3><div class="chips"><span class="chip">Pagos en el periodo: <b>${pr.pagos || 0}</b></span><span class="chip">Ingresos: <b>${money(pr.ingresos)}</b></span><span class="chip">Vigentes ahora: <b>${pr.vigentes || 0}</b></span><span class="chip">Vencen en 7 días: <b>${pr.vencen_7d || 0}</b></span><span class="chip">Dados a mano: <b>${pr.manuales || 0}</b></span></div></div>
+    ${(r.cupones || []).length ? `<div class="bloque"><h3>Cupones usados en el periodo</h3>${r.cupones.map((c) => `<div class="hbar"><div class="t"><span>${esc(c.codigo)}</span><span>${c.usos} uso(s) · −${money(c.descuento)}</span></div></div>`).join('')}</div>` : ''}
+    <div class="peq">Ventas = total cobrado de pedidos no cancelados. El ingreso de Premium se calcula a $59 por pago.</div>`;
+}
+$('cuerpoResumen').addEventListener('click', (e) => { const b = e.target.closest('[data-dias]'); if (b) { diasRes = Number(b.dataset.dias); cargarTab('resumen', false); } });
+
+/* ---- Productos ---- */
+function pintarProductos() {
+  const L = datosProd || [];
+  $('cuerpoProductos').innerHTML = L.length ? L.map((p) => `
+    <div class="card" style="margin-bottom:12px" data-id="${esc(p.id)}">
+      <div class="fila" style="justify-content:space-between"><b>${esc(p.nombre)}</b><span class="peq">${esc(p.id)} · vendidos 30 días: ${p.vendidos_30d || 0}</span></div>
+      <div class="rejilla c4" style="margin-top:10px">
+        <div class="campo"><label>Precio (MXN)</label><input class="f-precio" type="number" min="1" step="1" value="${esc(p.precio)}"></div>
+        <div class="campo"><label>Existencias</label><input class="f-stock" type="number" min="0" step="1" placeholder="sin control" value="${p.stock == null ? '' : esc(p.stock)}"></div>
+        <div class="campo"><label>Avisar si quedan ≤</label><input class="f-min" type="number" min="0" step="1" value="${esc(p.stock_minimo)}"></div>
+        <div class="campo chk"><input class="f-activo" type="checkbox" id="pa_${esc(p.id)}" ${p.activo ? 'checked' : ''}><label for="pa_${esc(p.id)}" style="margin:0">A la venta</label></div>
+      </div>
+      <div class="fila" style="margin-top:12px"><button data-prod-guardar>Guardar</button>${p.stock != null && p.stock <= p.stock_minimo ? '<span class="tag r">Stock bajo</span>' : ''}${!p.activo ? '<span class="tag x">Oculto en la tienda</span>' : ''}</div>
+    </div>`).join('') : '<div class="vacio">Sin productos.</div>';
+}
+$('cuerpoProductos').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-prod-guardar]'); if (!b) return;
+  const card = b.closest('[data-id]'), id = card.dataset.id;
+  const precio = Number(card.querySelector('.f-precio').value), sv = card.querySelector('.f-stock').value.trim(), mn = Number(card.querySelector('.f-min').value);
+  if (!(precio >= 1) || precio !== Math.floor(precio)) { aviso('El precio debe ser un número entero mayor a 0.'); return; }
+  if (sv !== '' && (!(Number(sv) >= 0) || Number(sv) !== Math.floor(Number(sv)))) { aviso('Las existencias deben ser un entero (o déjalas vacías para no controlar).'); return; }
+  const prev = (datosProd || []).find((x) => x.id === id);
+  if (prev && Number(prev.precio) !== precio && !confirm('Cambiar el precio de ' + prev.nombre + ' de ' + money(prev.precio) + ' a ' + money(precio) + '. Se aplica ya en la tienda. ¿Continuar?')) return;
+  b.disabled = true;
+  try {
+    const r = await rpc('panel_producto_guardar', { p_id: id, p_precio: precio, p_stock: sv === '' ? null : Number(sv), p_stock_minimo: mn, p_activo: card.querySelector('.f-activo').checked });
+    if (r.ok) { aviso('Producto actualizado.', true); await cargarTab('productos', false); } else aviso('No se pudo guardar: ' + r.error);
+  } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  b.disabled = false;
+});
+
+/* ---- Clientes ---- */
+function etiquetaCli(c) {
+  const t = [];
+  if (c.premium_hasta) t.push('<span class="tag v">Premium</span>');
+  else if (c.tuvo_premium) t.push('<span class="tag x">Premium vencido</span>');
+  if (c.pedidos >= 2) t.push('<span class="tag o">Recurrente</span>');
+  if (c.etiqueta) t.push(`<span class="tag a">${esc(c.etiqueta)}</span>`);
+  return t.join('');
+}
+function pintarClientes() {
+  const L = datosCli || [], q = $('buscarCli').value.trim().toLowerCase();
+  const F = [['todos', 'Todos'], ['compra', 'Con compras'], ['recurrentes', 'Recurrentes'], ['premium', 'Premium'], ['sincompra', 'Sin compras']];
+  const pasa = (c) => filtroCli === 'todos' || (filtroCli === 'compra' && c.pedidos > 0) || (filtroCli === 'recurrentes' && c.pedidos >= 2) || (filtroCli === 'premium' && c.premium_hasta) || (filtroCli === 'sincompra' && c.pedidos === 0);
+  const cuenta = (k) => L.filter((c) => { const f = filtroCli; filtroCli = k; const r = pasa(c); filtroCli = f; return r; }).length;
+  $('filtrosCli').innerHTML = F.map(([k, t]) => `<button class="pill${filtroCli === k ? ' on' : ''}" data-fc="${k}">${t} (${cuenta(k)})</button>`).join('');
+  const V = L.filter(pasa).filter((c) => !q || [c.nombre, c.email, c.tel].join(' ').toLowerCase().includes(q)).slice(0, 300);
+  const gastoTotal = V.reduce((s, c) => s + Number(c.gastado), 0);
+  $('listaClientes').innerHTML = V.length ? `<div class="peq" style="margin-bottom:6px">${V.length} cliente(s) · ${money(gastoTotal)} comprado en total</div>` + V.map((c) => {
+    const wa = String(c.tel || '').replace(/\D/g, '').slice(-10);
+    return `<details class="cli fila-item" data-email="${esc(c.email)}"><summary><div class="cab"><div><div class="nom">${esc(c.nombre || c.email)}</div><div class="peq">${esc(c.nombre ? c.email : '')}</div><div style="margin-top:4px">${etiquetaCli(c)}</div></div><div style="text-align:right"><div class="monto">${money(c.gastado)}</div><div class="peq">${c.pedidos} pedido(s)</div></div></div></summary>
+      <dl class="datos" style="margin-top:10px">
+        <dt>Teléfono</dt><dd>${esc(c.tel || '—')}</dd><dt>Dirección</dt><dd>${esc(c.direccion || '—')}</dd>
+        <dt>Primer pedido</dt><dd>${fechaDia(c.primero)}</dd><dt>Último pedido</dt><dd>${fechaDia(c.ultimo)}</dd>
+        <dt>Cuenta creada</dt><dd>${c.tiene_cuenta ? fechaDia(c.registrado) : 'Sin cuenta en la app'}</dd><dt>Última visita</dt><dd>${fechaDia(c.ultimo_acceso)}</dd>
+        <dt>Premium</dt><dd>${c.premium_hasta ? 'vigente hasta ' + fechaDia(c.premium_hasta) : c.tuvo_premium ? 'vencido' : 'nunca'}</dd><dt>Cupones usados</dt><dd>${(c.cupones || []).map(esc).join(', ') || '—'}</dd>
+      </dl>
+      <div class="campo"><label>Nota interna (solo tú la ves)</label><textarea class="c-nota" maxlength="1000">${esc(c.nota || '')}</textarea></div>
+      <div class="campo" style="margin-top:8px"><label>Etiqueta (ej. VIP, mayorista)</label><input class="c-etq" maxlength="30" value="${esc(c.etiqueta || '')}"></div>
+      <div class="acciones" style="margin-top:10px"><button data-cli-guardar>Guardar nota</button>${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}<button class="sec" data-cli-copiar>Copiar correo</button></div>
+    </details>`;
+  }).join('') : '<div class="vacio">No hay clientes en esta vista.</div>';
+}
+$('buscarCli').oninput = pintarClientes;
+$('filtrosCli').addEventListener('click', (e) => { const b = e.target.closest('[data-fc]'); if (b) { filtroCli = b.dataset.fc; pintarClientes(); } });
+$('listaClientes').addEventListener('click', async (e) => {
+  const d = e.target.closest('details.cli'); if (!d) return; const email = d.dataset.email;
+  if (e.target.closest('[data-cli-copiar]')) { await copiar(email); aviso('Correo copiado.', true); return; }
+  if (e.target.closest('[data-cli-guardar]')) {
+    const b = e.target.closest('button'); b.disabled = true;
+    try {
+      const r = await rpc('panel_cliente_guardar', { p_email: email, p_nota: d.querySelector('.c-nota').value, p_etiqueta: d.querySelector('.c-etq').value });
+      if (r.ok) { const c = (datosCli || []).find((x) => x.email === email); if (c) { c.nota = d.querySelector('.c-nota').value.trim() || null; c.etiqueta = d.querySelector('.c-etq').value.trim() || null; } aviso('Nota guardada.', true); }
+      else aviso('No se pudo guardar: ' + r.error);
+    } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+    b.disabled = false;
+  }
+});
+
+/* ---- Cupones ---- */
+function estadoCupon(c) {
+  if (!c.activo) return '<span class="tag x">Desactivado</span>';
+  if (c.vence_en && new Date(c.vence_en) <= new Date()) return '<span class="tag r">Vencido</span>';
+  if (c.max_usos != null && c.usos >= c.max_usos) return '<span class="tag r">Agotado</span>';
+  return '<span class="tag v">Vigente</span>';
+}
+function pintarCupones() {
+  const L = datosCup || [];
+  $('listaCupones').innerHTML = L.length ? L.map((c) => `
+    <div class="fila-item" data-codigo="${esc(c.codigo)}">
+      <div class="cab"><div><div class="nom">${esc(c.codigo)} ${estadoCupon(c)}</div>
+        <div class="peq">${c.tipo === 'porcentaje' ? esc(c.valor) + ' % de descuento' : money(c.valor) + ' de descuento'}${Number(c.minimo_compra) > 0 ? ' · mínimo ' + money(c.minimo_compra) : ''} · usos ${c.usos}${c.max_usos != null ? ' / ' + c.max_usos : ''}${c.vence_en ? ' · vence ' + fechaDia(c.vence_en) : ''}</div></div>
+        <div style="text-align:right"><div class="monto">−${money(c.descuento_total)}</div><div class="peq">en ventas de ${money(c.ventas_con_cupon)}</div></div></div>
+      <div class="acciones" style="margin-top:8px"><button class="sec mini" data-cup-editar>Editar</button><button class="${c.activo ? 'mal' : 'sec'} mini" data-cup-toggle>${c.activo ? 'Desactivar' : 'Activar'}</button><button class="sec mini" data-cup-copiar>Copiar código</button></div>
+    </div>`).join('') : '<div class="vacio">Aún no hay cupones. Crea el primero arriba.</div>';
+}
+function limpiarCupon() { ['cCodigo', 'cValor', 'cMin', 'cUsos', 'cVence'].forEach((i) => $(i).value = ''); $('cTipo').value = 'porcentaje'; $('cActivo').checked = true; $('cCodigo').readOnly = false; $('cupTitulo').textContent = 'Crear o editar un cupón'; }
+$('btnCuponNuevo').onclick = limpiarCupon;
+function cuerpoCupon(over) {
+  const v = $('cVence').value;
+  return Object.assign({
+    p_codigo: $('cCodigo').value.trim().toUpperCase(), p_tipo: $('cTipo').value, p_valor: Number($('cValor').value),
+    p_minimo: $('cMin').value === '' ? 0 : Number($('cMin').value), p_max_usos: $('cUsos').value === '' ? null : Number($('cUsos').value),
+    p_vence: v ? new Date(v + 'T23:59:59-06:00').toISOString() : null, p_activo: $('cActivo').checked
+  }, over || {});
+}
+const ERR_CUPON = { codigo_invalido: 'El código debe tener de 4 a 24 letras, números, guion o guion bajo.', tipo_invalido: 'Tipo de cupón no válido.', valor_invalido: 'El valor no es válido (porcentaje hasta 90, monto hasta $5,000).', minimo_invalido: 'La compra mínima no es válida.', usos_invalidos: 'Los usos máximos deben ser 1 o más.' };
+$('btnCupon').onclick = async () => {
+  const b = cuerpoCupon();
+  if (!/^[A-Z0-9_-]{4,24}$/.test(b.p_codigo)) { aviso(ERR_CUPON.codigo_invalido); return; }
+  if (!(b.p_valor > 0)) { aviso('Escribe el valor del descuento.'); return; }
+  $('btnCupon').disabled = true;
+  try {
+    const r = await rpc('panel_cupon_guardar', b);
+    if (r.ok) { aviso('Cupón ' + r.codigo + ' guardado.', true); limpiarCupon(); await cargarTab('cupones', false); } else aviso(ERR_CUPON[r.error] || 'No se pudo guardar: ' + r.error);
+  } catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('btnCupon').disabled = false;
+};
+$('listaCupones').addEventListener('click', async (e) => {
+  const fila = e.target.closest('[data-codigo]'); if (!fila) return;
+  const c = (datosCup || []).find((x) => x.codigo === fila.dataset.codigo); if (!c) return;
+  if (e.target.closest('[data-cup-copiar]')) { await copiar(c.codigo); aviso('Código copiado.', true); return; }
+  if (e.target.closest('[data-cup-editar]')) {
+    $('cCodigo').value = c.codigo; $('cCodigo').readOnly = true; $('cTipo').value = c.tipo; $('cValor').value = c.valor; $('cMin').value = Number(c.minimo_compra) || '';
+    $('cUsos').value = c.max_usos == null ? '' : c.max_usos; $('cVence').value = c.vence_en ? new Date(new Date(c.vence_en).getTime() - 6 * 36e5).toISOString().slice(0, 10) : ''; $('cActivo').checked = c.activo;
+    $('cupTitulo').textContent = 'Editando ' + c.codigo; window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+  }
+  if (e.target.closest('[data-cup-toggle]')) {
+    const b = e.target.closest('button'); b.disabled = true;
+    try {
+      const r = await rpc('panel_cupon_guardar', { p_codigo: c.codigo, p_tipo: c.tipo, p_valor: Number(c.valor), p_minimo: Number(c.minimo_compra), p_max_usos: c.max_usos, p_vence: c.vence_en, p_activo: !c.activo });
+      if (r.ok) { aviso(c.activo ? 'Cupón desactivado.' : 'Cupón activado.', true); await cargarTab('cupones', false); } else aviso('No se pudo: ' + r.error);
+    } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+    b.disabled = false;
+  }
+});
 
 /* ---------- Instalación y avisos push ---------- */
 const b64 = (s) => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
