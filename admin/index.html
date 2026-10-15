@@ -230,9 +230,12 @@
         <div class="campo" style="margin-top:8px"><label>Nota (opcional)</label><input id="gNota" maxlength="300" placeholder="Ej. entrega del 15 de octubre"></div>
         <div class="peq" id="gTotal" style="margin-top:8px"></div>
         <div class="fila" style="margin-top:12px"><button id="btnLote">Generar códigos</button></div>
-        <div class="peq" style="margin-top:8px">Los códigos se muestran una sola vez al generarlos (en la base solo se guarda una huella cifrada). Descarga o copia la lista antes de salir.</div>
+        <div class="peq" style="margin-top:8px">Los códigos quedan guardados cifrados: puedes volver a verlos, copiarlos, anularlos o quitar el Premium a quien los canjeó desde «Ver códigos» en cada lote.</div>
       </div>
       <div class="card oculto" id="gResultado" style="margin-bottom:14px"></div>
+      <div class="card" style="margin-bottom:14px"><b>Buscar un código o a una persona</b>
+        <div class="fila" style="margin-top:10px;gap:8px"><input id="gBuscar" placeholder="Código (completo o parte) o correo" style="flex:1;min-width:0"><button id="gBuscarBtn" class="sec">Buscar</button></div>
+        <div id="gBuscarRes" style="margin-top:10px"></div></div>
       <div class="card" id="listaLotes"><div class="vacio">Cargando…</div></div>
     </section>
     <section id="tInventario" class="oculto">
@@ -740,6 +743,70 @@ function totalLote() {
   const p = ((datosGym || {}).productos || []).find((x) => x.id === $('gProd').value), n = Number($('gCant').value);
   $('gTotal').textContent = p && n > 0 ? n + ' códigos de ' + p.nombre : '';
 }
+const codsLote = {}, lotesAbiertos = new Set();
+const fmtCod = (c) => (c ? c.replace(/(.{4})(?=.)/g, '$1-') : null);
+function filaCodigo(c, lote, extra) {
+  const q = c.acceso_quitado;
+  const et = c.estado === 'canjeado' ? (q ? 'Canjeado · Premium quitado' : 'Canjeado') : c.estado === 'revocado' ? 'Anulado' : 'Disponible';
+  const cls = c.estado === 'disponible' ? 'tag o' : 'tag';
+  const det = c.estado === 'canjeado' ? esc(c.email || '(cuenta eliminada)') + (c.canjeado_en ? ' · ' + fechaDia(c.canjeado_en) : '') + (c.hasta && !q ? ' · Premium hasta ' + fechaDia(c.hasta) : '') : '';
+  const a = `data-cod-id="${esc(c.id)}" data-cod-lote="${esc(lote)}"`;
+  return `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="font-family:ui-monospace,monospace;overflow-wrap:anywhere">${c.codigo ? esc(fmtCod(c.codigo)) : '<i>no recuperable (lote anterior)</i>'} <span class="${cls}">${et}</span></div>
+    ${extra ? `<div class="peq">${extra}</div>` : ''}${det ? `<div class="peq" style="overflow-wrap:anywhere">${det}</div>` : ''}</div></div>
+    <div class="acciones" style="margin-top:6px">${c.codigo ? `<button class="sec mini" data-cod-act="copiar" data-cod="${esc(fmtCod(c.codigo))}">Copiar</button>` : ''}${c.estado === 'disponible' ? `<button class="mal mini" data-cod-act="anular" ${a}>Anular</button>` : ''}${c.estado === 'revocado' ? `<button class="sec mini" data-cod-act="reactivar" ${a}>Reactivar</button>` : ''}${c.estado === 'canjeado' && !q ? `<button class="mal mini" data-cod-act="quitar" ${a}>Quitar Premium</button>` : ''}</div></div>`;
+}
+function panelCodigos(l) {
+  const arr = codsLote[l.id];
+  if (!arr) return '<div class="peq">Cargando códigos…</div>';
+  const disp = arr.filter((c) => c.estado === 'disponible' && c.codigo).length;
+  return `<div class="acciones" style="margin-bottom:6px"><button class="sec mini" data-cod-act="copiar-disp" data-cod-lote="${esc(l.id)}">Copiar disponibles (${disp})</button><button class="sec mini" data-cod-act="csv" data-cod-lote="${esc(l.id)}">CSV con estado</button></div>` + (arr.length ? arr.map((c) => filaCodigo(c, l.id)).join('') : '<div class="vacio">Sin códigos.</div>');
+}
+async function cargarCodsLote(id) {
+  try { codsLote[id] = (await rpc('panel_lote_codigos', { p_lote: id })) || []; } catch (e) { codsLote[id] = []; aviso('No se pudieron cargar los códigos.'); }
+}
+async function buscarCods() {
+  const q = $('gBuscar').value.trim(), box = $('gBuscarRes');
+  if (q.length < 4) { box.innerHTML = '<div class="peq">Escribe al menos 4 caracteres.</div>'; return; }
+  box.innerHTML = '<div class="peq">Buscando…</div>';
+  try {
+    const r = (await rpc('panel_codigo_buscar', { p_q: q })) || [];
+    box.innerHTML = r.length ? r.map((c) => filaCodigo(c, c.lote_id, esc(c.gimnasio) + ' · ' + esc(c.producto))).join('') : '<div class="peq">Sin resultados.</div>';
+  } catch (e) { box.innerHTML = '<div class="peq">No se pudo buscar.</div>'; }
+}
+$('gBuscarBtn').onclick = buscarCods;
+$('gBuscar').addEventListener('keydown', (e) => { if (e.key === 'Enter') buscarCods(); });
+$('tGimnasios').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-cod-act]'); if (!b) return;
+  const act = b.dataset.codAct, id = Number(b.dataset.codId), lote = Number(b.dataset.codLote);
+  const L = (((datosGym || {}).lotes) || []).find((x) => Number(x.id) === lote) || {};
+  if (act === 'copiar') { await copiar(b.dataset.cod); aviso('Código copiado.', true); return; }
+  if (act === 'copiar-disp') {
+    const l = (codsLote[lote] || []).filter((c) => c.estado === 'disponible' && c.codigo).map((c) => fmtCod(c.codigo));
+    if (!l.length) { aviso('No hay códigos disponibles que copiar.'); return; }
+    await copiar(l.join('\n')); aviso(l.length + ' códigos copiados.', true); return;
+  }
+  if (act === 'csv') {
+    const E = { disponible: 'Disponible', canjeado: 'Canjeado', revocado: 'Anulado' };
+    descargarCsv('codigos-lote-' + lote + '.csv', [['Gimnasio', 'Código', 'Estado', 'Correo', 'Canjeado', 'Premium hasta']].concat((codsLote[lote] || []).map((c) => [L.gimnasio || '', fmtCod(c.codigo) || '', E[c.estado] + (c.acceso_quitado ? ' (Premium quitado)' : ''), c.email || '', c.canjeado_en ? fechaDia(c.canjeado_en) : '', c.hasta && !c.acceso_quitado ? fechaDia(c.hasta) : ''])));
+    return;
+  }
+  let rpcN, args, msg;
+  if (act === 'anular') { if (!confirm('¿Anular este código? Ya no se podrá canjear (puedes reactivarlo después).')) return; rpcN = 'panel_codigo_estado'; args = { p_id: id, p_estado: 'revocado' }; msg = 'Código anulado.'; }
+  else if (act === 'reactivar') { rpcN = 'panel_codigo_estado'; args = { p_id: id, p_estado: 'disponible' }; msg = 'Código reactivado.'; }
+  else if (act === 'quitar') { if (!confirm('¿Quitar el Premium a la persona que canjeó este código? Pierde el acceso de inmediato y el código no se puede volver a usar.')) return; rpcN = 'panel_codigo_quitar_acceso'; args = { p_id: id }; msg = 'Premium quitado.'; }
+  else return;
+  b.disabled = true;
+  try {
+    const r = await rpc(rpcN, args);
+    if (r.ok) {
+      aviso(msg, true);
+      if (lotesAbiertos.has(String(lote))) await cargarCodsLote(lote);
+      if ($('gBuscarRes').contains(b)) await buscarCods();
+      await cargarTab('gimnasios', false);
+    } else aviso('No se pudo completar la acción.');
+  } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  b.disabled = false;
+});
 function pintarGimnasios() {
   const D = datosGym || { productos: [], lotes: [] };
   const sel = $('gProd'), act = sel.value;
@@ -754,7 +821,8 @@ function pintarGimnasios() {
         <div class="peq">${esc(l.producto_nombre)} · ${l.dias} días por código · ${fechaDia(l.creado_en)}${l.notas ? ' · ' + esc(l.notas) : ''}</div></div>
         <div style="text-align:right"><div class="monto">${l.disponibles}</div><div class="peq">de ${l.total} disponibles</div></div></div>
       <div class="peq" style="margin-top:4px">${l.canjeados} canjeado(s)${Number(l.revocados) ? ' · ' + l.revocados + ' anulado(s)' : ''}</div>
-      <div class="acciones" style="margin-top:8px"><button class="sec mini" data-lote-asignar>${l.gimnasio === 'Sin asignar' ? 'Asignar a un gimnasio' : 'Cambiar gimnasio'}</button>${Number(l.disponibles) ? '<button class="mal mini" data-lote-anular>Anular disponibles</button>' : ''}</div>
+      <div class="acciones" style="margin-top:8px"><button class="sec mini" data-lote-ver>${lotesAbiertos.has(String(l.id)) ? 'Ocultar códigos' : 'Ver códigos'}</button><button class="sec mini" data-lote-asignar>${l.gimnasio === 'Sin asignar' ? 'Asignar a un gimnasio' : 'Cambiar gimnasio'}</button>${Number(l.disponibles) ? '<button class="mal mini" data-lote-anular>Anular disponibles</button>' : ''}</div>
+      <div class="cods-lote" style="margin-top:8px">${lotesAbiertos.has(String(l.id)) ? panelCodigos(l) : ''}</div>
     </div>`).join('') : '<div class="vacio">Aún no hay lotes. Crea el primero arriba.</div>');
 }
 $('gProd').onchange = totalLote; $('gCant').oninput = totalLote;
@@ -790,6 +858,13 @@ $('listaLotes').addEventListener('click', async (e) => {
   const f = e.target.closest('[data-lote]'); if (!f) return;
   const l = ((datosGym || {}).lotes || []).find((x) => String(x.id) === f.dataset.lote); if (!l) return;
   const b = e.target.closest('button'); if (!b) return;
+  if (b.hasAttribute('data-lote-ver')) {
+    const k = String(l.id);
+    if (lotesAbiertos.has(k)) lotesAbiertos.delete(k); else { lotesAbiertos.add(k); delete codsLote[l.id]; }
+    pintarGimnasios();
+    if (lotesAbiertos.has(k)) { await cargarCodsLote(l.id); pintarGimnasios(); }
+    return;
+  }
   if (b.hasAttribute('data-lote-asignar')) {
     const g = (prompt('¿A qué gimnasio se asignan estos ' + l.disponibles + ' códigos disponibles?', l.gimnasio === 'Sin asignar' ? '' : l.gimnasio) || '').trim();
     if (g.length < 2) return;
