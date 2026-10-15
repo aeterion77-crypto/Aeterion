@@ -233,6 +233,22 @@
         <div class="peq" style="margin-top:8px">Los códigos quedan guardados cifrados: puedes volver a verlos, copiarlos, anularlos o quitar el Premium a quien los canjeó desde «Ver códigos» en cada lote.</div>
       </div>
       <div class="card oculto" id="gResultado" style="margin-bottom:14px"></div>
+      <div class="card" style="margin-bottom:14px"><b>Códigos por gimnasio</b>
+        <div class="peq" style="margin:4px 0 10px">Elige un gimnasio, marca cuáles (o cuántos) y cópialos, imprímelos o anúlalos.</div>
+        <div class="rejilla c4">
+          <div class="campo"><label>Gimnasio</label><select id="cgGym"></select></div>
+          <div class="campo"><label>Producto</label><select id="cgProd"><option value="">Todos</option></select></div>
+          <div class="campo"><label>Mostrar</label><select id="cgEst"><option value="disponible">Disponibles</option><option value="">Todos</option><option value="canjeado">Canjeados</option><option value="revocado">Anulados</option></select></div>
+        </div>
+        <div id="cgBarra" class="oculto" style="margin-top:12px">
+          <div class="fila" style="gap:8px;align-items:flex-end;flex-wrap:wrap">
+            <div class="campo" style="width:110px"><label>Elegir cuántos</label><input id="cgN" type="number" min="1" step="1" placeholder="10"></div>
+            <button class="sec mini" id="cgElegirN">Elegir</button><button class="sec mini" id="cgTodos">Todos los visibles</button><button class="sec mini" id="cgNinguno">Ninguno</button>
+          </div>
+          <div class="peq" id="cgCuenta" style="margin:8px 0"></div>
+          <div class="acciones"><button class="mini" id="cgImprimir">Imprimir elegidos</button><button class="sec mini" id="cgCopiar">Copiar elegidos</button><button class="sec mini" id="cgCsv">CSV</button><button class="mal mini" id="cgAnular">Anular elegidos</button></div>
+        </div>
+        <div id="cgLista" style="margin-top:10px"></div></div>
       <div class="card" style="margin-bottom:14px"><b>Buscar un código o a una persona</b>
         <div class="fila" style="margin-top:10px;gap:8px"><input id="gBuscar" placeholder="Código (completo o parte) o correo" style="flex:1;min-width:0"><button id="gBuscarBtn" class="sec">Buscar</button></div>
         <div id="gBuscarRes" style="margin-top:10px"></div></div>
@@ -548,7 +564,7 @@ async function cargarTab(t, silencioso) {
     else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
     else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
     else if (t === 'inventario') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tInventario')) return; datosInv = await rpc('panel_inventario'); pintarInventario(); }
-    else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; datosGym = await rpc('panel_lotes'); pintarGimnasios(); }
+    else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; datosGym = await rpc('panel_lotes'); pintarGimnasios(); if (cgGym) cargarGym(); }
   } catch (e) { falloTab(e, silencioso); }
 }
 
@@ -743,8 +759,99 @@ function totalLote() {
   const p = ((datosGym || {}).productos || []).find((x) => x.id === $('gProd').value), n = Number($('gCant').value);
   $('gTotal').textContent = p && n > 0 ? n + ' códigos de ' + p.nombre : '';
 }
+let cgGym = '', cgData = [], cgSel = new Set();
+function imprimirCodigos(items) {
+  const hoy = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  const tarj = items.map((x) => `<div class="t"><div class="m">AETERION · ACCESO PREMIUM</div><div class="c">${esc(x.codigo)}</div><div class="d">${esc(x.gimnasio)}${x.producto ? ' · ' + esc(x.producto) : ''}</div><div class="d"><b>${esc(x.dias)} días</b> de Premium desde que lo canjees</div><div class="i">Canjéalo en la app: aeterionlabs.tech → Cuenta → «Tengo un código». Un solo uso.</div></div>`).join('');
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Códigos Aeterion</title><style>
+  @page{size:A4;margin:10mm} *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#111}
+  .g{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .t{border:1px dashed #888;padding:7mm 6mm;height:52mm;break-inside:avoid;page-break-inside:avoid;overflow:hidden}
+  .m{font-size:9pt;letter-spacing:.14em;color:#555;margin-bottom:3mm}
+  .c{font-family:'Courier New',monospace;font-size:20pt;font-weight:700;letter-spacing:.06em;margin-bottom:3mm}
+  .d{font-size:10pt;margin-bottom:1.5mm} .i{font-size:8pt;color:#444;margin-top:3mm}
+  .pie{font-size:8pt;color:#777;margin:0 0 4mm}
+  </style></head><body><p class="pie">${items.length} código(s) · impreso el ${hoy}. Recorta por las líneas punteadas.</p><div class="g">${tarj}</div></body></html>`;
+  window._htmlImpresion = html;
+  const f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(f);
+  f.contentDocument.open(); f.contentDocument.write(html); f.contentDocument.close();
+  setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { aviso('No se pudo abrir la impresión.'); } setTimeout(() => f.remove(), 60000); }, 300);
+}
+function cgVisibles() {
+  const pr = $('cgProd').value, es = $('cgEst').value;
+  return cgData.filter((c) => (!pr || c.producto === pr) && (!es || c.estado === es));
+}
+function cgCuenta() {
+  const v = cgVisibles(), n = v.filter((c) => cgSel.has(c.id)).length;
+  $('cgCuenta').textContent = n + ' elegido(s) · ' + v.length + ' visibles · ' + cgData.filter((c) => c.estado === 'disponible').length + ' disponibles en total';
+}
+function cgPintar() {
+  const g = cgGym, sel = $('cgGym'), D = datosGym || { lotes: [] };
+  const gyms = [...new Set(D.lotes.map((l) => l.gimnasio))].sort();
+  sel.innerHTML = '<option value="">Elige un gimnasio…</option>' + gyms.map((x) => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+  sel.value = gyms.includes(g) ? g : ''; if (!sel.value) { cgGym = ''; cgData = []; cgSel.clear(); }
+  const pa = $('cgProd').value, ps = {}; D.lotes.filter((l) => l.gimnasio === cgGym).forEach((l) => { ps[l.producto] = l.producto_nombre; });
+  $('cgProd').innerHTML = '<option value="">Todos</option>' + Object.keys(ps).map((k) => `<option value="${esc(k)}">${esc(ps[k])}</option>`).join(''); $('cgProd').value = ps[pa] ? pa : '';
+  $('cgBarra').classList.toggle('oculto', !cgGym);
+  if (!cgGym) { $('cgLista').innerHTML = ''; return; }
+  const v = cgVisibles();
+  $('cgLista').innerHTML = v.length ? v.map((c) => {
+    const et = c.estado === 'canjeado' ? (c.acceso_quitado ? 'Canjeado · Premium quitado' : 'Canjeado') : c.estado === 'revocado' ? 'Anulado' : 'Disponible';
+    const det = c.estado === 'canjeado' ? ' · ' + esc(c.email || '(cuenta eliminada)') + (c.hasta && !c.acceso_quitado ? ' · hasta ' + fechaDia(c.hasta) : '') : '';
+    return `<div class="fila-item" style="padding:8px 0"><label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" data-cg-sel="${esc(c.id)}" ${cgSel.has(c.id) ? 'checked' : ''} style="margin-top:4px;width:20px;height:20px;flex:none"><div style="min-width:0"><div class="nom" style="font-family:ui-monospace,monospace;overflow-wrap:anywhere">${c.codigo ? esc(fmtCod(c.codigo)) : '<i>no recuperable</i>'} <span class="${c.estado === 'disponible' ? 'tag o' : 'tag'}">${et}</span></div><div class="peq" style="overflow-wrap:anywhere">${esc(c.producto_nombre)} · lote ${esc(c.lote)}${det}</div></div></label><div class="acciones" style="margin-top:6px">${botonesCodigo(c, c.lote)}</div></div>`;
+  }).join('') : '<div class="vacio">No hay códigos con ese filtro.</div>';
+  cgCuenta();
+}
+async function cargarGym() {
+  cgGym = $('cgGym').value || cgGym;
+  const g = cgGym; if (!g) { cgPintar(); return; }
+  const ls = ((datosGym || {}).lotes || []).filter((l) => l.gimnasio === g);
+  try {
+    const res = await Promise.all(ls.map((l) => rpc('panel_lote_codigos', { p_lote: l.id })));
+    cgData = []; res.forEach((arr, i) => (arr || []).forEach((c) => cgData.push(Object.assign({}, c, { lote: ls[i].id, gimnasio: g, producto: ls[i].producto, producto_nombre: ls[i].producto_nombre, dias: ls[i].dias }))));
+  } catch (e) { cgData = []; aviso('No se pudieron cargar los códigos del gimnasio.'); }
+  cgSel = new Set([...cgSel].filter((id) => cgData.some((c) => c.id === id)));
+  cgPintar();
+}
+const cgElegidos = () => cgVisibles().filter((c) => cgSel.has(c.id));
+$('cgGym').onchange = () => { cgGym = $('cgGym').value; cgSel.clear(); $('cgProd').value = ''; if (cgGym) { $('cgLista').innerHTML = '<div class="peq">Cargando…</div>'; cargarGym(); } else cgPintar(); };
+$('cgProd').onchange = $('cgEst').onchange = () => { cgPintar(); };
+$('cgLista').addEventListener('change', (e) => { const k = e.target.getAttribute && e.target.getAttribute('data-cg-sel'); if (k == null) return; const id = Number(k); if (e.target.checked) cgSel.add(id); else cgSel.delete(id); cgCuenta(); });
+$('cgElegirN').onclick = () => {
+  const n = Number($('cgN').value); if (!(n >= 1) || n !== Math.floor(n)) { aviso('Escribe cuántos quieres elegir (número entero).'); return; }
+  const v = cgVisibles().filter((c) => c.estado === 'disponible' && c.codigo); cgSel.clear(); v.slice(0, n).forEach((c) => cgSel.add(c.id));
+  if (v.length < n) aviso('Solo hay ' + v.length + ' disponibles con ese filtro; se eligieron todos.'); cgPintar();
+};
+$('cgTodos').onclick = () => { cgVisibles().forEach((c) => cgSel.add(c.id)); cgPintar(); };
+$('cgNinguno').onclick = () => { cgSel.clear(); cgPintar(); };
+$('cgCopiar').onclick = async () => { const l = cgElegidos().filter((c) => c.codigo).map((c) => fmtCod(c.codigo)); if (!l.length) { aviso('No has elegido códigos.'); return; } await copiar(l.join('\n')); aviso(l.length + ' códigos copiados.', true); };
+$('cgImprimir').onclick = () => {
+  const e = cgElegidos(), ok = e.filter((c) => c.estado === 'disponible' && c.codigo);
+  if (!ok.length) { aviso('Elige al menos un código disponible para imprimir.'); return; }
+  if (ok.length < e.length) aviso('Se imprimen solo los disponibles (' + ok.length + ' de ' + e.length + ').', true);
+  imprimirCodigos(ok.map((c) => ({ codigo: fmtCod(c.codigo), gimnasio: c.gimnasio, producto: c.producto_nombre, dias: c.dias })));
+};
+$('cgCsv').onclick = () => {
+  const e = cgElegidos(); if (!e.length) { aviso('No has elegido códigos.'); return; }
+  const E = { disponible: 'Disponible', canjeado: 'Canjeado', revocado: 'Anulado' };
+  descargarCsv('codigos-' + cgGym.replace(/[^A-Za-z0-9]+/g, '_') + '.csv', [['Gimnasio', 'Producto', 'Código', 'Estado', 'Correo', 'Días']].concat(e.map((c) => [c.gimnasio, c.producto_nombre, fmtCod(c.codigo) || '', E[c.estado] + (c.acceso_quitado ? ' (Premium quitado)' : ''), c.email || '', c.dias])));
+};
+$('cgAnular').onclick = async () => {
+  const ok = cgElegidos().filter((c) => c.estado === 'disponible'); if (!ok.length) { aviso('Elige códigos disponibles para anular.'); return; }
+  if (!confirm('¿Anular ' + ok.length + ' código(s) de ' + cgGym + '? Ya no se podrán canjear (puedes reactivarlos uno por uno).')) return;
+  $('cgAnular').disabled = true; let n = 0;
+  try { for (const c of ok) { const r = await rpc('panel_codigo_estado', { p_id: c.id, p_estado: 'revocado' }); if (r.ok) n++; } aviso(n + ' código(s) anulado(s).', true); cgSel.clear(); }
+  catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('cgAnular').disabled = false; await cargarGym(); await cargarTab('gimnasios', false);
+};
 const codsLote = {}, lotesAbiertos = new Set();
 const fmtCod = (c) => (c ? c.replace(/(.{4})(?=.)/g, '$1-') : null);
+function botonesCodigo(c, lote) {
+  const q = c.acceso_quitado, a = `data-cod-id="${esc(c.id)}" data-cod-lote="${esc(lote)}"`;
+  return (c.codigo ? `<button class="sec mini" data-cod-act="copiar" data-cod="${esc(fmtCod(c.codigo))}">Copiar</button>` : '') + (c.codigo && c.estado === 'disponible' ? `<button class="sec mini" data-cod-act="imprimir" data-cod="${esc(fmtCod(c.codigo))}" ${a}>Imprimir</button>` : '') + (c.estado === 'disponible' ? `<button class="mal mini" data-cod-act="anular" ${a}>Anular</button>` : '') + (c.estado === 'revocado' ? `<button class="sec mini" data-cod-act="reactivar" ${a}>Reactivar</button>` : '') + (c.estado === 'canjeado' && !q ? `<button class="mal mini" data-cod-act="quitar" ${a}>Quitar Premium</button>` : '');
+}
 function filaCodigo(c, lote, extra) {
   const q = c.acceso_quitado;
   const et = c.estado === 'canjeado' ? (q ? 'Canjeado · Premium quitado' : 'Canjeado') : c.estado === 'revocado' ? 'Anulado' : 'Disponible';
@@ -753,7 +860,7 @@ function filaCodigo(c, lote, extra) {
   const a = `data-cod-id="${esc(c.id)}" data-cod-lote="${esc(lote)}"`;
   return `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="font-family:ui-monospace,monospace;overflow-wrap:anywhere">${c.codigo ? esc(fmtCod(c.codigo)) : '<i>no recuperable (lote anterior)</i>'} <span class="${cls}">${et}</span></div>
     ${extra ? `<div class="peq">${extra}</div>` : ''}${det ? `<div class="peq" style="overflow-wrap:anywhere">${det}</div>` : ''}</div></div>
-    <div class="acciones" style="margin-top:6px">${c.codigo ? `<button class="sec mini" data-cod-act="copiar" data-cod="${esc(fmtCod(c.codigo))}">Copiar</button>` : ''}${c.estado === 'disponible' ? `<button class="mal mini" data-cod-act="anular" ${a}>Anular</button>` : ''}${c.estado === 'revocado' ? `<button class="sec mini" data-cod-act="reactivar" ${a}>Reactivar</button>` : ''}${c.estado === 'canjeado' && !q ? `<button class="mal mini" data-cod-act="quitar" ${a}>Quitar Premium</button>` : ''}</div></div>`;
+    <div class="acciones" style="margin-top:6px">${botonesCodigo(c, lote)}</div></div>`;
 }
 function panelCodigos(l) {
   const arr = codsLote[l.id];
@@ -780,6 +887,7 @@ $('tGimnasios').addEventListener('click', async (e) => {
   const act = b.dataset.codAct, id = Number(b.dataset.codId), lote = Number(b.dataset.codLote);
   const L = (((datosGym || {}).lotes) || []).find((x) => Number(x.id) === lote) || {};
   if (act === 'copiar') { await copiar(b.dataset.cod); aviso('Código copiado.', true); return; }
+  if (act === 'imprimir') { imprimirCodigos([{ codigo: b.dataset.cod, gimnasio: L.gimnasio || '', producto: L.producto_nombre || '', dias: L.dias || 30 }]); return; }
   if (act === 'copiar-disp') {
     const l = (codsLote[lote] || []).filter((c) => c.estado === 'disponible' && c.codigo).map((c) => fmtCod(c.codigo));
     if (!l.length) { aviso('No hay códigos disponibles que copiar.'); return; }
@@ -802,6 +910,7 @@ $('tGimnasios').addEventListener('click', async (e) => {
       aviso(msg, true);
       if (lotesAbiertos.has(String(lote))) await cargarCodsLote(lote);
       if ($('gBuscarRes').contains(b)) await buscarCods();
+      if (cgGym) await cargarGym();
       await cargarTab('gimnasios', false);
     } else aviso('No se pudo completar la acción.');
   } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
@@ -821,9 +930,10 @@ function pintarGimnasios() {
         <div class="peq">${esc(l.producto_nombre)} · ${l.dias} días por código · ${fechaDia(l.creado_en)}${l.notas ? ' · ' + esc(l.notas) : ''}</div></div>
         <div style="text-align:right"><div class="monto">${l.disponibles}</div><div class="peq">de ${l.total} disponibles</div></div></div>
       <div class="peq" style="margin-top:4px">${l.canjeados} canjeado(s)${Number(l.revocados) ? ' · ' + l.revocados + ' anulado(s)' : ''}</div>
-      <div class="acciones" style="margin-top:8px"><button class="sec mini" data-lote-ver>${lotesAbiertos.has(String(l.id)) ? 'Ocultar códigos' : 'Ver códigos'}</button><button class="sec mini" data-lote-asignar>${l.gimnasio === 'Sin asignar' ? 'Asignar a un gimnasio' : 'Cambiar gimnasio'}</button>${Number(l.disponibles) ? '<button class="mal mini" data-lote-anular>Anular disponibles</button>' : ''}</div>
+      <div class="acciones" style="margin-top:8px"><button class="sec mini" data-lote-ver>${lotesAbiertos.has(String(l.id)) ? 'Ocultar códigos' : 'Ver códigos'}</button><button class="sec mini" data-lote-imprimir>Imprimir lote</button><button class="sec mini" data-lote-asignar>${l.gimnasio === 'Sin asignar' ? 'Asignar a un gimnasio' : 'Cambiar gimnasio'}</button>${Number(l.disponibles) ? '<button class="mal mini" data-lote-anular>Anular disponibles</button>' : ''}</div>
       <div class="cods-lote" style="margin-top:8px">${lotesAbiertos.has(String(l.id)) ? panelCodigos(l) : ''}</div>
     </div>`).join('') : '<div class="vacio">Aún no hay lotes. Crea el primero arriba.</div>');
+  cgPintar();
 }
 $('gProd').onchange = totalLote; $('gCant').oninput = totalLote;
 function descargarCsv(nombre, filas) {
@@ -864,6 +974,14 @@ $('listaLotes').addEventListener('click', async (e) => {
     pintarGimnasios();
     if (lotesAbiertos.has(k)) { await cargarCodsLote(l.id); pintarGimnasios(); }
     return;
+  }
+  if (b.hasAttribute('data-lote-imprimir')) {
+    b.disabled = true;
+    if (!codsLote[l.id]) await cargarCodsLote(l.id);
+    b.disabled = false;
+    const it = (codsLote[l.id] || []).filter((c) => c.estado === 'disponible' && c.codigo).map((c) => ({ codigo: fmtCod(c.codigo), gimnasio: l.gimnasio, producto: l.producto_nombre, dias: l.dias }));
+    if (!it.length) { aviso('Este lote no tiene códigos disponibles para imprimir.'); return; }
+    imprimirCodigos(it); return;
   }
   if (b.hasAttribute('data-lote-asignar')) {
     const g = (prompt('¿A qué gimnasio se asignan estos ' + l.disponibles + ' códigos disponibles?', l.gimnasio === 'Sin asignar' ? '' : l.gimnasio) || '').trim();
