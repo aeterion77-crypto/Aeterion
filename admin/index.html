@@ -166,7 +166,7 @@
 
   <div id="panel" class="oculto">
     <div class="stats" id="stats"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button></div>
 
     <section id="tPedidos">
       <div class="filtros" id="filtros"></div>
@@ -186,6 +186,19 @@
       </div>
       <input type="search" id="buscarAcc" placeholder="Buscar correo…" style="margin-bottom:12px">
       <div class="card" id="listaAccesos"></div>
+    </section>
+
+    <section id="tFrases" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b>Frase de la semana</b>
+        <div class="peq" style="margin:4px 0 0">Cada lunes cambia la frase en la app, y es la misma para todos. Al terminar la lista vuelve a empezar. Los cambios se ven en la app de inmediato (a más tardar la próxima vez que se abra). Una frase puede tener un título en la primera línea y el texto debajo.</div>
+        <div id="frEsta" class="peq" style="margin-top:8px"></div>
+      </div>
+      <div id="listaFrases"><div class="vacio">Cargando…</div></div>
+      <div class="card" style="margin-top:14px"><b>Agregar una frase al final</b>
+        <div class="campo" style="margin-top:8px"><textarea id="frNueva" maxlength="800" rows="3" placeholder="Escribe la nueva frase…"></textarea></div>
+        <div class="acciones" style="margin-top:8px"><button id="frAgregar">Agregar</button></div>
+        <div class="peq" style="margin-top:6px">Al agregar una, la lista se alarga una semana más antes de repetirse.</div></div>
     </section>
 
     <section id="tResumen" class="oculto"><div id="cuerpoResumen"><div class="vacio">Cargando…</div></div></section>
@@ -482,7 +495,7 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium' };
+const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases' };
 let tabActiva = 'pedidos';
 function abrirTab(t) {
   tabActiva = t;
@@ -561,7 +574,7 @@ $('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closes
 ============================================================ */
 const money = (n) => '$' + Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
 const fechaDia = (s) => s ? new Date(s).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, datosGym = null, datosInv = null, filtroCli = 'todos';
+let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, datosGym = null, datosInv = null, datosFr = null, filtroCli = 'todos';
 function falloTab(e, silencioso) {
   if (e && (e.status === 401 || e.status === 403 || /autorizado/.test(e.message || ''))) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
   else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
@@ -573,9 +586,57 @@ async function cargarTab(t, silencioso) {
     else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
     else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
     else if (t === 'inventario') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tInventario')) return; datosInv = await rpc('panel_inventario'); pintarInventario(); }
+    else if (t === 'frases') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tFrases')) return; datosFr = await rpc('panel_frases'); pintarFrases(); }
     else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; datosGym = await rpc('panel_lotes'); pintarGimnasios(); if (cgGym) cargarGym(); }
   } catch (e) { falloTab(e, silencioso); }
 }
+
+/* ---- Frases de la semana ---- */
+const FR_INICIO = new Date(2026, 9, 12); // lunes 12 oct 2026 = semana 1 (igual que la app)
+function frSemanaActual(n) { const sem = Math.floor((new Date() - FR_INICIO) / (7 * 864e5)); return { sem, idx: ((sem % n) + n) % n + 1 }; }
+function frFechas(k, n) {
+  const { sem } = frSemanaActual(n), ciclo = Math.floor(sem / n) * n;
+  const a = new Date(FR_INICIO.getFullYear(), FR_INICIO.getMonth(), FR_INICIO.getDate() + (ciclo + k - 1) * 7), b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 6);
+  const f = (d) => d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+  return f(a) + ' – ' + f(b);
+}
+function pintarFrases() {
+  const L = datosFr || [], n = L.length;
+  if (!n) { $('listaFrases').innerHTML = '<div class="vacio">No hay frases.</div>'; $('frEsta').textContent = ''; return; }
+  const { idx } = frSemanaActual(n);
+  $('frEsta').innerHTML = `Esta semana va la <b>frase ${idx} de ${n}</b>.`;
+  $('listaFrases').innerHTML = L.map((f) => {
+    const hoy = f.num === idx;
+    return `<div class="card" data-fr="${esc(f.num)}" style="margin-bottom:10px${hoy ? ';border-color:var(--oro,#c9a84c)' : ''}">
+      <div class="cab"><div class="nom">Semana ${esc(f.num)} de ${n}${hoy ? ' <span class="tag v">Esta semana</span>' : ''}</div><div class="peq">${esc(frFechas(f.num, n))}</div></div>
+      <div class="campo" style="margin-top:8px"><textarea class="fr-txt" maxlength="800" rows="${Math.min(8, Math.max(3, Math.ceil(String(f.texto).length / 40)))}">${esc(f.texto)}</textarea></div>
+      <div class="acciones" style="margin-top:8px"><button class="mini" data-fr-guardar disabled>Guardar</button><button class="sec mini" data-fr-deshacer disabled>Deshacer</button></div></div>`;
+  }).join('');
+}
+$('listaFrases').addEventListener('input', (e) => {
+  const c = e.target.closest('[data-fr]'); if (!c || !e.target.classList.contains('fr-txt')) return;
+  const f = (datosFr || []).find((x) => String(x.num) === c.dataset.fr), cambio = !!f && e.target.value !== f.texto;
+  c.querySelector('[data-fr-guardar]').disabled = !cambio; c.querySelector('[data-fr-deshacer]').disabled = !cambio;
+});
+$('listaFrases').addEventListener('click', async (e) => {
+  const c = e.target.closest('[data-fr]'), b = e.target.closest('button'); if (!c || !b) return;
+  const f = (datosFr || []).find((x) => String(x.num) === c.dataset.fr); if (!f) return;
+  const ta = c.querySelector('.fr-txt');
+  if (b.hasAttribute('data-fr-deshacer')) { ta.value = f.texto; c.querySelector('[data-fr-guardar]').disabled = true; b.disabled = true; return; }
+  if (b.hasAttribute('data-fr-guardar')) {
+    const t = ta.value.trim(); if (!t) { aviso('La frase no puede quedar vacía.'); return; }
+    b.disabled = true;
+    try { const r = await rpc('panel_frase_guardar', { p_num: f.num, p_texto: t }); if (r.ok) { f.texto = t; ta.value = t; aviso('Frase ' + f.num + ' guardada.', true); c.querySelector('[data-fr-deshacer]').disabled = true; } else { aviso('No se pudo guardar.'); b.disabled = false; } }
+    catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); b.disabled = false; }
+  }
+});
+$('frAgregar').onclick = async () => {
+  const t = $('frNueva').value.trim(); if (!t) { aviso('Escribe la frase.'); return; }
+  $('frAgregar').disabled = true;
+  try { const r = await rpc('panel_frase_agregar', { p_texto: t }); if (r.ok) { $('frNueva').value = ''; aviso('Frase agregada como la semana ' + r.num + '.', true); await cargarTab('frases', false); } else aviso(r.error === 'demasiadas' ? 'Ya hay demasiadas frases.' : 'No se pudo agregar.'); }
+  catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('frAgregar').disabled = false;
+};
 
 /* ---- Resumen ---- */
 function delta(a, b) {

@@ -7538,13 +7538,30 @@ const FRASES_SEMANA = [
 ];
 
 // Frase de la semana: cambia cada lunes y es la misma para todos. Con 52 frases cubre el año completo.
+let _frasesDB = null;
+try { const c = JSON.parse(localStorage.getItem('aet_frases_db') || 'null'); if (Array.isArray(c) && c.length && c.every(x => typeof x === 'string' && x)) _frasesDB = c; } catch (e) {}
 function fraseDeLaSemana() {
+  const lista = _frasesDB || FRASES_SEMANA;
   const inicio = new Date(2026, 9, 12); // lunes 12 oct 2026 = semana 1
   const semanas = Math.floor((new Date() - inicio) / (7 * 864e5));
-  const n = FRASES_SEMANA.length;
+  const n = lista.length;
   const i = ((semanas % n) + n) % n;
-  return { texto: FRASES_SEMANA[i], num: i + 1, total: n };
+  return { texto: lista[i], num: i + 1, total: n };
 }
+// Las frases se editan desde el admin: se bajan en segundo plano y se guardan para la próxima vez.
+function aetFrasesRefrescar() {
+  fetch(SUPABASE_URL + '/rest/v1/frases_semana?select=num,texto&order=num.asc', { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } })
+    .then(r => r.ok ? r.json() : null)
+    .then(a => {
+      if (!Array.isArray(a) || !a.length) return;
+      const t = a.map(x => String(x.texto || '')).filter(Boolean); if (!t.length) return;
+      if (JSON.stringify(t) === JSON.stringify(_frasesDB)) return;
+      _frasesDB = t; try { localStorage.setItem('aet_frases_db', JSON.stringify(t)); } catch (e) {}
+      const box = document.querySelector('.app-frase');
+      if (box) { const fr = fraseDeLaSemana(), p = box.querySelector('p'), sp = box.querySelectorAll('.app-frase-top span')[1]; if (p) p.textContent = '“' + fr.texto + '”'; if (sp) sp.textContent = fr.num + ' / ' + fr.total; }
+    }).catch(() => {});
+}
+document.addEventListener('DOMContentLoaded', aetFrasesRefrescar);
 
 /* ============================================================
    APP V2 — métricas, registro de entrenos, Mi día, composición,
@@ -8516,7 +8533,7 @@ function renderDashboardApp() {
       ${u ? `<div class="aet-peso"><b>${u.peso} kg</b>${dif != null ? `<em>${dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : ''}${dif} kg</em>` : ''}<small>${AET.corta(u.fecha)}</small></div>${aetGrafica(ps.map(p => ({ l: AET.corta(p.fecha), y: p.peso })), '#4aa8ff', true)}`
         : '<p class="aet-nota" style="margin:0 0 .7rem">Aún no registras tu peso.</p>'}
       <button class="aet-btn sec" style="margin-top:.6rem" onclick="aetFormPeso()">＋ Registrar peso</button></div>
-    <div class="app-frase"><div class="app-frase-top"><span>✦ Frase de la semana</span><span>${fr.num} / ${fr.total}</span></div><p>“${fr.texto}”</p></div>`;
+    <div class="app-frase"><div class="app-frase-top"><span>✦ Frase de la semana</span><span>${fr.num} / ${fr.total}</span></div><p>“${esc(fr.texto)}”</p></div>`;
 
   const nivelesMma = [
     { clave: 'mma_semana', tabla: (typeof MMA_SEMANAS === 'undefined' ? null : MMA_SEMANAS), tipo: 'mma1', nombre: 'Nivel 1' },
