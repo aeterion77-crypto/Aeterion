@@ -185,7 +185,8 @@
 
   <div id="panel" class="oculto">
     <div class="stats" id="stats"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button><button class="tab" data-tab="historial">Historial</button><button class="tab" data-tab="seguridad">Seguridad</button></div>
+    <div id="pendientes" class="oculto"></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button><button class="tab" data-tab="ajustes">Ajustes</button><button class="tab" data-tab="uso">Uso</button><button class="tab" data-tab="exportar">Exportar</button><button class="tab" data-tab="historial">Historial</button><button class="tab" data-tab="seguridad">Seguridad</button></div>
 
     <section id="tPedidos">
       <div class="filtros" id="filtros"></div>
@@ -194,6 +195,7 @@
     </section>
 
     <section id="tPremium" class="oculto">
+      <div id="premVencer"></div>
       <div class="card" style="margin-bottom:14px">
         <b>Dar o quitar Premium</b>
         <div class="fila" style="margin-top:10px">
@@ -220,6 +222,38 @@
         <div class="peq" style="margin-top:6px">Al agregar una, la lista se alarga una semana más antes de repetirse.</div></div>
     </section>
 
+    <section id="tAjustes" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b>Aviso general</b>
+        <div class="peq" style="margin:4px 0 8px">Una franja arriba de la tienda y de la app, para cosas como «envíos retrasados por el puente» o una promoción. Se ve en la próxima vez que se abra; cada persona puede cerrarla.</div>
+        <div class="campo"><textarea id="bnTexto" maxlength="300" rows="2" placeholder="Escribe el aviso…"></textarea></div>
+        <div class="fila" style="margin-top:8px"><select id="bnTipo" style="width:auto"><option value="info">Informativo</option><option value="aviso">Aviso (amarillo)</option><option value="promo">Promoción (verde)</option></select><button id="bnPublicar">Publicar aviso</button><button class="sec" id="bnQuitar">Quitar aviso</button></div>
+        <div class="peq" id="bnEstado" style="margin-top:8px"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <b>Tienda</b>
+        <div class="peq" style="margin:4px 0 8px">Pausar la tienda bloquea todas las compras al instante (el servidor las rechaza aunque alguien tenga la página abierta). Para pausar un solo producto, desmarca «A la venta» en Productos.</div>
+        <div class="campo"><label>Mensaje que verá quien intente comprar con la tienda en pausa</label><input id="tdMensaje" maxlength="300"></div>
+        <div class="fila" style="margin-top:8px"><button id="tdPausar" class="mal">Pausar la tienda</button><button id="tdAbrir">Abrir la tienda</button></div>
+        <div class="peq" id="tdEstado" style="margin-top:8px"></div>
+      </div>
+      <div class="card"><b>Textos de la app</b>
+        <div class="peq" style="margin:4px 0 0">Recordatorios, guía de primer uso y hábitos de fábrica. Los cambios llegan a la gente la próxima vez que abre la app. Los hábitos que una persona ya tiene no cambian; solo afectan a quienes los agreguen o empiecen ahora. «Restablecer» regresa el texto original.</div>
+      </div>
+      <div id="listaTextos"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tUso" class="oculto"><div id="cuerpoUso"><div class="vacio">Cargando…</div></div></section>
+
+    <section id="tExportar" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b>Exportar a Excel (CSV)</b>
+        <div class="peq" style="margin:4px 0 10px">Se abre directo en Excel o Google Sheets. Los pedidos cancelados no cuentan como venta.</div>
+        <div class="campo"><label>Mes</label><input type="month" id="exMes"></div>
+        <div class="acciones" style="margin-top:10px"><button id="exVentas">Ventas del mes</button><button class="sec" id="exPedidos">Todos los pedidos</button><button class="sec" id="exClientes">Clientes</button></div>
+      </div>
+    </section>
+
     <section id="tHistorial" class="oculto">
       <div class="peq" style="margin-bottom:10px">Todo lo que se cambia desde el panel queda registrado aquí: Premium, códigos, productos, cupones, inventario, pedidos, frases y accesos al panel.</div>
       <div class="card" id="listaHist"><div class="vacio">Cargando…</div></div>
@@ -238,6 +272,10 @@
       <div class="card" style="margin-bottom:14px"><b>Dispositivos autorizados</b>
         <div class="peq" style="margin:4px 0 8px">Si ya no usas uno o lo perdiste, quítalo: tendrá que volver a pedir la contraseña de dispositivo nuevo.</div>
         <div id="listaDisp"><div class="vacio">Cargando…</div></div></div>
+      <div class="card" style="margin-bottom:14px"><b>Administradores</b>
+        <div class="peq" style="margin:4px 0 8px">Quien aparece aquí puede usar este panel. Cada administrador crea sus propias contraseñas la primera vez que entra; tú nunca las ves. Solo el dueño puede agregar o quitar.</div>
+        <div id="listaAdmins"><div class="vacio">Cargando…</div></div>
+        <div id="adminAgregar" class="oculto"><div class="fila" style="margin-top:10px"><input type="email" id="admEmail" placeholder="correo de la cuenta (ya registrada en la app)"><button id="btnAdmAgregar">Dar acceso</button></div></div></div>
       <div class="card"><button class="sec" id="btnBloquear">Bloquear el panel ahora</button></div>
     </section>
 
@@ -272,6 +310,7 @@
       <div class="card" id="listaCupones"><div class="vacio">Cargando…</div></div>
     </section>
     <section id="tGimnasios" class="oculto">
+      <div id="gymResumen"></div>
       <div class="card" style="margin-bottom:14px">
         <b>Crear lote de códigos</b>
         <div class="rejilla c4" style="margin-top:10px">
@@ -326,6 +365,17 @@
 </main>
 <div id="msg" role="status"></div>
 
+<div id="modalCorreo" class="oculto" style="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:60;overflow:auto;padding:16px">
+  <div class="card" style="max-width:560px;margin:0 auto">
+    <b>Enviar correo a un cliente</b>
+    <div class="peq" id="mcPara" style="margin:4px 0 10px;overflow-wrap:anywhere"></div>
+    <div class="campo"><label>Plantilla</label><select id="mcPlantilla"></select></div>
+    <div class="campo" style="margin-top:8px"><label>Asunto</label><input id="mcAsunto" maxlength="150"></div>
+    <div class="campo" style="margin-top:8px"><label>Mensaje</label><textarea id="mcMensaje" rows="9" maxlength="3000"></textarea></div>
+    <div class="acciones" style="margin-top:10px"><button id="mcEnviar">Enviar</button><button class="sec" id="mcCancelar">Cancelar</button></div>
+    <div class="peq" style="margin-top:8px">Sale desde pedidos@aeterionlabs.tech y las respuestas llegan ahí. Máximo 30 correos por hora. Revisa el texto antes de enviar.</div>
+  </div>
+</div>
 <script>
 const SUPABASE_URL = 'https://pjbfhglrvsgheuyhguyp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_X86RvXPbwY5tXG34PxGzBA_T8yjEiM7';
@@ -472,6 +522,7 @@ function tarjeta(p) {
       <button class="sec" data-sky>Manual en Skydropx</button>
       ${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a><a class="btn sec" href="tel:+52${wa}">Llamar</a>` : ''}
       <button class="sec" data-copiar>Copiar datos</button>
+      ${p.email ? '<button class="sec" data-correo>Enviar correo</button>' : ''}
     </div>
     <div class="gestion">
       <div class="peq" style="margin-bottom:6px">Estado del pedido</div>
@@ -599,6 +650,211 @@ $('btnCambiarClaves').onclick = async () => {
 };
 $('btnBloquear').onclick = async () => { try { await rpc('admin_bloquear'); } catch (e) {} puerta(); };
 
+/* ============================================================
+   AVISOS DE PENDIENTES · AJUSTES · USO · EXPORTAR · ADMINISTRADORES · CORREOS
+============================================================ */
+let datosPend = null, datosAj = null, datosGymRes = null, datosUso = null, datosAdm = null;
+const IR_TAB = { pedidos: 'pedidos', stock: 'inventario', codigos: 'gimnasios', premium: 'premium' };
+function pintarPendientes() {
+  const d = datosPend, el = $('pendientes'); if (!d) { el.classList.add('oculto'); return; }
+  const c = [];
+  if (Number(d.pedidos_urgentes)) c.push(['rojo', 'pedidos', `${d.pedidos_urgentes} pedido(s) sin enviar de más de ${urgenteH} h`]);
+  if ((d.stock || []).length) c.push(['amar', 'stock', 'Poco stock: ' + d.stock.map((x) => `${esc(x.nombre)} (${x.stock})`).join(', ')]);
+  (d.codigos_pocos || []).forEach((x) => c.push(['amar', 'codigos', `Quedan ${x.disponibles} código(s) de ${esc(x.nombre)} sin asignar o disponibles`]));
+  (d.gimnasios_por_acabar || []).forEach((x) => c.push(['amar', 'codigos', `${esc(x.gimnasio)}: quedan ${x.disponibles} código(s) de ${esc(x.nombre)}`]));
+  if ((d.premium_por_vencer || []).length) c.push(['amar', 'premium', `${d.premium_por_vencer.length} Premium vence(n) esta semana`]);
+  el.classList.toggle('oculto', !c.length);
+  el.innerHTML = c.length ? '<div class="bloque" style="padding:10px 12px"><h3 style="margin-bottom:6px">Necesita tu atención</h3>' + c.map(([k, t, txt]) => `<button class="pill" data-ir="${IR_TAB[t]}" style="display:block;width:100%;text-align:left;margin:4px 0;white-space:normal;border-color:${k === 'rojo' ? 'var(--rojo,#e74c3c)' : 'var(--amar,#f1c40f)'}">${txt}</button>`).join('') + '</div>' : '';
+  pintarPremVencer();
+}
+$('pendientes').addEventListener('click', (e) => { const b = e.target.closest('[data-ir]'); if (!b) return; if (b.dataset.ir === 'pedidos') filtro = 'urgentes'; abrirTab(b.dataset.ir); if (b.dataset.ir === 'pedidos') pintarPedidos(); });
+async function cargarPendientes() { try { datosPend = await rpc('panel_pendientes', { p_horas: urgenteH }); pintarPendientes(); } catch (e) { if (e.status === 401 || e.status === 403) falloTab(e, true); } }
+function pintarPremVencer() {
+  const L = (datosPend && datosPend.premium_por_vencer) || [];
+  $('premVencer').innerHTML = L.length ? `<div class="bloque"><h3>Premium que vence esta semana</h3>${L.map((x) => `<div class="acc"><div><b style="overflow-wrap:anywhere">${esc(x.email)}</b><div class="peq">vence ${fechaCorta(x.hasta)}</div></div><div class="acciones"><button class="sec mini" data-pv-correo="${esc(x.email)}" data-pv-hasta="${esc(x.hasta)}">Avisar</button><button class="mini" data-pv-dar="${esc(x.email)}">Dar días</button></div></div>`).join('')}</div>` : '';
+}
+$('premVencer').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-pv-correo]'); if (c) { abrirCorreo({ email: c.dataset.pvCorreo, nombre: '', vence: fechaDia(c.dataset.pvHasta) }, 'premium'); return; }
+  const d = e.target.closest('[data-pv-dar]'); if (d) darPremium(d.dataset.pvDar);
+});
+
+/* ---- Ajustes: aviso, tienda, textos ---- */
+function pintarAjustes() {
+  const D = datosAj; if (!D) return;
+  const b = D.banner || {}, t = D.tienda || {};
+  $('bnTexto').value = b.texto || ''; $('bnTipo').value = b.tipo || 'info';
+  $('bnEstado').innerHTML = b.activo ? '<span class="tag v">Publicado ahora</span>' : '<span class="tag x">Sin aviso publicado</span>';
+  $('tdMensaje').value = t.mensaje || '';
+  $('tdEstado').innerHTML = t.abierta === false ? '<span class="tag r">Tienda en pausa: nadie puede comprar</span>' : '<span class="tag v">Tienda abierta</span>';
+  $('tdPausar').classList.toggle('oculto', t.abierta === false); $('tdAbrir').classList.toggle('oculto', t.abierta !== false);
+  const grupos = {}; (D.textos || []).forEach((x) => { (grupos[x.grupo] = grupos[x.grupo] || []).push(x); });
+  const BASE = ['hab.entrenar', 'hab.agua', 'hab.comidas', 'hab.dormir', 'hab.pasos'];
+  $('listaTextos').innerHTML = Object.keys(grupos).map((g) => `<div class="bloque" style="margin-top:12px"><h3>${esc(g)}</h3>${grupos[g].map((x) => {
+    const mod = x.valor !== x.defecto;
+    if (x.clave.indexOf('hab.') === 0) {
+      let j = {}; try { j = JSON.parse(x.valor) || {}; } catch (e) {}
+      return `<div class="fila-item" data-tx="${esc(x.clave)}" data-hab="1" style="padding:10px 0"><div class="cab"><b>${esc(x.etiqueta)}</b>${mod ? '<span class="tag a">Editado</span>' : ''}</div>
+        <div class="rejilla c4" style="margin-top:8px"><div class="campo"><label>Nombre</label><input class="h-n" maxlength="60" value="${esc(j.n || '')}"></div><div class="campo"><label>Emoji</label><input class="h-i" maxlength="8" value="${esc(j.i || '')}"></div>${j.meta != null ? `<div class="campo"><label>Meta${j.u ? ' (' + esc(j.u) + ')' : ''}</label><input class="h-m" type="number" min="1" step="any" value="${esc(j.meta)}"></div>` : ''}${BASE.indexOf(x.clave) < 0 ? `<div class="campo chk"><input class="h-v" type="checkbox" id="hv_${esc(x.clave)}" ${j.v === false ? '' : 'checked'}><label for="hv_${esc(x.clave)}" style="margin:0">Mostrar en sugeridos</label></div>` : ''}</div>
+        <div class="campo" style="margin-top:8px"><label>Descripción</label><input class="h-d" maxlength="120" value="${esc(j.d || '')}"></div>
+        <div class="acciones" style="margin-top:8px"><button class="mini" data-tx-guardar-hab>Guardar</button>${mod ? '<button class="sec mini" data-tx-reset>Restablecer</button>' : ''}</div></div>`;
+    }
+    return `<div class="fila-item" data-tx="${esc(x.clave)}" style="padding:10px 0"><div class="cab"><b>${esc(x.etiqueta)}</b>${mod ? '<span class="tag a">Editado</span>' : ''}</div>${x.ayuda ? `<div class="peq">${esc(x.ayuda)}</div>` : ''}
+      <div class="campo" style="margin-top:6px"><textarea class="tx-val" maxlength="600" rows="${Math.min(5, Math.max(2, Math.ceil(String(x.valor).length / 45)))}">${esc(x.valor)}</textarea></div>
+      <div class="acciones" style="margin-top:8px"><button class="mini" data-tx-guardar>Guardar</button>${mod ? '<button class="sec mini" data-tx-reset>Restablecer</button>' : ''}</div></div>`;
+  }).join('')}</div>`).join('');
+}
+const ERR_AJ = { texto_invalido: 'El texto está vacío o es demasiado largo.', formato: 'El formato no es válido.', tipo_invalido: 'Tipo no válido.', no_existe: 'Ese texto ya no existe.' };
+async function guardarAjuste(clave, valor, ok) {
+  try { const r = await rpc('panel_ajuste_guardar', { p_clave: clave, p_valor: valor }); if (r.ok) { aviso(ok, true); await cargarTab('ajustes', false); } else aviso(ERR_AJ[r.error] || 'No se pudo guardar.'); }
+  catch (e) { falloTab(e, false); }
+}
+$('bnPublicar').onclick = () => { const t = $('bnTexto').value.trim(); if (!t) { aviso('Escribe el aviso.'); return; } guardarAjuste('banner', { activo: true, texto: t, tipo: $('bnTipo').value }, 'Aviso publicado.'); };
+$('bnQuitar').onclick = () => guardarAjuste('banner', { activo: false, texto: $('bnTexto').value.trim(), tipo: $('bnTipo').value }, 'Aviso quitado.');
+$('tdPausar').onclick = () => { if (!confirm('¿Pausar la tienda? Nadie podrá comprar hasta que la abras de nuevo.')) return; guardarAjuste('tienda', { abierta: false, mensaje: $('tdMensaje').value.trim() }, 'Tienda en pausa.'); };
+$('tdAbrir').onclick = () => guardarAjuste('tienda', { abierta: true, mensaje: $('tdMensaje').value.trim() }, 'Tienda abierta.');
+$('listaTextos').addEventListener('click', async (e) => {
+  const c = e.target.closest('[data-tx]'), b = e.target.closest('button'); if (!c || !b) return;
+  const clave = c.dataset.tx; b.disabled = true;
+  try {
+    let r;
+    if (b.hasAttribute('data-tx-reset')) { if (!confirm('¿Regresar este texto al original?')) { b.disabled = false; return; } r = await rpc('panel_texto_restablecer', { p_clave: clave }); }
+    else if (b.hasAttribute('data-tx-guardar-hab')) {
+      const j = { n: c.querySelector('.h-n').value.trim(), i: c.querySelector('.h-i').value.trim(), d: c.querySelector('.h-d').value.trim() };
+      if (!j.n) { aviso('El hábito necesita un nombre.'); b.disabled = false; return; }
+      const orig = (datosAj.textos.find((x) => x.clave === clave) || {}); let o = {}; try { o = JSON.parse(orig.valor) || {}; } catch (er) {}
+      if (c.querySelector('.h-m')) { const m = Number(c.querySelector('.h-m').value); if (!(m > 0)) { aviso('La meta debe ser mayor a 0.'); b.disabled = false; return; } j.meta = m; if (o.u) j.u = o.u; }
+      j.v = c.querySelector('.h-v') ? c.querySelector('.h-v').checked : true;
+      r = await rpc('panel_texto_guardar', { p_clave: clave, p_valor: JSON.stringify(j) });
+    } else if (b.hasAttribute('data-tx-guardar')) r = await rpc('panel_texto_guardar', { p_clave: clave, p_valor: c.querySelector('.tx-val').value });
+    else { b.disabled = false; return; }
+    if (r.ok) { aviso('Guardado.', true); await cargarTab('ajustes', false); } else { aviso(ERR_AJ[r.error] || 'No se pudo guardar.'); b.disabled = false; }
+  } catch (err) { falloTab(err, false); b.disabled = false; }
+});
+
+/* ---- Uso de la app ---- */
+function pintarUso() {
+  const u = datosUso; if (!u) return;
+  const sem = u.semanas || [], maxU = Math.max(1, ...sem.map((x) => x.usuarios));
+  const NOM = { sec_inicio: 'Inicio', sec_entrenar: 'Entrenar', sec_nutricion: 'Nutrición', sec_habitos: 'Hábitos', sec_progreso: 'Progreso', sec_mas: 'Más', sec_tienda: 'Tienda' };
+  const s7 = u.secciones_7d || {}, ks = Object.keys(NOM).filter((k) => s7[k] || (u.secciones_30d || {})[k]).sort((a, b) => (s7[b] || 0) - (s7[a] || 0));
+  const maxS = Math.max(1, ...ks.map((k) => s7[k] || 0));
+  $('cuerpoUso').innerHTML = `
+    <div class="peq" style="margin-bottom:10px">Se cuenta por dispositivo con la app instalada, sin nombres ni correos. ${u.desde ? 'Hay datos desde el ' + fechaDia(u.desde) + '; antes de eso no se medía.' : 'Aún no hay datos: empiezan a contarse cuando la gente abra la versión nueva de la app.'}</div>
+    <div class="kpis">
+      <div class="kpi"><small>Usaron la app (7 días)</small><b>${u.activos_7d}</b>${delta(u.activos_7d, u.activos_prev_7d)}</div>
+      <div class="kpi"><small>Entrenaron (7 días)</small><b>${u.entrenan_7d}</b>${delta(u.entrenan_7d, u.entrenan_prev_7d)}</div>
+      <div class="kpi"><small>Abrieron hoy</small><b>${u.activos_hoy}</b><i class="igual">dispositivos</i></div>
+      <div class="kpi"><small>Cuentas</small><b>${u.cuentas_total}</b><i class="igual">${u.cuentas_nuevas_7d} nueva(s) esta semana</i></div>
+      <div class="kpi"><small>Premium vigentes</small><b>${u.premium_vigentes}</b><i class="igual">con acceso hoy</i></div>
+      <div class="kpi"><small>Recordatorios activos</small><b>${u.recordatorios_activos}</b><i class="igual">cuentas</i></div>
+    </div>
+    <div class="bloque"><h3>Personas por semana</h3>${sem.length ? sem.map((x) => `<div class="hbar"><div class="t"><span>Semana del ${esc(fechaDia(x.inicio))}</span><span>${x.usuarios} usaron · ${x.entrenan} entrenaron</span></div><div class="p"><div style="width:${Math.max(x.usuarios ? 3 : 0, Math.round(x.usuarios / maxU * 100))}%"></div></div></div>`).join('') : '<div class="peq">Sin datos todavía.</div>'}</div>
+    <div class="bloque"><h3>Secciones más abiertas (7 días, personas distintas)</h3>${ks.length ? ks.map((k) => `<div class="hbar"><div class="t"><span>${NOM[k]}</span><span>${s7[k] || 0} esta semana · ${(u.secciones_30d || {})[k] || 0} en 30 días</span></div><div class="p"><div style="width:${Math.max((s7[k] || 0) ? 3 : 0, Math.round((s7[k] || 0) / maxS * 100))}%"></div></div></div>`).join('') : '<div class="peq">Sin datos todavía.</div>'}</div>`;
+}
+
+/* ---- Seguimiento de gimnasios ---- */
+function pintarGymResumen() {
+  const L = (datosGymRes || []).filter((g) => g.gimnasio !== 'Sin asignar');
+  if (!L.length) { $('gymResumen').innerHTML = ''; return; }
+  const rec = (g) => {
+    const t = Number(g.total) - Number(g.revocados), pct = t ? Number(g.canjeados) / t : 0, dias = g.primer_lote ? (Date.now() - new Date(g.primer_lote)) / 864e5 : 0;
+    if (t >= 5 && pct >= .8) return '<span class="tag o">Casi todos canjeados: les conviene otro lote</span>';
+    if (t >= 10 && pct < .2 && dias > 14) return '<span class="tag a">Pocos canjes: pregunta si ya repartieron los códigos</span>';
+    return '';
+  };
+  $('gymResumen').innerHTML = `<div class="bloque" style="margin-bottom:14px"><h3>Seguimiento por gimnasio</h3>${L.map((g) => {
+    const t = Number(g.total) - Number(g.revocados), pct = t ? Math.round(Number(g.canjeados) / t * 100) : 0;
+    return `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="overflow-wrap:anywhere">${esc(g.gimnasio)}</div><div class="peq">${g.lotes} lote(s) · ${g.total} códigos entregados · <b>${g.canjeados}</b> canjeados · ${g.disponibles} sin usar${Number(g.revocados) ? ' · ' + g.revocados + ' anulados' : ''}</div><div class="peq">${g.activos_ahora} con Premium vigente ahora · último canje: ${g.ultimo_canje ? fechaDia(g.ultimo_canje) : '—'}</div></div><div style="text-align:right"><div class="monto">${pct} %</div><div class="peq">canjeados</div></div></div><div class="hbar" style="margin:6px 0 2px"><div class="p"><div style="width:${pct}%"></div></div></div><div>${rec(g)}</div></div>`;
+  }).join('')}<div class="acciones" style="margin-top:8px"><button class="sec mini" id="gymCsv">Exportar seguimiento (CSV)</button></div></div>`;
+}
+$('gymResumen').addEventListener('click', (e) => {
+  if (!e.target.closest('#gymCsv')) return;
+  csvSeguro('seguimiento-gimnasios.csv', [['Gimnasio', 'Lotes', 'Códigos entregados', 'Canjeados', 'Sin usar', 'Anulados', 'Premium vigente ahora', 'Primer canje', 'Último canje']].concat((datosGymRes || []).map((g) => [g.gimnasio, g.lotes, g.total, g.canjeados, g.disponibles, g.revocados, g.activos_ahora, g.primer_canje ? fechaDia(g.primer_canje) : '', g.ultimo_canje ? fechaDia(g.ultimo_canje) : ''])));
+});
+
+/* ---- Exportar CSV ---- */
+function celdaSegura(x) { if (typeof x === 'number') return x; const t = String(x == null ? '' : x); return /^[=+\-@\t\r]/.test(t) ? "'" + t : t; }
+function csvSeguro(nombre, filas) { descargarCsv(nombre, filas.map((f, i) => i === 0 ? f : f.map(celdaSegura))); }
+const fechaIso = (s) => { const d = new Date(s); return isNaN(d) ? '' : d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+function filaPedido(p) { const total = Number(p.total) || 0, env = Number(p.envio) || 0, desc = Number(p.descuento) || 0; return [p.id, fechaIso(p.creado_en), p.nombre, p.email, p.tel, p.productos, total - env + desc, desc, p.cupon || '', env, total, p.estado, p.paqueteria || '', p.guia || '', p.direccion]; }
+const CAB_PED = ['Pedido', 'Fecha', 'Cliente', 'Correo', 'Teléfono', 'Productos', 'Subtotal', 'Descuento', 'Cupón', 'Envío', 'Total', 'Estado', 'Paquetería', 'Guía', 'Dirección'];
+$('exVentas').onclick = () => {
+  const m = $('exMes').value; if (!/^\d{4}-\d{2}$/.test(m)) { aviso('Elige el mes.'); return; }
+  const L = pedidos.filter((p) => p.estado !== 'cancelado' && fechaIso(p.creado_en).slice(0, 7) === m).sort((a, b) => new Date(a.creado_en) - new Date(b.creado_en));
+  if (!L.length) { aviso('No hay ventas en ese mes.'); return; }
+  const suma = (i) => L.reduce((s, p) => s + (Number(filaPedido(p)[i]) || 0), 0);
+  csvSeguro('ventas-' + m + '.csv', [CAB_PED].concat(L.map(filaPedido), [['', '', 'TOTAL (' + L.length + ' pedidos)', '', '', '', suma(6), suma(7), '', suma(9), suma(10), '', '', '', '']]));
+  bitacora('Exportó ventas del mes', m);
+};
+$('exPedidos').onclick = () => { if (!pedidos.length) { aviso('No hay pedidos.'); return; } csvSeguro('pedidos.csv', [CAB_PED].concat(pedidos.slice().sort((a, b) => new Date(a.creado_en) - new Date(b.creado_en)).map(filaPedido))); bitacora('Exportó todos los pedidos', pedidos.length + ' pedidos'); };
+$('exClientes').onclick = async () => {
+  try { const L = datosCli || await rpc('panel_clientes'); datosCli = L; csvSeguro('clientes.csv', [['Nombre', 'Correo', 'Teléfono', 'Dirección', 'Pedidos', 'Gastado', 'Primer pedido', 'Último pedido', 'Premium hasta', 'Etiqueta']].concat(L.map((c) => [c.nombre || '', c.email, c.tel || '', c.direccion || '', c.pedidos, Number(c.gastado) || 0, c.primero ? fechaIso(c.primero) : '', c.ultimo ? fechaIso(c.ultimo) : '', c.premium_hasta ? fechaIso(c.premium_hasta) : '', c.etiqueta || '']))); bitacora('Exportó clientes', L.length + ' clientes'); }
+  catch (e) { falloTab(e, false); }
+};
+{ const h = new Date(); $('exMes').value = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0'); }
+
+/* ---- Administradores ---- */
+const ERR_ADM = { solo_dueno: 'Solo el dueño puede agregar o quitar administradores.', correo_invalido: 'Escribe un correo válido.', sin_cuenta: 'Esa persona aún no tiene cuenta en la app. Pídele que se registre primero.', ya_es_admin: 'Esa persona ya es administradora.', no_puedes_quitarte: 'No puedes quitarte a ti mismo.', no_existe: 'No se encontró ese administrador.' };
+function pintarAdmins() {
+  const D = datosAdm; if (!D) return;
+  $('adminAgregar').classList.toggle('oculto', !D.soy_dueno);
+  $('listaAdmins').innerHTML = (D.lista || []).filter((a) => a.activo).map((a) => `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="overflow-wrap:anywhere">${esc(a.email || a.user_id)}${a.dueno ? ' <span class="tag o">Dueño</span>' : ''}${a.user_id === D.yo ? ' <span class="tag v">Tú</span>' : ''}</div><div class="peq">${a.configurado ? 'Última entrada: ' + (a.ultima_entrada ? fechaCorta(a.ultima_entrada) : '—') : 'Aún no crea sus contraseñas'}</div></div>${D.soy_dueno && !a.dueno && a.user_id !== D.yo ? `<button class="mal mini" data-adm-quitar="${esc(a.user_id)}" data-adm-mail="${esc(a.email || '')}">Quitar</button>` : ''}</div></div>`).join('') || '<div class="vacio">Sin administradores.</div>';
+}
+$('btnAdmAgregar').onclick = async () => {
+  const em = $('admEmail').value.trim().toLowerCase(); if (!em.includes('@')) { aviso(ERR_ADM.correo_invalido); return; }
+  if (!confirm('¿Dar acceso al panel a ' + em + '?\nPodrá ver pedidos, clientes y códigos, y cambiar precios y Premium. Creará sus propias contraseñas.')) return;
+  $('btnAdmAgregar').disabled = true;
+  try { const r = await rpc('admin_agregar', { p_email: em }); if (r.ok) { $('admEmail').value = ''; aviso('Listo. Ya puede entrar al panel con su cuenta.', true); await cargarTab('seguridad', false); } else aviso(ERR_ADM[r.error] || 'No se pudo agregar.'); }
+  catch (e) { falloTab(e, false); }
+  $('btnAdmAgregar').disabled = false;
+};
+$('listaAdmins').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-adm-quitar]'); if (!b) return;
+  if (!confirm('¿Quitar el acceso de ' + (b.dataset.admMail || 'esta persona') + '? Se le cierra el panel de inmediato.')) return;
+  b.disabled = true;
+  try { const r = await rpc('admin_quitar', { p_user_id: b.dataset.admQuitar }); if (r.ok) { aviso('Acceso quitado.', true); await cargarTab('seguridad', false); } else { aviso(ERR_ADM[r.error] || 'No se pudo quitar.'); b.disabled = false; } }
+  catch (err) { falloTab(err, false); b.disabled = false; }
+});
+
+/* ---- Correos a clientes ---- */
+const PLANTILLAS = {
+  enviado: { n: 'Pedido enviado', a: 'Tu pedido Aeterion va en camino', m: 'Hola {nombre},\n\nTu pedido ya salió y va en camino.\n{guia}{rastreo}\nSi tienes cualquier duda, responde a este correo.\n\nGracias por tu compra,\nAeterion' },
+  retraso: { n: 'Retraso en el envío', a: 'Aviso sobre tu pedido Aeterion', m: 'Hola {nombre},\n\nQueremos avisarte que tu pedido se va a retrasar un poco más de lo previsto. Estamos trabajando para enviarlo lo antes posible y te escribiremos en cuanto salga.\n\nOfrecemos una disculpa por la molestia. Si prefieres otra solución, responde a este correo.\n\nAeterion' },
+  premium: { n: 'Premium por vencer', a: 'Tu Premium de Aeterion vence pronto', m: 'Hola {nombre},\n\nTu acceso Premium en la app de Aeterion vence el {vence}. Si quieres seguir con tu programa sin interrupciones, puedes renovarlo desde la app (Más → Premium).\n\nCualquier duda, responde a este correo.\n\nAeterion' },
+  libre: { n: 'Mensaje libre', a: '', m: 'Hola {nombre},\n\n' },
+};
+let ctxCorreo = null;
+function aplicarPlantilla(k) {
+  const c = ctxCorreo || {}, t = PLANTILLAS[k] || PLANTILLAS.libre;
+  const nombre = (c.nombre || '').split(' ')[0] || '';
+  const rell = (x) => x.replace('{nombre}', nombre || 'hola').replace('Hola hola', 'Hola').replace('{vence}', c.vence || '[fecha]').replace('{guia}', c.guia ? 'Guía: ' + c.guia + '\n' : '').replace('{rastreo}', c.rastreo ? 'Rastreo: ' + c.rastreo + '\n' : '');
+  $('mcAsunto').value = t.a; $('mcMensaje').value = rell(t.m);
+}
+function abrirCorreo(ctx, plantilla) {
+  ctxCorreo = ctx; $('mcPara').textContent = 'Para: ' + ctx.email + (ctx.nombre ? ' (' + ctx.nombre + ')' : '');
+  $('mcPlantilla').innerHTML = Object.keys(PLANTILLAS).map((k) => `<option value="${k}">${PLANTILLAS[k].n}</option>`).join('');
+  $('mcPlantilla').value = plantilla || 'libre'; aplicarPlantilla($('mcPlantilla').value);
+  $('modalCorreo').classList.remove('oculto');
+}
+$('mcPlantilla').onchange = () => { if (($('mcMensaje').value.trim().length > 60 || $('mcAsunto').value) && !confirm('Se reemplaza el texto actual por la plantilla. ¿Continuar?')) return; aplicarPlantilla($('mcPlantilla').value); };
+$('mcCancelar').onclick = () => $('modalCorreo').classList.add('oculto');
+$('mcEnviar').onclick = async () => {
+  const asunto = $('mcAsunto').value.trim(), mensaje = $('mcMensaje').value.trim();
+  if (asunto.length < 3 || mensaje.length < 3) { aviso('Escribe el asunto y el mensaje.'); return; }
+  if (/\{|\[fecha\]/.test(asunto + mensaje) && !confirm('El mensaje todavía tiene partes por completar ({…} o [fecha]). ¿Enviarlo así?')) return;
+  if (!confirm('¿Enviar este correo a ' + ctxCorreo.email + '?')) return;
+  $('mcEnviar').disabled = true;
+  try {
+    const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/enviar-aviso', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ para: ctxCorreo.email, asunto, mensaje }) }));
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok) { aviso('Correo enviado.', true); $('modalCorreo').classList.add('oculto'); }
+    else if (d.error === 'no_autorizado') puerta();
+    else if (d.error === 'limite') aviso(d.detalle || 'Límite de correos por hora alcanzado.');
+    else aviso('No se pudo enviar el correo. Inténtalo de nuevo.');
+  } catch (e) { aviso('No se pudo completar. Revisa tu conexión.'); }
+  $('mcEnviar').disabled = false;
+};
+
 /* ---------- Carga ---------- */
 async function cargar(silencioso) {
   try {
@@ -611,6 +867,7 @@ async function cargar(silencioso) {
     $('quien').textContent = (sesion.user && sesion.user.email) || '';
     vista(true);
     if (nuevos && silencioso) aviso('Llegó un pedido nuevo', true);
+    cargarPendientes();
     if (tabActiva !== 'pedidos' && tabActiva !== 'premium') cargarTab(tabActiva, true);
   } catch (e) {
     if (e.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
@@ -639,7 +896,7 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', historial: 'tHistorial', seguridad: 'tSeguridad' };
+const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
 let tabActiva = 'pedidos';
 function abrirTab(t) {
   tabActiva = t;
@@ -655,6 +912,7 @@ $('buscar').oninput = pintarPedidos; $('buscarAcc').oninput = pintarAccesos;
 $('listaPedidos').addEventListener('click', async (e) => {
   const art = e.target.closest('.ped'); if (!art) return;
   const p = pedidos.find((x) => String(x.id) === art.dataset.id); if (!p) return;
+  if (e.target.closest('[data-correo]')) { abrirCorreo({ email: p.email, nombre: p.nombre, guia: p.guia, rastreo: p.url_rastreo }, p.guia ? 'enviado' : (semaforo(p) === 'rojo' ? 'retraso' : 'libre')); return; }
   const est = e.target.closest('[data-est]');
   if (est) { art.dataset.estado = est.dataset.est; art.dataset.dirty = '1'; art.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b === est)); return; }
   if (e.target.closest('[data-guia]')) {
@@ -732,9 +990,11 @@ async function cargarTab(t, silencioso) {
     else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
     else if (t === 'inventario') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tInventario')) return; datosInv = await rpc('panel_inventario'); pintarInventario(); }
     else if (t === 'historial') { datosHist = await rpc('admin_historial_listar', { p_limite: 100 }); histFin = datosHist.length < 100; pintarHistorial(); }
-    else if (t === 'seguridad') { pintarSeguridad(await rpc('admin_dispositivos_listar', { p_dispositivo: devToken() })); }
+    else if (t === 'seguridad') { const [dv, ad] = await Promise.all([rpc('admin_dispositivos_listar', { p_dispositivo: devToken() }), rpc('admin_lista')]); pintarSeguridad(dv); datosAdm = ad; pintarAdmins(); }
+    else if (t === 'ajustes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tAjustes')) return; datosAj = await rpc('panel_ajustes'); pintarAjustes(); }
+    else if (t === 'uso') { datosUso = await rpc('panel_uso'); pintarUso(); }
     else if (t === 'frases') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tFrases')) return; datosFr = await rpc('panel_frases'); pintarFrases(); }
-    else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; datosGym = await rpc('panel_lotes'); pintarGimnasios(); if (cgGym) cargarGym(); }
+    else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; const [gl, gr] = await Promise.all([rpc('panel_lotes'), rpc('panel_gimnasios_resumen')]); datosGym = gl; datosGymRes = gr; pintarGymResumen(); pintarGimnasios(); if (cgGym) cargarGym(); }
   } catch (e) { falloTab(e, silencioso); }
 }
 
@@ -912,7 +1172,7 @@ function pintarClientes() {
       </dl>
       <div class="campo"><label>Nota interna (solo tú la ves)</label><textarea class="c-nota" maxlength="1000">${esc(c.nota || '')}</textarea></div>
       <div class="campo" style="margin-top:8px"><label>Etiqueta (ej. VIP, mayorista)</label><input class="c-etq" maxlength="30" value="${esc(c.etiqueta || '')}"></div>
-      <div class="acciones" style="margin-top:10px"><button data-cli-guardar>Guardar nota</button>${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}<button class="sec" data-cli-copiar>Copiar correo</button></div>
+      <div class="acciones" style="margin-top:10px"><button data-cli-guardar>Guardar nota</button>${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}<button class="sec" data-cli-copiar>Copiar correo</button><button class="sec" data-cli-correo>Enviar correo</button></div>
       <div class="acciones" style="margin-top:8px"><button class="sec" data-cli-dar>Dar Premium</button>${c.premium_hasta ? '<button class="mal" data-cli-quitar>Quitar Premium</button>' : ''}</div>
     </details>`;
   }).join('') : '<div class="vacio">No hay clientes en esta vista.</div>';
@@ -923,6 +1183,7 @@ $('listaClientes').addEventListener('click', async (e) => {
   const d = e.target.closest('details.cli'); if (!d) return; const email = d.dataset.email;
   if (e.target.closest('[data-cli-dar]')) { await darPremium(email); return; }
   if (e.target.closest('[data-cli-quitar]')) { await quitar(email); return; }
+  if (e.target.closest('[data-cli-correo]')) { const c = (datosCli || []).find((x) => x.email === email) || {}; abrirCorreo({ email, nombre: c.nombre || '', vence: c.premium_hasta ? fechaDia(c.premium_hasta) : '' }, c.premium_hasta ? 'premium' : 'libre'); return; }
   if (e.target.closest('[data-cli-copiar]')) { await copiar(email); aviso('Correo copiado.', true); return; }
   if (e.target.closest('[data-cli-guardar]')) {
     const b = e.target.closest('button'); b.disabled = true;

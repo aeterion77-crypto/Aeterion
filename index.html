@@ -2593,10 +2593,16 @@
     .ses-resu div { background: var(--negro2); border-radius: 12px; padding: .8rem .4rem; text-align: center; }
     .ses-resu b { display: block; font-family: var(--font-ui); font-size: 1.4rem; color: var(--ac-e); }
     .ses-resu span { font-family: var(--font-ui); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--gris); }
+  #aetBanner{position:relative;z-index:9999;padding:.6rem 2.4rem .6rem 1rem;font-size:.85rem;line-height:1.35;text-align:center;background:#1c2a3a;color:#fff;border-bottom:1px solid rgba(255,255,255,.15)}
+  #aetBanner[hidden]{display:none}
+  #aetBanner.aviso{background:#5a3b00;color:#ffe3a3}
+  #aetBanner.promo{background:#0f3d2b;color:#b8f5d6}
+  #aetBanner button{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:.3rem .5rem}
   </style>
 </head>
 
 <body>
+<div id="aetBanner" role="status" hidden></div>
 
 <!-- ============================================================
      APP SHELL — se muestra solo cuando la PWA está instalada
@@ -6339,6 +6345,7 @@ const PRODUCTOS = {
 ============================================================ */
 let cuponAplicado = { codigo: '', descuento: 0 };
 let _catalogo = {};
+let _tienda = { abierta: true, mensaje: '' };
 async function aetRpcPublico(nombre, args) {
   const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + nombre, {
     method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
@@ -6352,6 +6359,7 @@ function aetBtnProducto(btn, id) {
   const mas = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> ';
   if (c.activo === false) { btn.disabled = true; btn.textContent = 'No disponible'; return; }
   if (c.disponible === false) { btn.disabled = true; btn.textContent = 'Agotado'; return; }
+  if (_tienda.abierta === false) { btn.disabled = true; btn.textContent = 'Tienda en pausa'; return; }
   btn.disabled = false;
   btn.innerHTML = mas + 'Agregar al carrito — $' + p.precio + (c.quedan ? ' · quedan ' + c.quedan : '');
 }
@@ -6382,6 +6390,7 @@ const AET_ERR_COMPRA = {
 };
 function aetTextoErrorCompra(d) {
   if (!d) return 'No pudimos validar tu compra.';
+  if (d.error === 'tienda_cerrada') return _tienda.mensaje || 'La tienda está en pausa por el momento. Vuelve pronto.';
   if (d.error === 'cupon_minimo') return 'Este cupón requiere una compra mínima de $' + Number(d.minimo || 0).toLocaleString('es-MX') + '.';
   if (d.error === 'sin_stock') { const p = PRODUCTOS[d.id]; return 'No hay suficientes piezas de ' + (p ? p.nombre : 'ese producto') + (d.quedan != null ? ' (quedan ' + d.quedan + ')' : '') + '. Baja la cantidad e inténtalo de nuevo.'; }
   if (d.error === 'producto_invalido') { const p = PRODUCTOS[d.id]; return (p ? p.nombre : 'Ese producto') + ' ya no está disponible.'; }
@@ -6409,6 +6418,84 @@ function aetQuitarCupon() { cuponAplicado = { codigo: '', descuento: 0 }; const 
 let _cupTimer = null;
 function aetRevalidarCupon() { if (!cuponAplicado.codigo) return; clearTimeout(_cupTimer); _cupTimer = setTimeout(() => aetAplicarCupon(true), 350); }
 document.addEventListener('DOMContentLoaded', () => { aetCargarCatalogo(); });
+
+/* ============================================================
+   AJUSTES REMOTOS — aviso general, tienda en pausa y textos editables
+   desde el panel de administración. Con caché local y valores de
+   fábrica: sin conexión la app se ve igual que siempre.
+============================================================ */
+let _txtRemoto = {};
+function aetTxt(clave, defecto) { const v = _txtRemoto[clave]; return (typeof v === 'string' && v.trim()) ? v : defecto; }
+async function aetGetPublico(tabla, cols) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + tabla + '?select=' + cols, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+  if (!r.ok) throw new Error('get ' + r.status);
+  return r.json();
+}
+function aetPintarBanner(b) {
+  const el = document.getElementById('aetBanner'); if (!el) return;
+  const texto = b && b.activo && typeof b.texto === 'string' ? b.texto.trim() : '';
+  let cerrado = false; try { cerrado = sessionStorage.getItem('aet_banner_x') === texto; } catch (e) {}
+  if (!texto || cerrado) { el.hidden = true; el.textContent = ''; return; }
+  el.className = b.tipo === 'aviso' ? 'aviso' : b.tipo === 'promo' ? 'promo' : '';
+  el.textContent = texto;
+  const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Cerrar aviso'); x.textContent = '✕';
+  x.onclick = () => { try { sessionStorage.setItem('aet_banner_x', texto); } catch (e) {} el.hidden = true; };
+  el.appendChild(x); el.hidden = false;
+}
+function aetAplicarTextos() {
+  ['musculo', 'grasa', 'salud', 'mma'].forEach(k => {
+    if (typeof ONB_OBJ === 'undefined' || !ONB_OBJ[k]) return;
+    if (!ONB_OBJ[k].orig) ONB_OBJ[k].orig = [ONB_OBJ[k][1], ONB_OBJ[k][2]];
+    ONB_OBJ[k][1] = esc(aetTxt('onb.obj.' + k + '.t', ONB_OBJ[k].orig[0]));
+    ONB_OBJ[k][2] = esc(aetTxt('onb.obj.' + k + '.s', ONB_OBJ[k].orig[1]));
+  });
+  if (typeof HAB_SUGERIDOS === 'undefined') return;
+  HAB_SUGERIDOS.forEach(h => {
+    const raw = _txtRemoto['hab.' + h.id]; if (!raw) return;
+    try {
+      const j = JSON.parse(raw); if (!j || typeof j !== 'object') return;
+      if (j.n) h.n = String(j.n).slice(0, 60);
+      if (j.i) h.i = String(j.i).slice(0, 12);
+      if (typeof j.d === 'string') h.d = j.d.slice(0, 120);
+      if (h.t === 'n' && Number(j.meta) > 0) h.meta = Number(j.meta);
+      if (h.t === 'n' && j.u) h.u = String(j.u).slice(0, 12);
+      h.oculto = j.v === false && HAB_BASE.indexOf(h.id) < 0;
+    } catch (e) {}
+  });
+}
+async function aetCargarAjustes() {
+  try { const c = JSON.parse(localStorage.getItem('aet_ajustes_cache') || 'null'); if (c) { if (c.tienda) _tienda = c.tienda; _txtRemoto = c.textos || {}; aetPintarBanner(c.banner); aetAplicarTextos(); } } catch (e) {}
+  try {
+    const [aj, tx] = await Promise.all([aetGetPublico('ajustes_publicos', 'clave,valor'), aetGetPublico('textos_app', 'clave,valor,defecto')]);
+    const m = {}; (aj || []).forEach(a => { m[a.clave] = a.valor; });
+    const t = {}; (tx || []).forEach(a => { if (a.valor !== a.defecto) t[a.clave] = a.valor; });
+    if (m.tienda) _tienda = m.tienda;
+    _txtRemoto = t;
+    try { localStorage.setItem('aet_ajustes_cache', JSON.stringify({ banner: m.banner, tienda: m.tienda, textos: t })); } catch (e) {}
+    aetPintarBanner(m.banner); aetAplicarTextos();
+    if (typeof aetPintarCatalogo === 'function') aetPintarCatalogo();
+  } catch (e) { /* sin conexión: se quedan los valores guardados */ }
+}
+document.addEventListener('DOMContentLoaded', aetCargarAjustes);
+
+/* Uso de la app: eventos anónimos (sin nombre ni correo), uno por tipo y día */
+function aetEvento(tipo) {
+  try {
+    const hoy = new Date().toISOString().slice(0, 10);
+    let dev = localStorage.getItem('aet_dev');
+    if (!dev) { dev = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('aet_dev', dev); }
+    const k = 'aet_ev_' + hoy;
+    let hechos = []; try { hechos = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+    if (hechos.indexOf(tipo) >= 0) return;
+    hechos.push(tipo); localStorage.setItem(k, JSON.stringify(hechos));
+    Object.keys(localStorage).forEach(x => { if (x.indexOf('aet_ev_') === 0 && x !== k) localStorage.removeItem(x); });
+    aetRpcPublico('app_evento', { p_dev: dev, p_tipo: tipo }).catch(() => {});
+  } catch (e) {}
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone;
+  if (app) { aetEvento('abrir'); aetEvento('sec_inicio'); }
+});
 
 /* ============================================================
    ZONAS DE ENVÍO — BASADAS EN CP
@@ -6684,6 +6771,7 @@ async function procesarPago() {
 
   const items = Object.values(carrito).map(({ producto: p, cantidad }) => ({ id: p.id, qty: cantidad }));
   if (!items.length) return;
+  if (_tienda.abierta === false) { alert(aetTextoErrorCompra({ error: 'tienda_cerrada' })); return; }
 
   const btn = document.getElementById('btn-procesar-pago');
   const txt = btn.textContent;
@@ -6699,7 +6787,7 @@ async function procesarPago() {
     location.href = d.url;
   } catch (e) {
     btn.disabled = false; btn.textContent = txt;
-    if (e && e.datos && (AET_ERR_COMPRA[e.datos.error] || ['cupon_minimo', 'sin_stock', 'producto_invalido'].indexOf(e.datos.error) >= 0)) {
+    if (e && e.datos && (AET_ERR_COMPRA[e.datos.error] || ['cupon_minimo', 'sin_stock', 'producto_invalido', 'tienda_cerrada'].indexOf(e.datos.error) >= 0)) {
       alert(aetTextoErrorCompra(e.datos));
       if (/^cupon_/.test(e.datos.error)) aetQuitarCupon();
       aetCargarCatalogo();
@@ -7424,6 +7512,7 @@ function cambiarPantallaApp(pantalla, btn) {
   document.getElementById('app-screen-' + pantalla).classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
   btn.classList.add('activo');
+  aetEvento('sec_' + ({ perfil: 'progreso' }[pantalla] || pantalla));
   if (pantalla === 'inicio') renderDashboardApp();
   if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); }
   if (pantalla === 'nutricion') aetRenderNutri();
@@ -7694,6 +7783,7 @@ function aetMarcar(t) {
   a[h] = a[h] || [];
   if (!a[h].includes(t)) a[h].push(t);
   AET.guardar('aet_actividad', a);
+  if (t === 'e' && typeof aetEvento === 'function') aetEvento('entreno');
 }
 function aetRacha() {
   const a = AET.leer('aet_actividad', {});
@@ -8240,7 +8330,7 @@ function habArchivar(id) {
 }
 function habSugeridos() {
   const e = habCargar(), ids = new Set(e.lista.filter(h => !h.arch).map(h => h.id));
-  const sug = HAB_SUGERIDOS.filter(s => !ids.has(s.id)), arch = e.lista.filter(h => h.arch && !HAB_SUGERIDOS.some(s => s.id === h.id));
+  const sug = HAB_SUGERIDOS.filter(s => !ids.has(s.id) && !s.oculto), arch = e.lista.filter(h => h.arch && !HAB_SUGERIDOS.some(s => s.id === h.id));
   const fila = (s, accion) => `<div class="hab-item" onclick="${accion}"><span class="hab-i">${esc(s.i)}</span><div class="hab-t"><b>${esc(s.n)}${s.auto ? ' 🔸' : ''}</b><small>${esc(s.d || '')}</small></div><span class="hab-mas">＋</span></div>`;
   aetSheet('Hábitos sugeridos', (sug.length || arch.length ? sug.map(s => fila(s, `habAgregarSug('${s.id}')`)).join('') + arch.map(h => fila({ i: h.i, n: h.n, d: 'Archivado · toca para restaurar' }, `habRestaurar('${h.id}')`)).join('') : '<p class="aet-nota">Ya tienes todos los sugeridos. Crea los tuyos con “＋ Crear hábito”.</p>') + '<p class="aet-nota">🔸 Automático: se marca solo al registrar tu actividad en la app.</p>');
 }
@@ -8444,7 +8534,7 @@ function aetOnbNuevo() {
 }
 function aetOnbCard() {
   if (AET.leer('aet_inicio', null) || !aetOnbNuevo()) return '';
-  return `<div class="aet-panel onb-card"><div class="aet-panel-t"><span>👋 Configura tu app en 1 minuto</span><button class="lnk" onclick="aetOnbSaltar()" aria-label="Ahora no">✕</button></div><p class="aet-nota" style="margin:0 0 .8rem">Te sugerimos programa, hábitos y recordatorios según tu objetivo. Puedes saltarlo y hacerlo después desde Más.</p><div class="aet-fila"><button class="aet-btn" onclick="aetOnb(true)">Empezar</button><button class="aet-btn sec" onclick="aetOnbSaltar()">Ahora no</button></div></div>`;
+  return `<div class="aet-panel onb-card"><div class="aet-panel-t"><span>${esc(aetTxt('onb.card.titulo', '👋 Configura tu app en 1 minuto'))}</span><button class="lnk" onclick="aetOnbSaltar()" aria-label="Ahora no">✕</button></div><p class="aet-nota" style="margin:0 0 .8rem">${esc(aetTxt('onb.card.texto', 'Te sugerimos programa, hábitos y recordatorios según tu objetivo. Puedes saltarlo y hacerlo después desde Más.'))}</p><div class="aet-fila"><button class="aet-btn" onclick="aetOnb(true)">Empezar</button><button class="aet-btn sec" onclick="aetOnbSaltar()">Ahora no</button></div></div>`;
 }
 function aetOnbSaltar() { AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() }); aetToast('Cuando quieras: Más → Configuración inicial'); renderDashboardApp(); }
 function aetOnbPrograma() {
@@ -8458,7 +8548,7 @@ function aetOnb(reiniciar) {
   if (reiniciar === true) _onb = { paso: 1, obj: null, sexo: null, dias: null, nivel: null };
   const o = _onb, op = (clave, ico, tit, sub, sel, fn) => `<div class="hab-item ${sel ? 'ok' : ''}" onclick="${fn}"><span class="hab-i">${ico}</span><div class="hab-t"><b>${tit}</b><small>${sub}</small></div><span class="hab-chk">✓</span></div>`;
   if (o.paso === 1) {
-    aetSheet('Configuración inicial · 1 de 3', `<p class="aet-nota" style="margin-top:0">¿Cuál es tu objetivo principal?</p>${Object.keys(ONB_OBJ).map(k => op(k, ONB_OBJ[k][0], ONB_OBJ[k][1], ONB_OBJ[k][2], o.obj === k, `aetOnbElegir('obj','${k}')`)).join('')}
+    aetSheet('Configuración inicial · 1 de 3', `<p class="aet-nota" style="margin-top:0">${esc(aetTxt('onb.paso1.pregunta', '¿Cuál es tu objetivo principal?'))}</p>${Object.keys(ONB_OBJ).map(k => op(k, ONB_OBJ[k][0], ONB_OBJ[k][1], ONB_OBJ[k][2], o.obj === k, `aetOnbElegir('obj','${k}')`)).join('')}
       <button class="aet-btn sec" style="margin-top:.6rem" onclick="aetOnbFin(false)">Saltar la configuración</button>`);
     return;
   }
