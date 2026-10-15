@@ -2513,6 +2513,22 @@
     .rec-macros { display: flex; gap: .9rem; font-family: var(--font-ui); font-size: 11px; color: var(--blanco); }
     .rec-macros i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .3rem; }
     .rec-add { width: 100%; margin-top: 1rem; border: none; border-radius: 10px; padding: .75rem; color: #111; font-family: var(--font-ui); font-weight: 700; font-size: 13px; cursor: pointer; }
+    .tour-capa { position: fixed; inset: 0; z-index: 3500; background: transparent; }
+    .tour-capa.centro { background: rgba(0,0,0,.82); }
+    .tour-foco { position: fixed; z-index: 3501; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.8); border: 2px solid var(--oro); pointer-events: none; transition: top .2s, left .2s, width .2s, height .2s; }
+    .tour-caja { position: fixed; left: 12px; right: 12px; z-index: 3502; max-width: 460px; margin: 0 auto; background: #141414; border: 1px solid var(--oro); border-radius: 16px; padding: 1rem 1rem .9rem; color: var(--blanco); box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+    .tour-caja h4 { margin: 0 0 .35rem; font-size: 1.05rem; }
+    .tour-caja p { margin: 0 0 .8rem; font-size: .9rem; line-height: 1.45; color: #d6d6d6; }
+    .tour-caja .tour-pie { display: flex; align-items: center; gap: .5rem; }
+    .tour-caja .tour-pie .aet-btn { width: auto; flex: 1; }
+    .tour-caja .tour-n { font-size: 12px; color: var(--gris); margin-bottom: .4rem; display: flex; justify-content: space-between; }
+    .tour-caja .tour-x { background: none; border: 0; color: var(--gris); font-size: 12px; cursor: pointer; padding: .3rem; }
+    .tour-barra { height: 3px; background: #2a2a2a; border-radius: 3px; overflow: hidden; margin-bottom: .6rem; }
+    .tour-barra i { display: block; height: 100%; background: var(--oro); }
+    .perfil-lista .pl-fila { display: flex; align-items: center; gap: .6rem; padding: .55rem 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .perfil-lista .pl-fila b { flex: 1; font-weight: 600; font-size: .9rem; }
+    .perfil-lista .pl-fila small { display: block; color: var(--gris); font-weight: 400; font-size: .75rem; }
+    .perfil-lista .pl-ok { color: #3ecf8e; }
     .aet-toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 4000; background: #1b1b1b; border: 1px solid var(--oro); color: var(--blanco); font-family: var(--font-ui); font-size: 13px; padding: .6rem 1rem; border-radius: 24px; max-width: 90%; text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
     .aet-pr { color: #ffd54a; font-weight: 700; }
     /* ===== MODO SESIÓN (entrenamiento guiado) ===== */
@@ -2724,9 +2740,13 @@
       <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
       <div class="app-card-desc">Elige qué avisos quieres y a qué hora. Máximo uno al día.</div>
     </button>
-    <button class="app-card" onclick="aetOnb(true)">
-      <div class="app-card-top"><span class="app-card-titulo">⚙ Configuración inicial</span><span class="app-card-meta">1 minuto</span></div>
-      <div class="app-card-desc">Programa, hábitos y recordatorios según tu objetivo. Puedes repetirla cuando quieras.</div>
+    <button class="app-card continuar" onclick="aetPerfilVer()">
+      <div class="app-card-top"><span class="app-card-titulo">👤 Mi perfil</span><span class="app-card-meta" id="appPerfilMeta">Completar</span></div>
+      <div class="app-card-desc">Tus datos, metas y lo que falta para dejar la app lista para ti. Puedes cambiarlo cuando quieras.</div>
+    </button>
+    <button class="app-card" onclick="aetTour()">
+      <div class="app-card-top"><span class="app-card-titulo">🧭 Recorrido por la app</span><span class="app-card-meta">2 minutos</span></div>
+      <div class="app-card-desc">Te muestro cada sección y para qué sirve. Puedes repetirlo cuando quieras.</div>
     </button>
     <button class="app-card" onclick="aetIr('habitos')">
       <div class="app-card-top"><span class="app-card-titulo">🌱 Mis hábitos</span><span class="app-card-meta">Marcar y ver progreso</span></div>
@@ -7498,7 +7518,7 @@ function detectarModoApp() {
   document.body.classList.toggle('modo-app', esStandalone);
   if (esStandalone) {
     const h = new Date().getHours();
-    document.getElementById('appSaludo').textContent = (h < 12 ? 'Buenos días 👋' : h < 19 ? 'Buenas tardes 👋' : 'Buenas noches 👋');
+    aetSaludo();
     aetRefrescar();
     renderPerfilResumenApp();
     const irParam = new URLSearchParams(location.search).get('ir');
@@ -7719,10 +7739,11 @@ const AET_AGUA_OPC = {
   alt: { b: ['Menos de 1,000 m', 0], m: ['1,000 – 2,000 m', 700], a: ['Más de 2,000 m', 1100] },
   estado: { n: ['Ninguno', 0], e: ['Embarazo', 240], l: ['Lactancia', 560] },
 };
-function aetAguaAuto() {
-  const pl = aetPlanNutri(), pr = aetPrograma(), cfg = AET.leer('aet_perfil_agua', {});
-  const sexo = pl && pl.sexo ? pl.sexo : (pr ? (pr.tipo === 'm5' ? 'F' : (['entrenamiento', 'h3'].includes(pr.tipo) ? 'M' : null)) : null);
-  const ps = AET.pesos(), peso = ps.length ? ps[ps.length - 1].peso : (pl && pl.peso) || null;
+function aetAguaAuto(ov) {
+  ov = ov || {};
+  const pl = aetPlanNutri(), pr = aetPrograma(), cfg = ov.cfg || AET.leer('aet_perfil_agua', {}), sp = ov.sexo !== undefined ? ov.sexo : cfg.sexo;
+  const sexo = pl && pl.sexo ? pl.sexo : (sp === 'H' ? 'M' : sp === 'M' ? 'F' : (pr ? (pr.tipo === 'm5' ? 'F' : (['entrenamiento', 'h3'].includes(pr.tipo) ? 'M' : null)) : null));
+  const ps = AET.pesos(), peso = ov.peso || (ps.length ? ps[ps.length - 1].peso : (pl && pl.peso) || null);
   const lim = (v, a, b) => Math.max(a, Math.min(b, v));
   const base = Math.round((sexo === 'M' ? 2500 : sexo === 'F' ? 2000 : 2250) * 0.8);
   const f = [['base ' + (sexo === 'M' ? 'hombre' : sexo === 'F' ? 'mujer' : 'promedio') + ' (EFSA)', base]];
@@ -7737,13 +7758,22 @@ function aetAguaAuto() {
   const fuente = f.map(x => x[0] + (x === f[0] ? ' ' + (x[1] / 1000).toFixed(1) + ' L' : ' ' + (x[1] > 0 ? '+' : '') + x[1] + ' ml')).join(' · ');
   return { vasos: Math.ceil(ml / 250), ml, fuente };
 }
+/* Calorías estimadas (Mifflin-St Jeor, 1990) x factor de actividad según días de entreno, ajustadas al objetivo. Es una referencia, no una prescripción. */
+function aetKcalEstimado(sexo, edad, altura, peso, dias, obj) {
+  if (!(peso > 0 && altura > 0 && edad > 0) || (sexo !== 'H' && sexo !== 'M')) return null;
+  const bmr = 10 * peso + 6.25 * altura - 5 * edad + (sexo === 'H' ? 5 : -161);
+  const f = dias >= 6 ? 1.725 : dias >= 4 ? 1.55 : dias >= 2 ? 1.375 : 1.2;
+  const aj = obj === 'grasa' ? 0.8 : obj === 'musculo' ? 1.1 : 1;
+  return Math.max(1200, Math.round(bmr * f * aj / 50) * 50);
+}
 function aetMetasAuto() {
   const pr = aetPrograma(), pl = aetPlanNutri(), ps = AET.pesos(), peso = ps.length ? ps[ps.length - 1].peso : null;
+  const pf = aetPerfil(), kEst = pl ? null : aetKcalEstimado(pf.sexo, pf.edad, aetAlturaActual(), peso, pr ? pr.dias : 3, (AET.leer('aet_inicio', {}) || {}).obj);
   const ag = aetAguaAuto();
   return {
     agua: ag.vasos, fAgua: ag.fuente + ' = ' + ag.ml + ' ml (' + ag.vasos + ' vasos de 250 ml)',
     entrenos: pr ? pr.dias : 3, fEntrenos: pr ? 'según tu rutina: ' + pr.n : 'referencia general (OMS: al menos 2 días de fuerza por semana; 3 es un buen punto de partida)',
-    kcal: pl ? pl.kcal : 2000, fKcal: pl ? 'según tu plan de Nutrición' : 'referencia general: calcula tu plan en Nutrición',
+    kcal: pl ? pl.kcal : (kEst || 2000), fKcal: pl ? 'según tu plan de Nutrición' : (kEst ? 'estimación con tus datos y tu objetivo (Mifflin-St Jeor); calcula tu plan en Nutrición para afinarla' : 'referencia general: completa tu perfil o calcula tu plan en Nutrición'),
     prot: pl && pl.prot ? pl.prot : (peso ? Math.round(peso * 1.6) : 120),
     fProt: pl && pl.prot ? 'según tu plan de Nutrición' : (peso ? '1.6 g por kg de tu peso (Morton 2018)' : 'referencia general: registra tu peso'),
   };
@@ -7868,7 +7898,7 @@ function aetFormMetas() {
 function aetGuardarMetas() {
   const v = (id, a, b) => { const n = AET.num(document.getElementById(id).value); return n != null && n >= a && n <= b ? Math.round(n) : null; };
   const aguaAntes = AET.metas().agua, ovAgua = AET.leer('aet_metas', {}).agua;
-  AET.guardar('aet_perfil_agua', { clima: document.getElementById('aetPc').value, alt: document.getElementById('aetPa').value, estado: document.getElementById('aetPe').value });
+  AET.guardar('aet_perfil_agua', Object.assign({}, aetPerfil(), { clima: document.getElementById('aetPc').value, alt: document.getElementById('aetPa').value, estado: document.getElementById('aetPe').value }));
   const a = aetMetasAuto(), nuevo = { kcal: v('aetMk', 500, 10000), prot: v('aetMp', 10, 500), entrenos: v('aetMe', 1, 7), agua: v('aetMa', 1, 30) };
   const g = {};
   if (nuevo.kcal != null && nuevo.kcal !== a.kcal) g.kcal = nuevo.kcal;
@@ -8528,15 +8558,40 @@ function aetResumenOcultar(off) { try { localStorage.setItem('aet_res_visto', ae
 ============================================================ */
 const ONB_OBJ = { musculo: ['💪', 'Ganar músculo y fuerza', 'Programa de gym con progresión de cargas'], grasa: ['🔥', 'Perder grasa', 'Entreno + hábitos de pasos y comidas'], salud: ['🌿', 'Salud y energía', 'Constancia, sueño y bienestar'], mma: ['🥊', 'Rendimiento en combate (MMA)', 'Programa de 16 semanas por niveles'] };
 const ONB_EXTRAS = { musculo: ['suple'], grasa: ['sol'], salud: ['respirar', 'sol', 'pantallas'], mma: ['movilidad', 'suple'] };
-let _onb = { paso: 1, obj: null, sexo: null, dias: null, nivel: null };
+let _onb = { paso: 1 };
+const ONB_TOTAL = 6;
+function aetPerfil() { const p = AET.leer('aet_perfil_agua', {}); return p && typeof p === 'object' && !Array.isArray(p) ? p : {}; }
+function aetPerfilGuardar(o) { AET.guardar('aet_perfil_agua', Object.assign({}, aetPerfil(), o)); }
+function aetAlturaActual() {
+  const h = AET.leer('medidas_historial', []).filter(m => m && m.altura > 0).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).pop();
+  return h ? h.altura : (aetPerfil().altura || null);
+}
+function aetMedidasHoy(peso, altura) {
+  const hist = AET.leer('medidas_historial', []), f = AET.hoy(), i = hist.findIndex(m => m.fecha === f);
+  if (i >= 0) { if (peso) hist[i].peso = peso; if (altura) hist[i].altura = altura; }
+  else {
+    const ult = hist.slice().sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-1)[0] || {};
+    const e = {}; Object.keys(ult).forEach(k => e[k] = null);
+    e.fecha = f; e.peso = peso || null; e.altura = altura || (ult.altura != null ? ult.altura : null);
+    hist.push(e);
+  }
+  hist.sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)));
+  AET.guardar('medidas_historial', hist);
+  try { medidasHistorial = hist; } catch (e) {}
+}
+function aetSaludo() {
+  const el = document.getElementById('appSaludo'); if (!el) return;
+  const h = new Date().getHours(), n = String(aetPerfil().nombre || '').trim();
+  el.textContent = (h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches') + (n ? ', ' + n : '') + ' 👋';
+}
 function aetOnbNuevo() {
   return !aetPrograma() && !Object.keys(AET.leer('aet_actividad', {})).length && !AET.pesos().length && !AET.leer('aet_log_entreno', []).length;
 }
 function aetOnbCard() {
   if (AET.leer('aet_inicio', null) || !aetOnbNuevo()) return '';
-  return `<div class="aet-panel onb-card"><div class="aet-panel-t"><span>${esc(aetTxt('onb.card.titulo', '👋 Configura tu app en 1 minuto'))}</span><button class="lnk" onclick="aetOnbSaltar()" aria-label="Ahora no">✕</button></div><p class="aet-nota" style="margin:0 0 .8rem">${esc(aetTxt('onb.card.texto', 'Te sugerimos programa, hábitos y recordatorios según tu objetivo. Puedes saltarlo y hacerlo después desde Más.'))}</p><div class="aet-fila"><button class="aet-btn" onclick="aetOnb(true)">Empezar</button><button class="aet-btn sec" onclick="aetOnbSaltar()">Ahora no</button></div></div>`;
+  return `<div class="aet-panel onb-card"><div class="aet-panel-t"><span>${esc(aetTxt('onb.card.titulo', '👋 Configura tu app en 1 minuto'))}</span><button class="lnk" onclick="aetOnbSaltar()" aria-label="Ahora no">✕</button></div><p class="aet-nota" style="margin:0 0 .8rem">${esc(aetTxt('onb.card.texto', 'Te sugerimos programa, hábitos y recordatorios según tu objetivo. Puedes saltarlo y hacerlo después desde Más.'))}</p><div class="aet-fila"><button class="aet-btn" onclick="aetOnb(true)">Empezar</button><button class="aet-btn sec" onclick="aetTour()">Ver recorrido</button></div><button class="lnk" style="margin-top:.6rem" onclick="aetOnbSaltar()">Ahora no</button></div>`;
 }
-function aetOnbSaltar() { AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() }); aetToast('Cuando quieras: Más → Configuración inicial'); renderDashboardApp(); }
+function aetOnbSaltar() { AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() }); aetToast('Cuando quieras: Más → Mi perfil'); renderDashboardApp(); }
 function aetOnbPrograma() {
   const o = _onb;
   if (o.obj === 'mma') return o.nivel ? { principiante: 'mma1', intermedio: 'mma2', avanzado: 'mma3' }[o.nivel] : null;
@@ -8544,55 +8599,262 @@ function aetOnbPrograma() {
   if (o.sexo === 'M') return 'm5';
   return o.dias === 3 ? 'h3' : 'entrenamiento';
 }
+function aetOnbIniciar() {
+  const p = aetPerfil(), ini = AET.leer('aet_inicio', null) || {}, ps = AET.pesos(), mm = AET.leer('medidas_meta', {}) || {}, pr = aetPrograma();
+  _onb = {
+    paso: 1, obj: ini.obj || p.obj || null, nombre: p.nombre || '', sexo: p.sexo || (pr ? (pr.tipo === 'm5' ? 'M' : ['entrenamiento', 'h3'].includes(pr.tipo) ? 'H' : null) : null),
+    edad: p.edad || '', altura: aetAlturaActual() || '', peso: ps.length ? ps[ps.length - 1].peso : '', meta: mm.peso || '',
+    dias: p.dias || (pr && pr.dias <= 3 ? 3 : pr ? 5 : null), nivel: p.nivel || null, clima: p.clima || 't', alt: p.alt || 'b', estado: p.estado || 'n'
+  };
+}
+function aetOnbLeer() {
+  const o = _onb, g = id => document.getElementById(id);
+  if (o.paso === 1 && g('onbNombre')) o.nombre = g('onbNombre').value.trim().slice(0, 30);
+  if (o.paso === 2 && g('onbEdad')) { o.edad = g('onbEdad').value; o.altura = g('onbAlt').value; o.peso = g('onbPeso').value; o.meta = g('onbMeta').value; }
+  if (o.paso === 4 && g('onbClima')) { o.clima = g('onbClima').value; o.alt = g('onbAlt2').value; o.estado = g('onbEst') ? g('onbEst').value : 'n'; }
+}
+function aetOnbValida() {
+  const o = _onb, n = (v, a, b) => { if (v === '' || v == null) return true; const x = AET.num(v); return x != null && x >= a && x <= b; };
+  if (o.paso === 1 && !o.obj) return 'Elige tu objetivo principal';
+  if (o.paso === 2) {
+    if (!o.sexo) return 'Elige una opción en «Tu programa se arma para»';
+    if (!n(o.edad, 14, 90)) return 'La edad debe estar entre 14 y 90 años';
+    if (!n(o.altura, 120, 230)) return 'La estatura debe estar entre 120 y 230 cm';
+    if (!n(o.peso, 30, 300)) return 'El peso debe estar entre 30 y 300 kg';
+    if (!n(o.meta, 30, 300)) return 'El peso meta debe estar entre 30 y 300 kg';
+  }
+  return '';
+}
 function aetOnb(reiniciar) {
-  if (reiniciar === true) _onb = { paso: 1, obj: null, sexo: null, dias: null, nivel: null };
-  const o = _onb, op = (clave, ico, tit, sub, sel, fn) => `<div class="hab-item ${sel ? 'ok' : ''}" onclick="${fn}"><span class="hab-i">${ico}</span><div class="hab-t"><b>${tit}</b><small>${sub}</small></div><span class="hab-chk">✓</span></div>`;
+  if (reiniciar === true) aetOnbIniciar();
+  const o = _onb, T = ONB_TOTAL, tit = 'Tu perfil · ' + o.paso + ' de ' + T;
+  const op = (clave, ico, t, sub, sel, fn) => `<div class="hab-item ${sel ? 'ok' : ''}" onclick="${fn}"><span class="hab-i">${ico}</span><div class="hab-t"><b>${t}</b><small>${sub}</small></div><span class="hab-chk">✓</span></div>`;
+  const nav = (atras, sig, txt) => `<div class="aet-fila" style="margin-top:1rem">${atras ? `<button class="aet-btn sec mini" onclick="aetOnbPaso(${o.paso - 1})">← Atrás</button>` : ''}<button class="aet-btn" onclick="aetOnbPaso(${sig})">${txt || 'Continuar'}</button></div><button class="lnk" style="margin-top:.5rem" onclick="aetOnbFin(false)">Saltar la configuración</button>`;
+  const val = v => esc(v == null ? '' : v);
   if (o.paso === 1) {
-    aetSheet('Configuración inicial · 1 de 3', `<p class="aet-nota" style="margin-top:0">${esc(aetTxt('onb.paso1.pregunta', '¿Cuál es tu objetivo principal?'))}</p>${Object.keys(ONB_OBJ).map(k => op(k, ONB_OBJ[k][0], ONB_OBJ[k][1], ONB_OBJ[k][2], o.obj === k, `aetOnbElegir('obj','${k}')`)).join('')}
-      <button class="aet-btn sec" style="margin-top:.6rem" onclick="aetOnbFin(false)">Saltar la configuración</button>`);
+    aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Así personalizamos tu app. Todo se guarda en tu dispositivo y puedes cambiarlo después en Más → Mi perfil.</p>
+      <label class="aet-lbl">¿Cómo te llamamos? (opcional)</label><input class="aet-in" id="onbNombre" maxlength="30" autocomplete="given-name" value="${val(o.nombre)}" placeholder="Tu nombre o apodo">
+      <p class="aet-nota" style="margin:1rem 0 .4rem"><b style="color:var(--blanco)">${esc(aetTxt('onb.paso1.pregunta', '¿Cuál es tu objetivo principal?'))}</b></p>${Object.keys(ONB_OBJ).map(k => op(k, ONB_OBJ[k][0], ONB_OBJ[k][1], ONB_OBJ[k][2], o.obj === k, `aetOnbElegir('obj','${k}')`)).join('')}
+      ${nav(false, 2)}`);
     return;
   }
   if (o.paso === 2) {
-    const mma = o.obj === 'mma', prog = aetOnbPrograma();
-    aetSheet('Configuración inicial · 2 de 3', (mma ? `<p class="aet-nota" style="margin-top:0">¿Cuánta experiencia tienes entrenando?</p>
-      ${[['principiante', '🌱', 'Principiante', 'Menos de 1 año'], ['intermedio', '⚡', 'Intermedio', '1 a 3 años'], ['avanzado', '🔥', 'Avanzado', 'Más de 3 años']].map(([k, i, t, s]) => op(k, i, t, s, o.nivel === k, `aetOnbElegir('nivel','${k}')`)).join('')}`
-      : `<p class="aet-nota" style="margin-top:0">Para sugerirte el programa de gym:</p>
+    aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Con esto calculamos tus metas de calorías, proteína y agua, y sugerimos tu programa. Solo tú los ves.</p>
       <div class="aet-lbl">Tu programa se arma para</div><div class="hab-chips"><button class="hab-chip ${o.sexo === 'H' ? 'on' : ''}" onclick="aetOnbElegir('sexo','H')">Hombre</button><button class="hab-chip ${o.sexo === 'M' ? 'on' : ''}" onclick="aetOnbElegir('sexo','M')">Mujer</button></div>
-      <div class="aet-lbl">Días por semana que puedes entrenar</div><div class="hab-chips"><button class="hab-chip ${o.dias === 3 ? 'on' : ''}" onclick="aetOnbElegir('dias',3)">3 días</button><button class="hab-chip ${o.dias === 5 ? 'on' : ''}" onclick="aetOnbElegir('dias',5)">4 o 5 días</button></div>
-      ${o.sexo === 'M' ? '<p class="aet-nota">Para mujer hoy hay un programa de 5 días por semana.</p>' : ''}`)
-      + `<p class="aet-nota">${prog ? 'Te sugerimos: <b style="color:var(--blanco)">' + AET_PROG_NOM[prog] + '</b>' : ''}</p>
-      <div class="aet-fila" style="margin-top:.8rem"><button class="aet-btn sec mini" onclick="aetOnbPaso(1)">← Atrás</button><button class="aet-btn" onclick="aetOnbPaso(3)">${prog ? 'Continuar' : 'Continuar sin programa'}</button></div>`);
+      <div class="aet-fila"><div><label class="aet-lbl">Edad</label><input class="aet-in" id="onbEdad" type="number" inputmode="numeric" value="${val(o.edad)}" placeholder="años"></div>
+      <div><label class="aet-lbl">Estatura (cm)</label><input class="aet-in" id="onbAlt" type="number" inputmode="decimal" value="${val(o.altura)}" placeholder="175"></div></div>
+      <div class="aet-fila"><div><label class="aet-lbl">Peso actual (kg)</label><input class="aet-in" id="onbPeso" type="number" inputmode="decimal" step="0.1" value="${val(o.peso)}" placeholder="75"></div>
+      <div><label class="aet-lbl">Peso meta (opcional)</label><input class="aet-in" id="onbMeta" type="number" inputmode="decimal" step="0.1" value="${val(o.meta)}" placeholder="72"></div></div>
+      ${nav(true, 3)}`);
     return;
   }
-  const prog = aetOnbPrograma(), extras = (ONB_EXTRAS[o.obj] || []).map(id => HAB_SUGERIDOS.find(s => s.id === id)).filter(Boolean);
-  aetSheet('Configuración inicial · 3 de 3', `<p class="aet-nota" style="margin-top:0">Esto es lo que vamos a dejar listo (todo se puede cambiar después):</p>
+  if (o.paso === 3) {
+    const mma = o.obj === 'mma', prog = aetOnbPrograma();
+    aetSheet(tit, (mma ? `<p class="aet-nota" style="margin-top:0">¿Cuánta experiencia tienes entrenando?</p>
+      ${[['principiante', '🌱', 'Principiante', 'Menos de 1 año'], ['intermedio', '⚡', 'Intermedio', '1 a 3 años'], ['avanzado', '🔥', 'Avanzado', 'Más de 3 años']].map(([k, i, t, s]) => op(k, i, t, s, o.nivel === k, `aetOnbElegir('nivel','${k}')`)).join('')}`
+      : `<p class="aet-nota" style="margin-top:0">Para sugerirte el programa de gym:</p>
+      <div class="aet-lbl">Días por semana que puedes entrenar</div><div class="hab-chips"><button class="hab-chip ${o.dias === 3 ? 'on' : ''}" onclick="aetOnbElegir('dias',3)">3 días</button><button class="hab-chip ${o.dias === 5 ? 'on' : ''}" onclick="aetOnbElegir('dias',5)">4 o 5 días</button></div>
+      ${o.sexo === 'M' ? '<p class="aet-nota">Para mujer hoy hay un programa de 5 días por semana.</p>' : ''}`)
+      + `<p class="aet-nota">${prog ? 'Te sugerimos: <b style="color:var(--blanco)">' + AET_PROG_NOM[prog] + '</b>. Los programas guiados día por día son parte de Premium; lo demás de la app es gratis.' : 'Si aún no lo sabes, sigue: podrás elegirlo en Entrenar.'}</p>` + nav(true, 4));
+    return;
+  }
+  if (o.paso === 4) {
+    const O = AET_AGUA_OPC, sel = (id, d, cur) => `<select class="aet-in" id="${id}">${Object.entries(d).map(([k, v]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${esc(v[0])}</option>`).join('')}</select>`;
+    aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Tu meta de agua depende de dónde vives. Esto la ajusta (calor y altura piden más agua).</p>
+      <label class="aet-lbl">Tu clima</label>${sel('onbClima', O.clima, o.clima)}
+      <label class="aet-lbl">Altitud donde vives</label>${sel('onbAlt2', O.alt, o.alt)}
+      ${o.sexo === 'M' ? `<label class="aet-lbl">Embarazo o lactancia</label>${sel('onbEst', O.estado, o.estado)}` : ''}
+      ${nav(true, 5)}`);
+    return;
+  }
+  if (o.paso === 5) {
+    const peso = AET.num(o.peso) || (AET.pesos().slice(-1)[0] || {}).peso || null, alt = AET.num(o.altura) || aetAlturaActual(), prog = aetOnbPrograma();
+    const dias = prog ? AET_PROGRAMAS[prog].dias : (o.dias === 3 ? 3 : o.dias === 5 ? 5 : 3);
+    const kcal = aetKcalEstimado(o.sexo, AET.num(o.edad), alt, peso, dias, o.obj), ag = aetAguaAuto({ cfg: { clima: o.clima, alt: o.alt, estado: o.estado }, sexo: o.sexo, peso });
+    const extras = (ONB_EXTRAS[o.obj] || []).map(id => HAB_SUGERIDOS.find(s => s.id === id)).filter(Boolean);
+    aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Estas son tus metas diarias de partida. Son estimaciones para adultos sanos, no una prescripción, y las puedes ajustar en Nutrición → Metas ⚙.</p>
+      <div class="res-lista">
+        <div class="res-fila"><span>🔥 Calorías</span><b>${kcal ? kcal + ' kcal' : 'Faltan datos (edad, estatura, peso)'}</b></div>
+        <div class="res-fila"><span>🥩 Proteína</span><b>${peso ? Math.round(peso * 1.6) + ' g' : 'Falta tu peso'}</b></div>
+        <div class="res-fila"><span>💧 Agua</span><b>${ag.vasos} vasos (${(ag.ml / 1000).toFixed(1)} L)</b></div>
+        <div class="res-fila"><span>🏋️ Entrenos</span><b>${dias} por semana</b></div>
+      </div>
+      <p class="aet-nota" style="margin-top:.8rem">🌱 Dejaremos listos tus hábitos: los 5 básicos${extras.length ? ' + ' + extras.map(x => esc(x.i + ' ' + x.n)).join(', ') : ''}.</p>
+      ${nav(true, 6)}`);
+    return;
+  }
+  const prog = aetOnbPrograma();
+  aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Esto es lo que vamos a dejar listo (todo se puede cambiar después):</p>
     <div class="res-lista">
+      <div class="res-fila"><span>👤 Perfil</span><b>${esc(o.nombre || 'Sin nombre')} · ${o.sexo === 'M' ? 'Mujer' : 'Hombre'}${AET.num(o.edad) ? ' · ' + Math.round(AET.num(o.edad)) + ' años' : ''}</b></div>
+      <div class="res-fila"><span>⚖ Medidas</span><b>${AET.num(o.peso) ? AET.num(o.peso) + ' kg' : '—'}${AET.num(o.altura) ? ' · ' + AET.num(o.altura) + ' cm' : ''}${AET.num(o.meta) ? ' · meta ' + AET.num(o.meta) + ' kg' : ''}</b></div>
       <div class="res-fila"><span>🏋️ Programa</span><b>${prog ? AET_PROG_NOM[prog] : 'Lo eliges tú después'}</b></div>
-      <div class="res-fila"><span>🌱 Hábitos</span><b>Los 5 básicos${extras.length ? ' + ' + extras.map(x => esc(x.i)).join(' ') : ''}</b></div>
+      <div class="res-fila"><span>🌱 Hábitos</span><b>Básicos + sugeridos para tu objetivo</b></div>
       <div class="res-fila"><span>🔔 Recordatorios</span><b>Tú decides (máx. 1 al día)</b></div>
     </div>
-    <button class="aet-btn" style="margin-top:1rem" onclick="aetOnbFin(true)">Dejarlo listo</button>
-    <div class="aet-fila" style="margin-top:.6rem"><button class="aet-btn sec mini" onclick="aetOnbPaso(2)">← Atrás</button><button class="aet-btn sec mini" onclick="aetOnbFin(false)">Saltar</button></div>`);
+    <p class="aet-nota" style="margin-top:.8rem">Después te enseño la app completa en un recorrido corto, y puedes crear tu cuenta gratis para guardar todo en la nube y activar recordatorios.</p>
+    <button class="aet-btn" style="margin-top:.6rem" onclick="aetOnbFin(true)">Dejarlo listo</button>
+    <div class="aet-fila" style="margin-top:.6rem"><button class="aet-btn sec mini" onclick="aetOnbPaso(5)">← Atrás</button><button class="aet-btn sec mini" onclick="aetOnbFin(false)">Saltar</button></div>`);
 }
-function aetOnbPaso(n) { _onb.paso = n; aetOnb(); }
-function aetOnbElegir(k, v) { _onb[k] = v; if (k === 'obj') _onb.paso = 2; aetOnb(); }
+function aetOnbPaso(n) {
+  const antes = _onb.paso; aetOnbLeer();
+  if (n > antes) { const e = aetOnbValida(); if (e) { aetToast(e); return; } }
+  _onb.paso = n; aetOnb();
+}
+function aetOnbElegir(k, v) { aetOnbLeer(); _onb[k] = v; aetOnb(); }
 function aetOnbFin(aplicar) {
   const o = _onb;
   if (aplicar) {
+    aetOnbLeer();
+    const e = aetOnbValida(); if (e) { aetToast(e); return; }
     const prog = aetOnbPrograma(); if (prog) AET.guardar('aet_programa', { tipo: prog });
-    const e = habCargar();
+    const num = AET.num;
+    aetPerfilGuardar({ nombre: o.nombre || null, sexo: o.sexo || null, edad: num(o.edad) ? Math.round(num(o.edad)) : null, altura: num(o.altura) || null, obj: o.obj || null, dias: o.dias || null, nivel: o.nivel || null, clima: o.clima, alt: o.alt, estado: o.sexo === 'M' ? o.estado : 'n' });
+    if (num(o.peso) || num(o.altura)) { aetMedidasHoy(num(o.peso), num(o.altura)); if (num(o.peso)) aetMarcar('m'); }
+    if (num(o.meta)) { const mm = Object.assign({}, AET.leer('medidas_meta', {}) || {}, { peso: num(o.meta) }); AET.guardar('medidas_meta', mm); try { medidasMeta = mm; } catch (er) {} }
+    const h = habCargar();
     (ONB_EXTRAS[o.obj] || []).forEach(id => {
       const s = HAB_SUGERIDOS.find(x => x.id === id); if (!s) return;
-      const prev = e.lista.find(h => h.id === id);
-      if (prev) { if (prev.arch) { prev.arch = false; prev.m = Date.now(); } } else if (habActivos(e).length < 30) e.lista.push(habNuevoDeSugerido(s, e.lista.length));
+      const prev = h.lista.find(x => x.id === id);
+      if (prev) { if (prev.arch) { prev.arch = false; prev.m = Date.now(); } } else if (habActivos(h).length < 30) h.lista.push(habNuevoDeSugerido(s, h.lista.length));
     });
-    AET.guardar('aet_habitos', e);
+    AET.guardar('aet_habitos', h);
     AET.guardar('aet_inicio', { estado: 'hecho', fecha: AET.hoy(), obj: o.obj || null });
-    aetCerrar(); aetRefrescar(); aetToast('✓ Listo. Puedes cambiar todo cuando quieras');
+    aetSaludo(); aetRefrescar(); aetOnbListo();
   } else {
-    AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() });
-    aetCerrar(); aetRefrescar(); aetToast('Cuando quieras: Más → Configuración inicial');
+    if (!AET.leer('aet_inicio', null)) AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() });
+    aetCerrar(); aetRefrescar(); aetToast('Cuando quieras: Más → Mi perfil');
   }
+}
+function aetOnbListo() {
+  const m = AET.metas();
+  aetSheet('✓ Tu perfil está listo', `<p class="aet-nota" style="margin-top:0">Tus metas de hoy: <b style="color:var(--blanco)">${m.kcal} kcal · ${m.prot} g de proteína · ${m.agua} vasos de agua · ${m.entrenos} entrenos por semana</b>.</p>
+    <p class="aet-nota">Ahora te enseño cada parte de la app: son unos 2 minutos.</p>
+    <button class="aet-btn" onclick="aetTour()">🧭 Hacer el recorrido</button>
+    ${sesionActiva ? '<button class="aet-btn sec" style="margin-top:.6rem" onclick="aetCerrar();recAbrir()">🔔 Elegir mis recordatorios</button>' : '<button class="aet-btn sec" style="margin-top:.6rem" onclick="aetCerrar();abrirCuenta()">👤 Crear cuenta gratis / entrar</button><p class="aet-nota">Con cuenta tu progreso se guarda en la nube, lo ves en todos tus dispositivos y puedes activar recordatorios.</p>'}
+    <button class="lnk" style="margin-top:.6rem" onclick="aetCerrar()">Ahora no</button>`);
+}
+
+/* ---------- Mi perfil: qué falta para dejar la app lista ---------- */
+function aetPerfilCheck() {
+  const p = aetPerfil(), ini = AET.leer('aet_inicio', null) || {}, dias = AET.leer('aet_dia', {}) || {};
+  const hayComida = Object.keys(dias).some(k => dias[k] && Array.isArray(dias[k].comidas) && dias[k].comidas.length);
+  const hayEntreno = AET.leer('aet_log_entreno', []).length > 0 || Object.values(AET.leer('aet_actividad', {})).some(a => Array.isArray(a) && a.includes('e'));
+  let habs = 0; try { habs = habActivos(habCargar()).length; } catch (e) {}
+  return [
+    { ok: !!(ini.obj || p.obj) && !!p.nombre, n: 'Tu nombre y objetivo', d: 'Para saludarte y personalizar la app', a: 'aetOnb(true)', b: 'Completar' },
+    { ok: !!(p.sexo && p.edad && aetAlturaActual() && AET.pesos().length), n: 'Tus datos: sexo, edad, estatura y peso', d: 'Con ellos se calculan tus metas', a: 'aetOnb(true);_onb.paso=2;aetOnb()', b: 'Completar' },
+    { ok: !!p.clima, n: 'Clima y altitud', d: 'Ajustan tu meta de agua', a: 'aetOnb(true);_onb.paso=4;aetOnb()', b: 'Completar' },
+    { ok: !!aetPrograma(), n: 'Programa de entrenamiento', d: 'GYM o MMA, día por día', a: "aetIr('entrenar')", b: 'Elegir' },
+    { ok: !!aetPlanNutri(), n: 'Plan de nutrición', d: 'Tus macros según tu objetivo (Premium)', a: "abrirCalculadora('sano')", b: 'Calcular' },
+    { ok: hayEntreno, n: 'Tu primer entreno registrado', d: 'Ejercicios, series y kilos', a: 'aetFormEntreno()', b: 'Registrar' },
+    { ok: hayComida, n: 'Tu primera comida registrada', d: 'Calorías y proteína del día', a: 'aetFormComida()', b: 'Registrar' },
+    { ok: habs >= 3, n: 'Hábitos activos', d: 'Al menos 3 para empezar', a: "aetIr('habitos')", b: 'Ver' },
+    { ok: !!sesionActiva, n: 'Cuenta creada', d: 'Guarda tu progreso en la nube', a: 'abrirCuenta()', b: 'Entrar' },
+    { ok: !!p.tour, n: 'Recorrido por la app', d: 'Conoce cada sección', a: 'aetTour()', b: 'Ver' },
+  ];
+}
+function aetPerfilPct() { const c = aetPerfilCheck(); return { c, hechos: c.filter(x => x.ok).length, total: c.length }; }
+function aetPerfilVer() {
+  const { c, hechos, total } = aetPerfilPct(), pct = Math.round(hechos / total * 100), p = aetPerfil();
+  aetSheet('👤 Mi perfil', `<p class="aet-nota" style="margin-top:0">${p.nombre ? '<b style="color:var(--blanco)">' + esc(p.nombre) + '</b> · ' : ''}${hechos} de ${total} listo (${pct} %)</p><div class="hab-barra"><i style="width:${pct}%"></i></div>
+    <div class="perfil-lista" style="margin-top:.6rem">${c.map(x => `<div class="pl-fila"><span class="${x.ok ? 'pl-ok' : ''}">${x.ok ? '✓' : '○'}</span><b>${esc(x.n)}<small>${esc(x.d)}</small></b>${x.ok ? '' : `<button class="aet-btn sec mini" style="width:auto" onclick="aetCerrar();${x.a}">${x.b}</button>`}</div>`).join('')}</div>
+    <button class="aet-btn sec" style="margin-top:.9rem" onclick="aetOnb(true)">✎ Editar mis datos</button>`);
+}
+function aetPerfilCardHtml() {
+  const { hechos, total } = aetPerfilPct(), pct = Math.round(hechos / total * 100), m = document.getElementById('appPerfilMeta');
+  if (m) m.textContent = pct >= 100 ? 'Completo ✓' : pct + ' % listo';
+  if (pct >= 100) return '';
+  return `<div class="aet-panel" style="border-color:rgba(201,168,76,.4)"><div class="aet-panel-t"><span>👤 Tu perfil está al ${pct} %</span><button class="lnk" onclick="aetPerfilVer()">Ver qué falta →</button></div><div class="hab-barra"><i style="width:${pct}%"></i></div></div>`;
+}
+
+/* ---------- Recorrido guiado ---------- */
+const _en = (txt) => () => [...document.querySelectorAll('#appDashboardCards .aet-panel')].find(x => x.textContent.indexOf(txt) >= 0) || null;
+const TOUR = [
+  { t: 'Bienvenido a Aeterion 👋', x: 'En unos 2 minutos te muestro cada parte de la app y para qué sirve. Puedes salir cuando quieras y repetirlo desde Más → Recorrido por la app.' },
+  { p: 'inicio', s: '#appDashboardCards .aet-tiles', t: '🏠 Tu resumen rápido', x: 'Racha: días seguidos en los que registraste algo. Entrenos: los de esta semana contra tu meta. Logros: los que has desbloqueado. Toca cualquiera para ver el detalle.' },
+  { p: 'inicio', s: '#appDashboardCards .aros', t: 'Tu día en 4 anillos', x: 'Entrenos, calorías, proteína y agua. Se llenan solos conforme registras y se comparan con tus metas, que salen de tu perfil (las ajustas en Nutrición → Metas ⚙).' },
+  { p: 'inicio', s: '#appDashboardCards .aet-fila', t: 'Registrar en un toque', x: '＋ Ejercicio, ＋ Comida y ＋ 💧 (un vaso de agua). Desde aquí anotas todo sin entrar a otras pantallas.' },
+  { p: 'inicio', s: _en('Hábitos de hoy'), t: '🌱 Hábitos de hoy', x: 'Marca lo que haces cada día. Los que tienen 🔸 se marcan solos (entrenar, llegar a tu meta de agua, registrar comidas). Crea los tuyos en Más → Mis hábitos.' },
+  { p: 'inicio', s: _en('Peso'), t: '⚖ Peso', x: 'Registra tu peso cuando quieras y verás la gráfica de cómo vas. También se guarda en Medidas corporales.' },
+  { p: 'inicio', s: '#appDashboardCards .app-frase', t: '✦ Frase de la semana', x: 'Cada lunes cambia la frase, igual para todos. Un empujón corto para la semana.' },
+  { p: 'entrenar', s: '#appEntrenarChips', t: '💪 Elige tu programa', x: 'GYM (hombre 5 o 3 días, mujer 5 días) o MMA por niveles. Toca uno para verlo y marcarlo como el tuyo; la app ajusta tu meta de entrenos a ese programa.' },
+  { p: 'entrenar', s: '#appEntrenarHero', t: 'Tu entreno de hoy', x: 'Con un programa elegido aparece el día que toca: ejercicios, series, repeticiones, peso sugerido y descansos con temporizador. Los programas guiados son parte de Premium.' },
+  { p: 'entrenar', s: '#appEntrenarLog', t: '📓 Mi registro', x: 'Anota ejercicios con series, repeticiones y kilos (aunque entrenes por tu cuenta). La app estima tu 1RM, guarda tu historial y te avisa de cada récord personal 🏆. «Marcar entreno de hoy» suma a tu racha.' },
+  { p: 'entrenar', s: '#app-screen-entrenar .app-card', t: 'Programas y ciencia', x: 'Aquí ves el detalle de cada programa GYM y MMA. Abajo, «Ciencia del Entrenamiento»: progresión, respiración, movilidad y más.' },
+  { p: 'nutricion', s: '#appNutriHoy', t: '🍽 Mi día', x: 'Calorías, proteína y agua del día contra tus metas, con el reparto de carbos, proteína y grasa. ＋ Agregar comida, ＋ vaso de agua, y «Metas ⚙» para ajustar tus números.' },
+  { p: 'nutricion', s: '#app-screen-nutricion .app-card', t: '🥗 Planes de nutrición', x: 'Plan General, SII (low FODMAP) y Diabetes: calculan tus macros según tu objetivo y condición y te dan la guía de alimentos. Son parte de Premium.' },
+  { p: 'nutricion', s: '#app-screen-nutricion [onclick*="alimentos"]', t: 'Catálogo de alimentos', x: 'Macros por porción de más de 100 alimentos y equivalencias para cambiar uno por otro sin descuadrar tu plan.' },
+  { p: 'perfil', s: '#appProgPeso', t: '📊 Tu progreso: peso', x: 'La gráfica de tu peso y el cambio desde la última vez. Aquí es donde ves si vas hacia tu meta.' },
+  { p: 'perfil', s: '#appProgComp', t: '🧬 Composición corporal', x: 'Registra % de grasa, músculo y otras lecturas (por ejemplo de una báscula de bioimpedancia) para ver cambios que la báscula sola no muestra.' },
+  { p: 'perfil', s: '#appProgLogros', t: '🏅 Logros', x: 'Hitos que se desbloquean solos: primer peso, primera composición, rachas y más. Sirven para ver tu constancia.' },
+  { p: 'perfil', s: '#app-screen-perfil [onclick*="dashboard"]', t: 'Dashboard y medidas', x: 'El Dashboard junta volumen, bloque, medidas y cargas, semanal y mensual. «Medidas Corporales» guarda peso, cintura, caderas y más, con tu meta.' },
+  { p: 'perfil', s: '#app-screen-perfil [onclick*="respaldo"]', t: '💾 Respaldo de datos', x: 'Exporta tu progreso para pasarlo a otro celular o recuperarlo. Con una cuenta se sincroniza solo, así que es tu seguro extra.' },
+  { p: 'mas', s: '#app-screen-mas .app-card', t: '👤 Mi cuenta y compras', x: 'Crea tu cuenta gratis para guardar tu progreso en la nube y verlo en todos tus dispositivos. Aquí activas Premium con tu código o pago, y sigues tus compras y envíos.' },
+  { p: 'mas', s: '#app-screen-mas [onclick="recAbrir()"]', t: '🔔 Recordatorios', x: 'Tú eliges qué avisos quieres (entrenar, hábitos, resumen semanal) y a qué hora. Máximo uno al día y se pausan solos si dejas de usar la app.' },
+  { p: 'mas', s: '#app-screen-mas [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
+  { p: 'mas', s: '#app-screen-mas [onclick="aetIr(\'habitos\')"]', t: '🌱 Mis hábitos', x: 'Elige hábitos sugeridos o crea los tuyos (con días y metas). Ves tu racha y el avance semanal.' },
+  { p: 'mas', s: '#app-screen-mas [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
+  { p: 'mas', s: '#app-screen-mas [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Bienestar Mental (actividades y retos de 21 días), Salud & Biohacking y Educación. Son gratis y explican el porqué de cada cosa.' },
+  { p: 'mas', s: '#app-screen-mas .app-card.ac-o', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México. También la encuentras en la barra de abajo.' },
+  { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Más, Tienda y Progreso: desde cualquier pantalla llegas a todo con un toque.' },
+  { p: 'inicio', s: '.app-cuenta-btn', t: 'Tu cuenta', x: 'Este botón de arriba abre tu cuenta: entrar, ver tu Premium y tus compras, o cerrar sesión.' },
+  { t: 'Gratis y Premium', x: 'Gratis: registro de entrenos, comidas, agua, peso y hábitos; logros; recordatorios; guías y protocolos. Premium: programas guiados GYM y MMA, planes de nutrición, recetario y ciencia del entrenamiento. ¡Listo! Puedes repetir este recorrido o editar tu perfil desde Más.' },
+];
+let _tour = null;
+function aetTourFijo(el) { for (let e = el; e && e !== document.body; e = e.parentElement) { if (getComputedStyle(e).position === 'fixed') return true; } return false; }
+function aetTour(n) {
+  aetCerrar();
+  if (!document.body.classList.contains('modo-app')) { aetToast('El recorrido está en la app instalada'); return; }
+  if (!document.getElementById('tourCapa')) {
+    const capa = document.createElement('div'); capa.id = 'tourCapa'; capa.className = 'tour-capa';
+    capa.addEventListener('touchmove', e => e.preventDefault(), { passive: false }); capa.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+    const foco = document.createElement('div'); foco.id = 'tourFoco'; foco.className = 'tour-foco';
+    const caja = document.createElement('div'); caja.id = 'tourCaja'; caja.className = 'tour-caja'; caja.setAttribute('role', 'dialog'); caja.setAttribute('aria-live', 'polite');
+    document.body.appendChild(capa); document.body.appendChild(foco); document.body.appendChild(caja);
+    window.addEventListener('resize', aetTourRe); document.addEventListener('keydown', aetTourTecla);
+  }
+  aetTourIr(typeof n === 'number' ? n : 0);
+}
+function aetTourTecla(e) { if (_tour == null) return; if (e.key === 'Escape') aetTourFin(false); else if (e.key === 'ArrowRight') aetTourIr(_tour + 1); else if (e.key === 'ArrowLeft') aetTourIr(_tour - 1); }
+function aetTourRe() { if (_tour != null) aetTourPintar(_tour); }
+function aetTourIr(n) {
+  if (n >= TOUR.length) { aetTourFin(true); return; }
+  if (n < 0) n = 0;
+  _tour = n; const st = TOUR[n];
+  if (st.p) { const pant = document.getElementById('app-screen-' + st.p); if (pant && !pant.classList.contains('activo')) aetIr(st.p); }
+  setTimeout(() => { if (_tour === n) aetTourPintar(n); }, 90);
+}
+function aetTourPintar(n) {
+  const st = TOUR[n], capa = document.getElementById('tourCapa'), foco = document.getElementById('tourFoco'), caja = document.getElementById('tourCaja');
+  if (!capa) return;
+  let el = null; try { el = typeof st.s === 'function' ? st.s() : (st.s ? document.querySelector(st.s) : null); } catch (e) {}
+  let r = el ? el.getBoundingClientRect() : null;
+  if (r && (r.width < 4 || r.height < 4)) { el = null; r = null; }
+  const fijo = !!el && aetTourFijo(el);
+  if (el && !fijo) { window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 80), behavior: 'instant' }); r = el.getBoundingClientRect(); }
+  const ult = n === TOUR.length - 1;
+  caja.innerHTML = `<div class="tour-n"><span>Paso ${n + 1} de ${TOUR.length}</span><button class="tour-x" onclick="aetTourFin(false)">Salir ✕</button></div><div class="tour-barra"><i style="width:${Math.round((n + 1) / TOUR.length * 100)}%"></i></div><h4>${esc(st.t)}</h4><p>${esc(st.x)}</p><div class="tour-pie">${n > 0 ? '<button class="aet-btn sec" onclick="aetTourIr(_tour-1)">← Atrás</button>' : ''}<button class="aet-btn" onclick="aetTourIr(_tour+1)">${ult ? 'Terminar ✓' : 'Siguiente →'}</button></div>`;
+  const vh = window.innerHeight, bh = caja.offsetHeight;
+  if (!el) {
+    capa.classList.add('centro'); foco.style.display = 'none'; caja.style.bottom = 'auto'; caja.style.top = Math.max(12, (vh - bh) / 2) + 'px'; return;
+  }
+  capa.classList.remove('centro'); foco.style.display = 'block';
+  const abajo = !(r.top + r.height / 2 > vh * 0.5);
+  let t = Math.max(6, r.top - 6), b = Math.min(vh - 6, r.bottom + 6);
+  if (abajo) { caja.style.top = 'auto'; caja.style.bottom = '78px'; b = Math.min(b, vh - 78 - bh - 12); }
+  else { caja.style.bottom = 'auto'; caja.style.top = '12px'; t = Math.max(t, 12 + bh + 12); }
+  if (b - t < 24) { capa.classList.add('centro'); foco.style.display = 'none'; return; }
+  const l = Math.max(6, r.left - 6), w = Math.min(window.innerWidth - 12, r.width + 12);
+  foco.style.top = t + 'px'; foco.style.height = (b - t) + 'px'; foco.style.left = l + 'px'; foco.style.width = w + 'px';
+}
+function aetTourFin(completo) {
+  _tour = null;
+  ['tourCapa', 'tourFoco', 'tourCaja'].forEach(id => { const e = document.getElementById(id); if (e) e.remove(); });
+  window.removeEventListener('resize', aetTourRe); document.removeEventListener('keydown', aetTourTecla);
+  aetIr('inicio'); window.scrollTo(0, 0);
+  if (completo) { aetPerfilGuardar({ tour: AET.hoy() }); aetToast('✓ Listo. Repítelo cuando quieras desde Más'); }
+  aetRefrescar();
 }
 
 /* ---------- Inicio ---------- */
@@ -9483,7 +9745,7 @@ function renderPerfilResumenApp() {
   const cont = document.getElementById('appPerfilResumen');
   const semanaMma = localStorage.getItem('mma_semana');
   const rm = JSON.parse(localStorage.getItem('mma_1rm') || '{}');
-  let html = '';
+  let html = aetPerfilCardHtml();
 
   if (semanaMma) {
     const sem = (typeof MMA_SEMANAS === 'undefined') ? { s: parseInt(semanaMma, 10), bloque: '' } : MMA_SEMANAS[parseInt(semanaMma, 10) - 1];
