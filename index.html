@@ -5947,6 +5947,10 @@ function cargarModuloPremium(nombre) {
       .split('BLOQUE_NOMBRES[bloque.semana]').join('AETGYM.infoBloque(bloque)')
       .split('Semana ${bloque.semana} de 4 — ${info.nombre}').join('${info.nombre}')
       .split('sube 2.5kg (compuesto) o 1–2kg (accesorio).').join('sube la carga (el motor te indica cuánto en cada ejercicio).')
+      .split('<span>RPE</span>').join('<span>RIR</span>')
+      .split('min="5" max="10" step="1" placeholder="Esfuerzo 5–10 (opcional)"').join('min="0" max="5" step="1" placeholder="Reps que te quedaron en reserva 0–5 (opcional)"')
+      .split('const rpeVal = parseInt(document.getElementById(`reg_${id}_rpe`).value) || null;').join('const _rirIn = parseInt(document.getElementById(`reg_${id}_rpe`).value); const rpeVal = isNaN(_rirIn) ? null : 10 - Math.min(5, Math.max(0, _rirIn));')
+      .split("const rpeTxt = ultimo.rpe ? ` · RPE ${ultimo.rpe}` : '';").join("const rpeTxt = ultimo.rpe ? ` · RIR ${Math.max(0, 10 - ultimo.rpe)}` : '';")
       .replace(/modelo:\s*'[^']*'/g, "modelo:'Doble progresión por ejercicio (primero repeticiones, luego carga) y bloques que se revisan con tu rendimiento y tu fatiga (motor Aeterion).'")
       .replace(/Base científica:<\/b> (?:el nivel determina|nivel → modelo)[^']*'/g, "Base científica:</b> tu nivel y tu modificador de recuperación fijan el volumen semanal por grupo muscular (≥ 10 series efectivas por semana, con rendimientos decrecientes hacia 18–20: ACSM 2026). Las repeticiones, la reserva (RIR) y la carga se ajustan por ejercicio con tus registros, y tu nivel se reevalúa con tu rendimiento. Es una guía basada en evidencia general, no una prescripción médica.'") : data.js;
     document.head.appendChild(sc);
@@ -8133,6 +8137,7 @@ const AETGYM = (() => {
     const alTope = x => x.tec && x.sets.length >= 2 && x.sets.every(s => s.reps >= p.repMax) || (x.tec && x.sets.length === 1 && x.sets[0].reps >= p.repMax);
     let racha = 0; for (const x of mismo) { if (alTope(x)) racha++; else break; }
     const bajoMin = x => x.sets.some(s => s.reps < p.repMin);
+    const falloEn = kg => h.slice(-8).some(x => Math.abs(x.kg - kg) < .01 && bajoMin(x));   // ya falló con esa carga hace poco: no la repitas por un solo buen día
     const inc = incremento(u.kg, p.paso, p.niv);
     if (u.dolor) return { a: 'dolor', kg: u.kg, txt: 'Marcaste dolor la última vez: no subas carga. Baja la carga o cambia la variante; si el dolor persiste, consulta a un profesional.' };
     if (p.desc) return { a: 'descarga', kg: u.kg, txt: 'Semana de descarga: usa ' + u.kg + ' kg con la mitad de series y deja ≥ 4 repeticiones en reserva. No busques subir.' };
@@ -8142,11 +8147,11 @@ const AETGYM = (() => {
       if (prev && Math.abs(prev.kg - u.kg) < .01 && bajoMin(prev)) { const k = redon(u.kg * .92, p.paso); return { a: 'bajar', kg: k, reps: p.repMin, txt: 'Dos sesiones seguidas por debajo de ' + p.repMin + ' reps con ' + u.kg + ' kg: baja a ' + k + ' kg (~8 %) y reconstruye desde ' + p.repMin + ' reps.' }; }
       return { a: 'mantener', kg: u.kg, reps: p.repMin, txt: 'Alguna serie quedó por debajo de ' + p.repMin + ' reps con ' + u.kg + ' kg. Mantén la carga; revisa descanso (usa todo el rango), sueño y técnica. Si se repite, bajaremos la carga.' };
     }
-    if (u.rirUlt != null && u.rirUlt >= p.rirLo + 2 && !alTope(u)) { const k = redon(u.kg + inc, p.paso); return { a: 'ligero', kg: k, reps: p.repMin, txt: 'Te sobraron ' + u.rirUlt + ' repeticiones en reserva (objetivo ' + p.rirLo + '+): la carga quedó ligera. Sube a ' + k + ' kg.' }; }
+    if (u.rirUlt != null && u.rirUlt >= p.rirLo + 2 && !alTope(u) && !falloEn(redon(u.kg + inc, p.paso))) { const k = redon(u.kg + inc, p.paso); return { a: 'ligero', kg: k, reps: p.repMin, txt: 'Te sobraron ' + u.rirUlt + ' repeticiones en reserva (objetivo ' + p.rirLo + '+): la carga quedó ligera. Sube a ' + k + ' kg.' }; }
     if (alTope(u)) {
       if (u.rirUlt == null) { const k = redon(u.kg + inc, p.paso); return { a: 'condicional', kg: u.kg, kgSube: k, reps: p.repMax, txt: 'Llegaste al tope de reps (' + p.repMax + '). Si te quedaban ' + p.rirLo + ' o más reps en reserva, sube a ' + k + ' kg; si no, repite ' + u.kg + ' kg. Registra el RIR para que decida yo.' }; }
       if (u.rirUlt < p.rirLo) return { a: 'confirmar', kg: u.kg, reps: p.repMax, txt: 'Tope de reps con RIR ' + u.rirUlt + ' (objetivo ' + p.rirLo + '+): fue demasiado cerca del fallo. Repite ' + u.kg + ' kg y confirma con más reserva antes de subir.' };
-      if (racha >= conf) { const k = redon(u.kg + inc, p.paso); return { a: 'subir', kg: k, reps: p.repMin, txt: 'Tope de reps con RIR ' + u.rirUlt + (racha > 1 ? ' en ' + racha + ' sesiones' : '') + ' → sube a ' + k + ' kg (+' + redon(k - u.kg, .25) + ') y vuelve a ' + p.repMin + ' reps.' }; }
+      if (racha >= conf + (falloEn(redon(u.kg + inc, p.paso)) ? 1 : 0)) { const k = redon(u.kg + inc, p.paso); return { a: 'subir', kg: k, reps: p.repMin, txt: 'Tope de reps con RIR ' + u.rirUlt + (racha > 1 ? ' en ' + racha + ' sesiones' : '') + ' → sube a ' + k + ' kg (+' + redon(k - u.kg, .25) + ') y vuelve a ' + p.repMin + ' reps.' }; }
       return { a: 'confirmar', kg: u.kg, reps: p.repMax, txt: 'Tope de reps: confírmalo ' + (conf - racha) + ' vez(es) más con ' + u.kg + ' kg antes de subir (tu nivel pide ' + conf + ' sesión(es)).' };
     }
     // progresión por repeticiones
