@@ -164,9 +164,28 @@
     </div>
   </div>
 
+  <div id="puerta" class="card oculto" style="margin-top:40px">
+    <h2 style="margin-top:0">Aeterion · Administración</h2>
+    <div id="pConfig" class="oculto">
+      <p><b>Protege tu panel con dos contraseñas</b></p>
+      <p class="peq"><b>Contraseña de entrada:</b> te la pedirá cada vez que abras el panel.<br><b>Contraseña de dispositivo nuevo:</b> solo te la pedirá cuando entres desde un teléfono o computadora que no hayas autorizado antes.<br>Deben ser distintas, de 8 caracteres o más. Guárdalas bien: si las olvidas, el panel no te deja entrar.</p>
+      <div class="campo"><label>Contraseña de entrada</label><input type="password" id="pcEnt" autocomplete="new-password" maxlength="72"></div>
+      <div class="campo" style="margin-top:8px"><label>Repite la contraseña de entrada</label><input type="password" id="pcEnt2" autocomplete="new-password" maxlength="72"></div>
+      <div class="campo" style="margin-top:8px"><label>Contraseña de dispositivo nuevo</label><input type="password" id="pcDisp" autocomplete="new-password" maxlength="72"></div>
+      <div class="campo" style="margin-top:8px"><label>Repite la contraseña de dispositivo nuevo</label><input type="password" id="pcDisp2" autocomplete="new-password" maxlength="72"></div>
+      <div class="fila" style="margin-top:12px"><button id="btnConfigurar">Guardar y entrar</button></div>
+    </div>
+    <div id="pEntrar" class="oculto">
+      <p class="peq" id="peTexto">Escribe tu contraseña de entrada.</p>
+      <div class="campo"><label>Contraseña de entrada</label><input type="password" id="peEnt" autocomplete="current-password" maxlength="72"></div>
+      <div class="campo oculto" id="peDispBox" style="margin-top:8px"><label>Contraseña de dispositivo nuevo</label><input type="password" id="peDisp" autocomplete="off" maxlength="72"><div class="peq" style="margin-top:4px">Este dispositivo no está autorizado todavía. Al entrar quedará autorizado.</div></div>
+      <div class="fila" style="margin-top:12px"><button id="btnPuertaEntrar">Entrar</button><button class="sec" id="btnPuertaSalir">Salir</button></div>
+    </div>
+  </div>
+
   <div id="panel" class="oculto">
     <div class="stats" id="stats"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button><button class="tab" data-tab="historial">Historial</button><button class="tab" data-tab="seguridad">Seguridad</button></div>
 
     <section id="tPedidos">
       <div class="filtros" id="filtros"></div>
@@ -199,6 +218,27 @@
         <div class="campo" style="margin-top:8px"><textarea id="frNueva" maxlength="800" rows="3" placeholder="Escribe la nueva frase…"></textarea></div>
         <div class="acciones" style="margin-top:8px"><button id="frAgregar">Agregar</button></div>
         <div class="peq" style="margin-top:6px">Al agregar una, la lista se alarga una semana más antes de repetirse.</div></div>
+    </section>
+
+    <section id="tHistorial" class="oculto">
+      <div class="peq" style="margin-bottom:10px">Todo lo que se cambia desde el panel queda registrado aquí: Premium, códigos, productos, cupones, inventario, pedidos, frases y accesos al panel.</div>
+      <div class="card" id="listaHist"><div class="vacio">Cargando…</div></div>
+      <div class="fila" style="margin-top:10px"><button class="sec oculto" id="btnMasHist">Cargar más</button></div>
+    </section>
+
+    <section id="tSeguridad" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b>Cambiar contraseñas</b>
+        <div class="peq" style="margin:4px 0 10px">Para cambiar cualquiera necesitas tu contraseña de entrada actual. Deja vacío lo que no quieras cambiar.</div>
+        <div class="campo"><label>Contraseña de entrada actual</label><input type="password" id="sgActual" autocomplete="current-password" maxlength="72"></div>
+        <div class="campo" style="margin-top:8px"><label>Nueva contraseña de entrada (opcional)</label><input type="password" id="sgEnt" autocomplete="new-password" maxlength="72"></div>
+        <div class="campo" style="margin-top:8px"><label>Nueva contraseña de dispositivo nuevo (opcional)</label><input type="password" id="sgDisp" autocomplete="new-password" maxlength="72"></div>
+        <div class="acciones" style="margin-top:10px"><button id="btnCambiarClaves">Cambiar</button></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><b>Dispositivos autorizados</b>
+        <div class="peq" style="margin:4px 0 8px">Si ya no usas uno o lo perdiste, quítalo: tendrá que volver a pedir la contraseña de dispositivo nuevo.</div>
+        <div id="listaDisp"><div class="vacio">Cargando…</div></div></div>
+      <div class="card"><button class="sec" id="btnBloquear">Bloquear el panel ahora</button></div>
     </section>
 
     <section id="tResumen" class="oculto"><div id="cuerpoResumen"><div class="vacio">Cargando…</div></div></section>
@@ -327,14 +367,21 @@ async function rpc(nombre, args) {
 async function crearGuia(id) {
   const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/crear-guia', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }));
   const d = await r.json().catch(() => ({}));
+  if (!r.ok && d.error === 'no_autorizado') puerta();
+  else if (r.ok && d.ok !== false) bitacora('Creó guía de envío', 'pedido #' + id + (d.paqueteria ? ' · ' + d.paqueteria : '') + (d.guia ? ' · guía ' + d.guia : ''));
   return { ok: r.ok, d };
 }
 async function funcion(cuerpo) {
   const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/pedido-estado', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }));
   const d = await r.json().catch(() => ({}));
+  if (!r.ok && d.error === 'no_autorizado') puerta();
+  else if (r.ok && d.ok !== false && cuerpo.accion !== 'push_prueba') {
+    if (cuerpo.accion === 'recibo') bitacora('Reenvió recibo', 'pedido #' + cuerpo.id);
+    else if (cuerpo.estado) bitacora('Cambió estado de pedido', '#' + cuerpo.id + ' → ' + cuerpo.estado + (cuerpo.guia ? ' · guía ' + cuerpo.guia : ''));
+  }
   return { ok: r.ok, d };
 }
-function vista(panel) { $('login').classList.toggle('oculto', panel); $('panel').classList.toggle('oculto', !panel); $('cab').classList.toggle('oculto', !panel); }
+function vista(panel) { $('puerta').classList.add('oculto'); $('login').classList.toggle('oculto', panel); $('panel').classList.toggle('oculto', !panel); $('cab').classList.toggle('oculto', !panel); }
 
 /* ---------- Utilidades de pedidos ---------- */
 function horasDesde(iso) { return (Date.now() - new Date(iso).getTime()) / 36e5; }
@@ -456,6 +503,102 @@ function pintarAccesos() {
   }).join('') : '<div class="vacio">Sin accesos.</div>';
 }
 
+/* ---------- Puerta: contraseñas del panel ---------- */
+function devToken() {
+  let t = lsGet('aet_admin_dev');
+  if (!t || t.length < 32) { const a = new Uint8Array(32); crypto.getRandomValues(a); t = [...a].map((b) => b.toString(16).padStart(2, '0')).join(''); lsSet('aet_admin_dev', t); }
+  return t;
+}
+function nombreDisp() {
+  const u = navigator.userAgent || '';
+  const so = /iPhone|iPad/.test(u) ? 'iPhone/iPad' : /Android/.test(u) ? 'Android' : /Windows/.test(u) ? 'Windows' : /Mac/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'Dispositivo';
+  const nav = /Edg\//.test(u) ? 'Edge' : /Chrome\//.test(u) ? 'Chrome' : /Safari\//.test(u) ? 'Safari' : /Firefox\//.test(u) ? 'Firefox' : 'Navegador';
+  return nav + ' · ' + so;
+}
+function bitacora(accion, detalle) { if (sesion) rpc('admin_registrar_evento', { p_accion: accion, p_detalle: detalle || null }).catch(() => {}); }
+let puertaOcupada = false;
+async function puerta() {
+  if (puertaOcupada || !sesion) return;
+  puertaOcupada = true; clearInterval(timer);
+  try {
+    const e = await rpc('admin_estado', { p_dispositivo: devToken() });
+    if (!e || !e.miembro) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador.'); return; }
+    ['pcEnt', 'pcEnt2', 'pcDisp', 'pcDisp2', 'peEnt', 'peDisp'].forEach((k) => { $(k).value = ''; });
+    $('login').classList.add('oculto'); $('panel').classList.add('oculto'); $('cab').classList.add('oculto'); $('puerta').classList.remove('oculto');
+    $('pConfig').classList.toggle('oculto', !!e.configurado); $('pEntrar').classList.toggle('oculto', !e.configurado);
+    $('peDispBox').classList.toggle('oculto', !!e.dispositivo_ok);
+    $('peTexto').textContent = e.dispositivo_ok ? 'Escribe tu contraseña de entrada.' : 'Dispositivo nuevo: escribe tu contraseña de entrada y la de dispositivo nuevo.';
+    setTimeout(() => { try { (e.configurado ? $('peEnt') : $('pcEnt')).focus(); } catch (x) {} }, 50);
+  } catch (err) {
+    if (err.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
+    else { vista(false); aviso('No se pudo comprobar la cuenta. Revisa tu conexión e inténtalo de nuevo.'); }
+  } finally { puertaOcupada = false; }
+}
+const ERR_PUERTA = { clave_incorrecta: 'Contraseña de entrada incorrecta.', clave_dispositivo_incorrecta: 'Contraseña de dispositivo nuevo incorrecta.', bloqueado: 'Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.', clave_corta: 'Las contraseñas deben tener entre 8 y 72 caracteres.', claves_iguales: 'Las dos contraseñas deben ser distintas.', ya_configurado: 'Ya hay contraseñas configuradas.', sin_configurar: 'Aún no hay contraseñas configuradas.', dispositivo_invalido: 'No se pudo identificar este dispositivo.', sin_sesion: 'La sesión venció. Entra de nuevo.', nada_que_cambiar: 'Escribe al menos una contraseña nueva.' };
+$('btnConfigurar').onclick = async () => {
+  const ent = $('pcEnt').value, disp = $('pcDisp').value;
+  if (ent.length < 8 || disp.length < 8) { aviso(ERR_PUERTA.clave_corta); return; }
+  if (ent !== $('pcEnt2').value || disp !== $('pcDisp2').value) { aviso('Las contraseñas repetidas no coinciden.'); return; }
+  if (ent === disp) { aviso(ERR_PUERTA.claves_iguales); return; }
+  $('btnConfigurar').disabled = true;
+  try {
+    const r = await rpc('admin_configurar', { p_clave_dispositivo: disp, p_clave_entrada: ent, p_dispositivo: devToken(), p_nombre: nombreDisp() });
+    if (r.ok) { aviso('Listo: tu panel quedó protegido.', true); abrirPanel(); } else aviso(ERR_PUERTA[r.error] || 'No se pudo guardar.');
+  } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('btnConfigurar').disabled = false;
+};
+$('btnPuertaEntrar').onclick = async () => {
+  const ent = $('peEnt').value; if (!ent) { aviso('Escribe tu contraseña de entrada.'); return; }
+  const nuevo = !$('peDispBox').classList.contains('oculto'), disp = $('peDisp').value;
+  if (nuevo && !disp) { aviso('Escribe también la contraseña de dispositivo nuevo.'); return; }
+  $('btnPuertaEntrar').disabled = true;
+  try {
+    const r = await rpc('admin_entrar', { p_clave_entrada: ent, p_dispositivo: devToken(), p_clave_dispositivo: nuevo ? disp : null, p_nombre: nombreDisp() });
+    if (r.ok) { $('peEnt').value = ''; $('peDisp').value = ''; abrirPanel(); }
+    else if (r.error === 'dispositivo_nuevo') { $('peDispBox').classList.remove('oculto'); $('peTexto').textContent = 'Dispositivo nuevo: escribe también la contraseña de dispositivo nuevo.'; aviso('Este dispositivo no está autorizado todavía.'); }
+    else aviso((ERR_PUERTA[r.error] || 'No se pudo entrar.') + (typeof r.restantes === 'number' && r.restantes >= 0 && r.error !== 'bloqueado' ? ' Te quedan ' + r.restantes + ' intento(s).' : ''));
+  } catch (err) { aviso(err.status === 403 ? 'No tienes acceso con esta cuenta.' : 'No se pudo completar. Inténtalo de nuevo.'); }
+  $('btnPuertaEntrar').disabled = false;
+};
+['peEnt', 'peDisp'].forEach((k) => $(k).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnPuertaEntrar').click(); }));
+$('btnPuertaSalir').onclick = () => $('btnSalir').click();
+
+/* ---- Historial ---- */
+let datosHist = [], histFin = false;
+function pintarHistorial() {
+  $('listaHist').innerHTML = datosHist.length ? datosHist.map((h) => `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="overflow-wrap:anywhere">${esc(h.accion)}${h.cantidad > 1 ? ' <span class="tag">× ' + esc(h.cantidad) + '</span>' : ''}</div>${h.detalle ? `<div class="peq" style="overflow-wrap:anywhere">${esc(h.detalle)}</div>` : ''}</div><div class="peq" style="text-align:right;white-space:nowrap">${esc(fechaCorta(h.creado_en))}</div></div></div>`).join('') : '<div class="vacio">Aún no hay movimientos registrados.</div>';
+  $('btnMasHist').classList.toggle('oculto', histFin || !datosHist.length);
+}
+$('btnMasHist').onclick = async () => {
+  const ult = datosHist.length ? datosHist[datosHist.length - 1].id : null; $('btnMasHist').disabled = true;
+  try { const r = await rpc('admin_historial_listar', { p_antes: ult, p_limite: 100 }); datosHist = datosHist.concat(r); histFin = r.length < 100; pintarHistorial(); } catch (e) { aviso('No se pudo cargar más.'); }
+  $('btnMasHist').disabled = false;
+};
+
+/* ---- Seguridad ---- */
+function pintarSeguridad(L) {
+  $('listaDisp').innerHTML = L.length ? L.map((d) => `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="overflow-wrap:anywhere">${esc(d.nombre || 'Dispositivo')}${d.actual ? ' <span class="tag v">Este dispositivo</span>' : ''}${d.revocado_en ? ' <span class="tag x">Quitado</span>' : ''}</div><div class="peq">Autorizado ${esc(fechaCorta(d.creado_en))} · último uso ${esc(fechaCorta(d.ultimo_uso))}</div></div>${d.revocado_en ? '' : `<button class="mal mini" data-disp-quitar="${esc(d.id)}">Quitar</button>`}</div></div>`).join('') : '<div class="vacio">Sin dispositivos.</div>';
+}
+$('listaDisp').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-disp-quitar]'); if (!b) return;
+  if (!confirm('¿Quitar este dispositivo? Tendrá que volver a pedir la contraseña de dispositivo nuevo.')) return;
+  b.disabled = true;
+  try { const r = await rpc('admin_dispositivo_revocar', { p_id: Number(b.dataset.dispQuitar) }); if (r.ok) { aviso('Dispositivo quitado.', true); await cargarTab('seguridad', false); } else aviso('No se pudo quitar.'); } catch (err) { puerta(); }
+});
+$('btnCambiarClaves').onclick = async () => {
+  const act = $('sgActual').value, ne = $('sgEnt').value, nd = $('sgDisp').value;
+  if (!act) { aviso('Escribe tu contraseña de entrada actual.'); return; }
+  if (!ne && !nd) { aviso(ERR_PUERTA.nada_que_cambiar); return; }
+  if ((ne && ne.length < 8) || (nd && nd.length < 8)) { aviso(ERR_PUERTA.clave_corta); return; }
+  $('btnCambiarClaves').disabled = true;
+  try {
+    const r = await rpc('admin_cambiar_claves', { p_entrada_actual: act, p_nueva_entrada: ne || null, p_nueva_dispositivo: nd || null });
+    if (r.ok) { aviso('Contraseñas actualizadas.', true); $('sgActual').value = $('sgEnt').value = $('sgDisp').value = ''; } else aviso(ERR_PUERTA[r.error] || 'No se pudo cambiar.');
+  } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('btnCambiarClaves').disabled = false;
+};
+$('btnBloquear').onclick = async () => { try { await rpc('admin_bloquear'); } catch (e) {} puerta(); };
+
 /* ---------- Carga ---------- */
 async function cargar(silencioso) {
   try {
@@ -470,7 +613,8 @@ async function cargar(silencioso) {
     if (nuevos && silencioso) aviso('Llegó un pedido nuevo', true);
     if (tabActiva !== 'pedidos' && tabActiva !== 'premium') cargarTab(tabActiva, true);
   } catch (e) {
-    if (e.status === 401 || e.status === 403 || /autorizado/.test(e.message)) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
+    if (e.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
+    else if (e.status === 403 || /autorizado/.test(e.message)) puerta();
     else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
   }
 }
@@ -495,7 +639,7 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases' };
+const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', historial: 'tHistorial', seguridad: 'tSeguridad' };
 let tabActiva = 'pedidos';
 function abrirTab(t) {
   tabActiva = t;
@@ -576,7 +720,8 @@ const money = (n) => '$' + Number(n || 0).toLocaleString('es-MX', { maximumFract
 const fechaDia = (s) => s ? new Date(s).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, datosGym = null, datosInv = null, datosFr = null, filtroCli = 'todos';
 function falloTab(e, silencioso) {
-  if (e && (e.status === 401 || e.status === 403 || /autorizado/.test(e.message || ''))) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
+  if (e && e.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
+  else if (e && (e.status === 403 || /autorizado/.test(e.message || ''))) puerta();
   else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
 }
 async function cargarTab(t, silencioso) {
@@ -586,6 +731,8 @@ async function cargarTab(t, silencioso) {
     else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
     else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
     else if (t === 'inventario') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tInventario')) return; datosInv = await rpc('panel_inventario'); pintarInventario(); }
+    else if (t === 'historial') { datosHist = await rpc('admin_historial_listar', { p_limite: 100 }); histFin = datosHist.length < 100; pintarHistorial(); }
+    else if (t === 'seguridad') { pintarSeguridad(await rpc('admin_dispositivos_listar', { p_dispositivo: devToken() })); }
     else if (t === 'frases') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tFrases')) return; datosFr = await rpc('panel_frases'); pintarFrases(); }
     else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; datosGym = await rpc('panel_lotes'); pintarGimnasios(); if (cgGym) cargarGym(); }
   } catch (e) { falloTab(e, silencioso); }
@@ -1153,11 +1300,12 @@ window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); inst
 $('btnInstalar').onclick = async () => { if (!instalarEvt) return; instalarEvt.prompt(); await instalarEvt.userChoice.catch(() => {}); instalarEvt = null; $('btnInstalar').classList.add('oculto'); };
 
 /* ---------- Inicio ---------- */
-function iniciar() {
+function abrirPanel() {
   vista(true); cargar(false); estadoAvisos();
   clearInterval(timer); timer = setInterval(() => { if (!document.hidden) cargar(true); }, 60000);
 }
-document.addEventListener('visibilitychange', () => { if (!document.hidden && sesion) cargar(true); });
+function iniciar() { puerta(); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && sesion && !$('panel').classList.contains('oculto')) cargar(true); });
 registrarSW();
 sesion = leer();
 if (sesion && sesion.access_token) iniciar();
