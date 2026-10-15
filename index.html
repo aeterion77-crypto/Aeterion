@@ -2440,6 +2440,35 @@
     .aet-cc em { font-style: normal; font-size: 11px; color: var(--blanco); opacity: .8; margin-left: .3rem; }
 
     .aet-logros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+    /* Hábitos */
+    .hab-resumen { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: center; }
+    .hab-sumas { display: grid; gap: .5rem; }
+    .hab-sumas div { display: flex; align-items: baseline; gap: .6rem; }
+    .hab-sumas b { font-family: var(--font-display); font-size: 1.25rem; color: var(--blanco); min-width: 3.2rem; }
+    .hab-sumas span { font-family: var(--font-ui); font-size: 11.5px; color: var(--gris); }
+    .hab-barra { height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .hab-barra i { display: block; height: 100%; background: var(--ac-n); border-radius: 99px; transition: width .3s; }
+    .hab-item { display: flex; align-items: center; gap: .8rem; padding: .7rem .8rem; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); margin-bottom: .5rem; cursor: pointer; }
+    .hab-item.ok { border-color: rgba(62,207,142,.5); background: rgba(62,207,142,.08); }
+    .hab-i { font-size: 1.4rem; width: 2rem; text-align: center; flex: none; }
+    .hab-t { flex: 1; min-width: 0; }
+    .hab-t b { display: block; color: var(--blanco); font-family: var(--font-ui); font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+    .hab-t small { color: var(--gris); font-size: 11px; font-family: var(--font-ui); }
+    .hab-chk { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; color: transparent; font-size: 15px; flex: none; }
+    .hab-item.ok .hab-chk { background: #3ecf8e; border-color: #3ecf8e; color: #052015; }
+    .hab-mas { color: var(--oro); font-size: 1.3rem; flex: none; }
+    .hab-sem { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: .7rem; }
+    .hab-d { text-align: center; font-size: 10px; color: var(--gris); font-family: var(--font-ui); cursor: pointer; }
+    .hab-d i { display: block; height: 28px; border-radius: 8px; margin-top: 3px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.07); font-style: normal; line-height: 26px; font-size: 13px; color: transparent; }
+    .hab-d.ok i { background: #3ecf8e; border-color: #3ecf8e; color: #052015; }
+    .hab-d.no i { background: rgba(232,80,74,.14); border-color: rgba(232,80,74,.35); }
+    .hab-d.hoy i { border-color: var(--oro); }
+    .hab-d.na, .hab-d.fut { cursor: default; } .hab-d.na i { opacity: .2; } .hab-d.fut i { opacity: .4; }
+    .hab-stats { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; margin-top: .7rem; font-family: var(--font-ui); font-size: 11.5px; color: var(--gris); }
+    .hab-stats b { color: var(--blanco); }
+    .hab-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .hab-chip { padding: .45rem .75rem; border-radius: 999px; border: 1px solid rgba(201,168,76,.35); color: var(--gris); background: none; font: inherit; font-size: 13px; cursor: pointer; min-width: 2.4rem; }
+    .hab-chip.on { background: var(--oro); color: var(--negro); border-color: var(--oro); }
     .aet-logro { text-align: center; padding: .7rem .3rem; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); opacity: .45; filter: grayscale(1); }
     .aet-logro.ok { opacity: 1; filter: none; background: linear-gradient(160deg, rgba(201,168,76,.18), rgba(201,168,76,.04)); border-color: rgba(201,168,76,.5); }
     .aet-logro i { display: block; font-style: normal; font-size: 1.6rem; margin-bottom: .2rem; }
@@ -2649,6 +2678,7 @@
     <p class="app-subtitulo">Guardado en este dispositivo</p>
     <div id="appProgPeso"></div>
     <div id="appProgComp"></div>
+    <div id="appProgHabitos"></div>
     <div id="appProgLogros"></div>
     <div id="appPerfilResumen"></div>
     <button class="app-card continuar" onclick="abrirCalculadora('dashboard')" style="margin-top:.5rem;">
@@ -2672,6 +2702,10 @@
     <button class="app-card continuar" onclick="abrirCuenta()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
       <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
+    </button>
+    <button class="app-card" onclick="aetIr('habitos')">
+      <div class="app-card-top"><span class="app-card-titulo">🌱 Mis hábitos</span><span class="app-card-meta">Marcar y ver progreso</span></div>
+      <div class="app-card-desc">Hábitos sugeridos o propios, con racha y seguimiento semanal.</div>
     </button>
     <button class="app-card" onclick="abrirCalculadora('recetas')">
       <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
@@ -2697,6 +2731,14 @@
       <div class="app-card-top"><span class="app-card-titulo">Educación</span><span class="app-card-meta">Guías</span></div>
       <div class="app-card-desc">Energía diaria y otras guías con base científica, sin vender nada.</div>
     </button>
+  </div>
+
+  <!-- HÁBITOS -->
+  <div class="app-screen" id="app-screen-habitos">
+    <button class="app-visor-volver" onclick="aetIr('inicio')">← Volver a Inicio</button>
+    <h2 class="app-titulo">Mis hábitos</h2>
+    <p class="app-subtitulo">Marca lo que haces cada día y mira cómo vas</p>
+    <div id="appHabitos"></div>
   </div>
 
   <!-- VISOR DE CONTENIDO (recibe el contenido real movido desde la página) -->
@@ -6000,7 +6042,7 @@ const SYNC_CLAVES = new Set([
   'mma_completados','mma2_completados','mma3_completados','mma_1rm','mma_historial_semanas',
   'dieta_sano','dieta_sii','dieta_diabetes',
   'gym_dia_h5','gym_dia_h3','gym_dia_m5','mma_semana','mma2_semana','mma3_semana',
-  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua'
+  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos'
 ]);
 const SYNC_KEY = 'aeterion_sync';
 let _sync = { owner: null, ver: {}, sucias: {} };
@@ -6046,6 +6088,11 @@ function _fusionAet(k, a, b) {
       llaves(cx, cy).forEach(t => { for (let i = 0; i < Math.max(cx[t] || 0, cy[t] || 0); i++) comidas.push(JSON.parse(t)); });
       M[d] = { comidas, agua: Math.max(x.agua || 0, y.agua || 0) };
     });
+  } else if (k === 'aet_habitos') {
+    const lm = new Map(); [...((R && R.lista) || []), ...((L && L.lista) || [])].forEach(h => { const y = lm.get(h.id); if (!y || (h.m || 0) >= (y.m || 0)) lm.set(h.id, h); });
+    const rr = (R && R.reg) || {}, lr = (L && L.reg) || {}, reg = {};
+    llaves(rr, lr).forEach(d => { reg[d] = {}; llaves(rr[d], lr[d]).forEach(i => { const x = (rr[d] || {})[i], y = (lr[d] || {})[i]; reg[d][i] = !x ? y : !y ? x : ((y.t || 0) >= (x.t || 0) ? y : x); }); });
+    M = { lista: [...lm.values()].sort((a, b) => (a.o || 0) - (b.o || 0)), reg };
   } else M = Object.assign({}, R, L);
   return JSON.stringify(M);
 }
@@ -7012,6 +7059,8 @@ const RESPALDO_VALIDADORES = {
   mma_1rm: v => _esObj(v), mma_historial_semanas: v => Array.isArray(v),
   aet_programa: v => _esObj(v), aet_perfil_agua: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
+  aet_habitos: v => _esObj(v) && Array.isArray(v.lista) && v.lista.length <= 200 && _esObj(v.reg) &&
+    v.lista.every(h => _esObj(h) && /^[a-z0-9]{1,24}$/.test(h.id) && typeof h.n === 'string' && h.n.length <= 60 && typeof h.i === 'string' && h.i.length <= 8 && (h.t === 'c' || h.t === 'n') && /^\d{4}-\d{2}-\d{2}$/.test(h.creado)),
 };
 // Valores que se guardan como texto plano (no JSON)
 const RESPALDO_TEXTO = {
@@ -7356,6 +7405,7 @@ function cambiarPantallaApp(pantalla, btn) {
   if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); }
   if (pantalla === 'nutricion') aetRenderNutri();
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
+  if (pantalla === 'habitos') aetRenderHabitos();
   window.scrollTo(0, 0);
 }
 
@@ -7489,7 +7539,7 @@ const AET = {
   pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
   idg: 0,
 };
-const AET_IR = { inicio: 0, entrenar: 1, nutricion: 2, mas: 3, perfil: 5 };
+const AET_IR = { inicio: 0, entrenar: 1, nutricion: 2, mas: 3, perfil: 5, habitos: 0 };
 function aetIr(p) { cambiarPantallaApp(p, document.querySelectorAll('.app-nav-btn')[AET_IR[p]]); }
 function aetToast(m) {
   const t = document.createElement('div'); t.className = 'aet-toast'; t.textContent = m;
@@ -7915,6 +7965,7 @@ function aetLogros() {
   const ent = aetEntrenosTotal(), ses = aetLog().length;
   const diasComida = Object.values(dias).filter(d => d.comidas && d.comidas.length).length;
   const aguaOk = Object.values(act).some(v => v.includes('a'));
+  const hl = habLogros();
   return [
     { i: '🔥', n: 'Racha de 3 días', ok: maxRacha >= 3 }, { i: '⚡', n: 'Racha de 7 días', ok: maxRacha >= 7 },
     { i: '🌋', n: 'Racha de 14 días', ok: maxRacha >= 14 }, { i: '👑', n: 'Racha de 30 días', ok: maxRacha >= 30 },
@@ -7923,6 +7974,7 @@ function aetLogros() {
     { i: '🥗', n: 'Primera comida registrada', ok: diasComida >= 1 }, { i: '📅', n: '7 días con comidas', ok: diasComida >= 7 },
     { i: '⚖️', n: 'Primer peso', ok: AET.pesos().length >= 1 }, { i: '🧬', n: 'Primera composición', ok: aetComp().length >= 1 },
     { i: '💧', n: 'Meta de agua', ok: aguaOk },
+    { i: '🌱', n: 'Primer hábito cumplido', ok: hl.primero }, { i: '🌿', n: '30 hábitos cumplidos', ok: hl.treinta }, { i: '⭐', n: 'Día perfecto de hábitos', ok: hl.perfecto },
   ];
 }
 function aetRenderLogros() {
@@ -7931,7 +7983,244 @@ function aetRenderLogros() {
   el.innerHTML = `<div class="aet-panel"><div class="aet-panel-t"><span>🏅 Logros</span><span style="color:var(--blanco)">${n}/${l.length}</span></div>
     <div class="aet-logros">${l.map(x => `<div class="aet-logro ${x.ok ? 'ok' : ''}"><i>${x.i}</i><b>${x.n}</b></div>`).join('')}</div></div>`;
 }
-function aetRenderProgreso() { aetRenderPeso(); aetRenderComp(); aetRenderLogros(); }
+function aetRenderHabProg() {
+  const el = document.getElementById('appProgHabitos'); if (!el) return;
+  const e = habCargar(), c = habCtx(), r = habResumen(e, c);
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="aet-panel-t"><span style="color:var(--ac-n)">🌱 Hábitos</span><button class="lnk" onclick="aetIr('habitos')">Ver todos →</button></div>
+    <div class="hab-sumas"><div><b>${r.semPct} %</b><span>Cumplimiento de esta semana</span></div><div><b>${r.mejor}</b><span>Mejor racha actual (días)</span></div><div><b>${r.perfectos}</b><span>Días perfectos en 30 días</span></div></div></div>`;
+}
+function aetRenderProgreso() { aetRenderPeso(); aetRenderComp(); aetRenderHabProg(); aetRenderLogros(); }
+
+/* ============================================================
+   HÁBITOS — lista propia del usuario (con sugeridos), marcado
+   diario, rachas y progreso. Clave aet_habitos (se sincroniza):
+   { lista:[{id,n,i,t:'c'|'n',meta,u,auto,dias,creado,arch,o,m}],
+     reg:{ 'YYYY-MM-DD': { idHabito: {v, t} } } }
+   v = 1 (check) o cantidad; t = momento del cambio (gana el más reciente al sincronizar).
+============================================================ */
+const HAB_SUGERIDOS = [
+  { id: 'entrenar', i: '🏋️', n: 'Entrenar', t: 'c', auto: 'e', d: 'Se marca solo al registrar tu entreno' },
+  { id: 'agua', i: '💧', n: 'Cumplir mi meta de agua', t: 'c', auto: 'a', d: 'Se marca solo al llegar a tu meta de agua' },
+  { id: 'comidas', i: '🥗', n: 'Registrar mis comidas', t: 'c', auto: 'm', d: 'Se marca solo al registrar una comida' },
+  { id: 'dormir', i: '😴', n: 'Dormir', t: 'n', meta: 7, u: 'h', d: 'Meta de 7 horas o más' },
+  { id: 'pasos', i: '🚶', n: 'Caminar', t: 'n', meta: 8000, u: 'pasos', d: 'Meta de 8,000 pasos' },
+  { id: 'suple', i: '💊', n: 'Tomar mis suplementos', t: 'c', d: 'Creatina, magnesio, vitamina D…' },
+  { id: 'sol', i: '☀️', n: 'Luz natural en la mañana', t: 'c', d: '10 minutos al aire libre' },
+  { id: 'pantallas', i: '📵', n: 'Sin pantallas 1 h antes de dormir', t: 'c', d: 'Mejora el sueño' },
+  { id: 'respirar', i: '🧘', n: 'Respirar o meditar 10 min', t: 'c', d: 'Baja el estrés' },
+  { id: 'movilidad', i: '🤸', n: 'Movilidad o estiramientos', t: 'c', d: '10 minutos' },
+  { id: 'leer', i: '📖', n: 'Leer 10 minutos', t: 'c', d: 'Algo que te sume' },
+];
+const HAB_BASE = ['entrenar', 'agua', 'comidas', 'dormir', 'pasos'];
+const HAB_EMOJIS = ['⭐', '💪', '💧', '🥗', '😴', '🚶', '🧘', '📖', '💊', '☀️', '🚭', '🍎', '🏃', '🧠', '✍️', '🦷'];
+const HAB_DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+function habNuevoDeSugerido(s, o) {
+  const h = { id: s.id, n: s.n, i: s.i, t: s.t, dias: null, creado: AET.hoy(), arch: false, o: o, m: Date.now() };
+  if (s.t === 'n') { h.meta = s.meta; h.u = s.u; }
+  if (s.auto) h.auto = s.auto;
+  return h;
+}
+function habCargar() {
+  let e = AET.leer('aet_habitos', null);
+  if (!e || !Array.isArray(e.lista) || typeof e.reg !== 'object' || !e.reg) {
+    e = { lista: HAB_BASE.map((id, k) => habNuevoDeSugerido(HAB_SUGERIDOS.find(s => s.id === id), k)), reg: {} };
+    AET.guardar('aet_habitos', e);
+  }
+  return e;
+}
+const habDow = f => (new Date(f + 'T12:00:00').getDay() + 6) % 7;
+function habCtx() { return { act: AET.leer('aet_actividad', {}), dia: AET.leer('aet_dia', {}), agua: AET.metas().agua }; }
+function habProgramado(h, f) { return f >= h.creado && (!h.dias || h.dias.includes(habDow(f))); }
+function habValor(e, h, f) { const x = (e.reg[f] || {})[h.id]; return x && x.v ? x.v : 0; }
+function habAuto(h, f, c) {
+  if (h.auto === 'e') return (c.act[f] || []).includes('e');
+  if (h.auto === 'a') { const d = c.dia[f]; return !!d && d.agua >= c.agua && c.agua > 0; }
+  if (h.auto === 'm') { const d = c.dia[f]; return !!d && (d.comidas || []).length > 0; }
+  return false;
+}
+function habHecho(e, h, f, c) {
+  if (habAuto(h, f, c)) return true;
+  const v = habValor(e, h, f);
+  return h.t === 'n' ? v >= (h.meta || 1) : v > 0;
+}
+function habRacha(e, h, c) {
+  let n = 0;
+  for (let o = 0; o < 400; o++) {
+    const f = AET.dia(o); if (f < h.creado) break;
+    if (!habProgramado(h, f)) continue;
+    if (habHecho(e, h, f, c)) n++; else if (o > 0) break;
+  }
+  return n;
+}
+function habPct30(e, h, c) {
+  let p = 0, ok = 0;
+  for (let o = 0; o < 30; o++) {
+    const f = AET.dia(o); if (f < h.creado) break;
+    if (!habProgramado(h, f)) continue;
+    const hecho = habHecho(e, h, f, c);
+    if (o === 0 && !hecho) continue;
+    p++; if (hecho) ok++;
+  }
+  return p ? Math.round(ok / p * 100) : null;
+}
+function habActivos(e) { return e.lista.filter(h => !h.arch).sort((a, b) => (a.o || 0) - (b.o || 0)); }
+function habDiasTxt(h) { return !h.dias || h.dias.length === 7 ? 'Todos los días' : [...h.dias].sort().map(d => HAB_DIAS[d]).join(' '); }
+function habFmtNum(v) { return String(Math.round(v * 10) / 10).replace(/\.0$/, ''); }
+
+/* Resumen global */
+function habResumen(e, c) {
+  const act = habActivos(e), hoy = AET.hoy(), dow = habDow(hoy);
+  const prog = act.filter(h => habProgramado(h, hoy)), hechos = prog.filter(h => habHecho(e, h, hoy, c)).length;
+  let sp = 0, sh = 0;
+  for (let k = 0; k <= dow; k++) { const f = AET.dia(dow - k); act.forEach(h => { if (habProgramado(h, f)) { sp++; if (habHecho(e, h, f, c)) sh++; } }); }
+  let perfectos = 0;
+  for (let o = 0; o < 30; o++) { const f = AET.dia(o); const p = act.filter(h => habProgramado(h, f)); if (p.length && p.every(h => habHecho(e, h, f, c))) perfectos++; }
+  const mejor = act.reduce((m, h) => Math.max(m, habRacha(e, h, c)), 0);
+  return { total: prog.length, hechos, semPct: sp ? Math.round(sh / sp * 100) : 0, perfectos, mejor };
+}
+
+function habItem(e, h, f, c) {
+  const hecho = habHecho(e, h, f, c), v = habValor(e, h, f);
+  const sub = h.t === 'n' ? (v ? habFmtNum(v) + ' / ' + habFmtNum(h.meta) + ' ' + esc(h.u || '') : 'Meta: ' + habFmtNum(h.meta) + ' ' + esc(h.u || '')) : (h.auto && hecho ? 'Se marcó solo ✓' : habDiasTxt(h));
+  return `<div class="hab-item ${hecho ? 'ok' : ''}" onclick="habTocar('${h.id}','${f}')"><span class="hab-i">${esc(h.i)}</span><div class="hab-t"><b>${esc(h.n)}</b><small>${sub}</small></div><span class="hab-chk">✓</span></div>`;
+}
+
+function habPanelInicio() {
+  const e = habCargar(), c = habCtx(), hoy = AET.hoy(), r = habResumen(e, c);
+  const prog = habActivos(e).filter(h => habProgramado(h, hoy));
+  const pct = r.total ? Math.round(r.hechos / r.total * 100) : 0;
+  return `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="aet-panel-t"><span style="color:var(--ac-n)">🌱 Hábitos de hoy</span><button class="lnk" onclick="aetIr('habitos')">Ver todos →</button></div>
+    ${prog.length ? `<div class="hab-barra"><i style="width:${pct}%"></i></div><p class="aet-nota" style="margin:.3rem 0 .8rem">${r.hechos} de ${r.total} hoy${r.mejor ? ' · mejor racha ' + r.mejor + (r.mejor === 1 ? ' día' : ' días') : ''}</p>
+    ${prog.slice(0, 5).map(h => habItem(e, h, hoy, c)).join('')}${prog.length > 5 ? `<button class="aet-btn sec mini" onclick="aetIr('habitos')">+${prog.length - 5} más</button>` : ''}`
+      : '<p class="aet-nota" style="margin:0 0 .7rem">Hoy no tienes hábitos programados. Crea el primero y empieza a construir tu racha.</p><button class="aet-btn sec" onclick="aetIr(\'habitos\')">Ir a mis hábitos</button>'}
+  </div>`;
+}
+
+function aetRenderHabitos() {
+  const el = document.getElementById('appHabitos'); if (!el) return;
+  const e = habCargar(), c = habCtx(), hoy = AET.hoy(), dow = habDow(hoy), r = habResumen(e, c);
+  const act = habActivos(e), prog = act.filter(h => habProgramado(h, hoy));
+  const semana = [0, 1, 2, 3, 4, 5, 6].map(i => AET.dia(dow - i));
+  const card = h => {
+    const rc = habRacha(e, h, c), p = habPct30(e, h, c);
+    const dots = semana.map((f, i) => {
+      const st = f > hoy ? 'fut' : !habProgramado(h, f) ? 'na' : habHecho(e, h, f, c) ? 'ok' : f === hoy ? 'hoy' : 'no';
+      return `<div class="hab-d ${st}" ${st === 'fut' || st === 'na' ? '' : `onclick="habTocar('${h.id}','${f}')"`}>${HAB_DIAS[i]}<i>✓</i></div>`;
+    }).join('');
+    return `<div class="aet-panel"><div class="aet-panel-t"><span style="color:var(--blanco)">${esc(h.i)} ${esc(h.n)}</span><button class="lnk" onclick="habForm('${h.id}')">Editar</button></div>
+      <div class="hab-sem">${dots}</div>
+      <div class="hab-stats"><span>🔥 <b>${rc}</b> ${rc === 1 ? 'día seguido' : 'días seguidos'}</span><span>📅 <b>${p == null ? '—' : p + ' %'}</b> últimos 30 días</span></div>
+      <p class="aet-nota" style="margin:.4rem 0 0">${h.t === 'n' ? 'Meta: ' + habFmtNum(h.meta) + ' ' + esc(h.u || '') + ' · ' : ''}${habDiasTxt(h)}</p></div>`;
+  };
+  el.innerHTML = `
+    <div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="hab-resumen">
+      ${aetAnillo(r.total ? r.hechos / r.total : 0, '#3ecf8e', r.hechos + '/' + r.total, 'Hoy', 'hábitos', '')}
+      <div class="hab-sumas"><div><b>${r.semPct} %</b><span>Cumplimiento de esta semana</span></div><div><b>${r.mejor}</b><span>Mejor racha actual (días)</span></div><div><b>${r.perfectos}</b><span>Días perfectos en 30 días</span></div></div>
+    </div></div>
+    <div class="app-seccion-titulo">Hoy</div>
+    ${prog.length ? prog.map(h => habItem(e, h, hoy, c)).join('') : '<p class="aet-nota">No tienes hábitos programados para hoy.</p>'}
+    ${act.length ? '<div class="app-seccion-titulo">Cómo vas (toca un día para marcarlo o corregirlo)</div>' + act.map(card).join('') : ''}
+    <div class="aet-fila" style="margin-top:.4rem"><button class="aet-btn n" onclick="habForm()">＋ Crear hábito</button><button class="aet-btn sec" onclick="habSugeridos()">✨ Sugeridos</button></div>
+    <p class="aet-nota">Los hábitos con 🔸 automático se marcan solos cuando registras tu entreno, tu agua o tus comidas. Puedes crear los tuyos, elegir qué días aplican y archivarlos cuando quieras.</p>`;
+}
+function habRefrescar() { try { aetRenderHabitos(); renderDashboardApp(); } catch (x) { console.error(x); } }
+
+function habTocar(id, f) {
+  const e = habCargar(), h = e.lista.find(x => x.id === id); if (!h || h.arch) return;
+  if (f > AET.hoy()) { aetToast('Ese día aún no llega'); return; }
+  if (!habProgramado(h, f)) { aetToast('Ese día no está en el plan de este hábito'); return; }
+  const c = habCtx();
+  if (h.t === 'n') { habCantidad(id, f); return; }
+  if (habAuto(h, f, c) && !habValor(e, h, f)) { aetToast('Este hábito se marcó solo al registrar tu actividad'); return; }
+  e.reg[f] = e.reg[f] || {};
+  e.reg[f][id] = { v: habValor(e, h, f) ? 0 : 1, t: Date.now() };
+  AET.guardar('aet_habitos', e); habRefrescar();
+}
+function habCantidad(id, f) {
+  const e = habCargar(), h = e.lista.find(x => x.id === id); if (!h) return;
+  const v = habValor(e, h, f);
+  aetSheet(esc(h.i) + ' ' + esc(h.n), `<label class="aet-lbl">${f === AET.hoy() ? 'Hoy' : AET.corta(f)} · cantidad (${esc(h.u || '')})</label>
+    <input class="aet-in" id="habQ" type="number" inputmode="decimal" min="0" step="any" value="${v || ''}" placeholder="Meta: ${habFmtNum(h.meta)}">
+    <button class="aet-btn n" style="margin-top:1rem" onclick="habGuardarCantidad('${id}','${f}')">Guardar</button>
+    <p class="aet-nota">Se cuenta como cumplido al llegar a ${habFmtNum(h.meta)} ${esc(h.u || '')}.</p>`);
+}
+function habGuardarCantidad(id, f) {
+  const n = AET.num(document.getElementById('habQ').value);
+  if (n == null || n < 0 || n > 1000000) { aetToast('Escribe una cantidad válida'); return; }
+  const e = habCargar(); e.reg[f] = e.reg[f] || {}; e.reg[f][id] = { v: n, t: Date.now() };
+  AET.guardar('aet_habitos', e); aetCerrar(); habRefrescar();
+}
+
+/* Crear / editar */
+let _habDias = [0, 1, 2, 3, 4, 5, 6], _habEmoji = '⭐';
+function habForm(id) {
+  const e = habCargar(), h = id ? e.lista.find(x => x.id === id) : null;
+  _habDias = h && h.dias ? h.dias.slice() : [0, 1, 2, 3, 4, 5, 6]; _habEmoji = h ? h.i : '⭐';
+  const auto = !!(h && h.auto);
+  aetSheet(h ? 'Editar hábito' : 'Nuevo hábito', `
+    <label class="aet-lbl">Nombre</label><input class="aet-in" id="habN" maxlength="40" value="${h ? esc(h.n) : ''}" placeholder="Ej. Tomar mi vitamina">
+    <label class="aet-lbl">Ícono</label><div class="hab-chips" id="habEmojis">${HAB_EMOJIS.map(x => `<button type="button" class="hab-chip ${x === _habEmoji ? 'on' : ''}" onclick="habElegirEmoji(this)">${x}</button>`).join('')}</div>
+    ${auto ? '<p class="aet-nota">🔸 Automático: se marca solo al registrar tu actividad.</p>' : `
+    <label class="aet-lbl">Tipo</label><select class="aet-in" id="habT" onchange="document.getElementById('habMeta').style.display=this.value==='n'?'block':'none'"><option value="c" ${!h || h.t === 'c' ? 'selected' : ''}>Sí / No (lo hice o no)</option><option value="n" ${h && h.t === 'n' ? 'selected' : ''}>Con cantidad (horas, pasos, vasos…)</option></select>
+    <div id="habMeta" style="display:${h && h.t === 'n' ? 'block' : 'none'}"><label class="aet-lbl">Meta diaria y unidad</label><div class="aet-fila"><input class="aet-in" id="habM" type="number" inputmode="decimal" min="1" step="any" value="${h && h.meta ? h.meta : ''}" placeholder="8000"><input class="aet-in" id="habU" maxlength="12" value="${h && h.u ? esc(h.u) : ''}" placeholder="pasos"></div></div>`}
+    <label class="aet-lbl">Días que aplica</label><div class="hab-chips" id="habDiasSel">${HAB_DIAS.map((d, i) => `<button type="button" class="hab-chip ${_habDias.includes(i) ? 'on' : ''}" onclick="habElegirDia(${i}, this)">${d}</button>`).join('')}</div>
+    <button class="aet-btn n" style="margin-top:1.1rem" onclick="habGuardarForm('${h ? h.id : ''}')">${h ? 'Guardar cambios' : 'Crear hábito'}</button>
+    ${h ? `<button class="aet-btn peligro" style="margin-top:.6rem" onclick="habArchivar('${h.id}')">Archivar hábito</button><p class="aet-nota">Archivar lo quita de tu lista; tu historial se conserva y puedes restaurarlo desde Sugeridos.</p>` : ''}`);
+}
+function habElegirEmoji(b) { _habEmoji = b.textContent; document.querySelectorAll('#habEmojis .hab-chip').forEach(x => x.classList.toggle('on', x === b)); }
+function habElegirDia(i, b) { const k = _habDias.indexOf(i); if (k >= 0) _habDias.splice(k, 1); else _habDias.push(i); b.classList.toggle('on', k < 0); }
+function habGuardarForm(id) {
+  const n = document.getElementById('habN').value.trim();
+  if (!n) { aetToast('Ponle un nombre al hábito'); return; }
+  if (!_habDias.length) { aetToast('Elige al menos un día'); return; }
+  const e = habCargar(), h = id ? e.lista.find(x => x.id === id) : null;
+  if (!h && habActivos(e).length >= 30) { aetToast('Máximo 30 hábitos activos'); return; }
+  const tipoEl = document.getElementById('habT');
+  const t = h && h.auto ? 'c' : (tipoEl ? tipoEl.value : 'c');
+  let meta, u;
+  if (t === 'n') {
+    meta = AET.num(document.getElementById('habM').value); u = document.getElementById('habU').value.trim().slice(0, 12);
+    if (meta == null || meta <= 0 || meta > 1000000) { aetToast('Escribe una meta válida'); return; }
+  }
+  const dias = _habDias.length === 7 ? null : _habDias.slice().sort();
+  if (h) { Object.assign(h, { n, i: _habEmoji, t, dias, m: Date.now() }); if (t === 'n') { h.meta = meta; h.u = u; } else { delete h.meta; delete h.u; } }
+  else {
+    const nh = { id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), n, i: _habEmoji, t, dias, creado: AET.hoy(), arch: false, o: e.lista.length, m: Date.now() };
+    if (t === 'n') { nh.meta = meta; nh.u = u; }
+    e.lista.push(nh);
+  }
+  AET.guardar('aet_habitos', e); aetCerrar(); aetToast(h ? 'Hábito actualizado' : '🌱 Hábito creado'); habRefrescar();
+}
+function habArchivar(id) {
+  if (!confirm('¿Archivar este hábito? Dejará de aparecer, pero tu historial se conserva.')) return;
+  const e = habCargar(), h = e.lista.find(x => x.id === id); if (!h) return;
+  h.arch = true; h.m = Date.now(); AET.guardar('aet_habitos', e); aetCerrar(); habRefrescar();
+}
+function habSugeridos() {
+  const e = habCargar(), ids = new Set(e.lista.filter(h => !h.arch).map(h => h.id));
+  const sug = HAB_SUGERIDOS.filter(s => !ids.has(s.id)), arch = e.lista.filter(h => h.arch && !HAB_SUGERIDOS.some(s => s.id === h.id));
+  const fila = (s, accion) => `<div class="hab-item" onclick="${accion}"><span class="hab-i">${esc(s.i)}</span><div class="hab-t"><b>${esc(s.n)}${s.auto ? ' 🔸' : ''}</b><small>${esc(s.d || '')}</small></div><span class="hab-mas">＋</span></div>`;
+  aetSheet('Hábitos sugeridos', (sug.length || arch.length ? sug.map(s => fila(s, `habAgregarSug('${s.id}')`)).join('') + arch.map(h => fila({ i: h.i, n: h.n, d: 'Archivado · toca para restaurar' }, `habRestaurar('${h.id}')`)).join('') : '<p class="aet-nota">Ya tienes todos los sugeridos. Crea los tuyos con “＋ Crear hábito”.</p>') + '<p class="aet-nota">🔸 Automático: se marca solo al registrar tu actividad en la app.</p>');
+}
+function habAgregarSug(id) {
+  const e = habCargar(), s = HAB_SUGERIDOS.find(x => x.id === id); if (!s) return;
+  if (habActivos(e).length >= 30) { aetToast('Máximo 30 hábitos activos'); return; }
+  const prev = e.lista.find(h => h.id === id);
+  if (prev) { prev.arch = false; prev.m = Date.now(); } else e.lista.push(habNuevoDeSugerido(s, e.lista.length));
+  AET.guardar('aet_habitos', e); aetCerrar(); aetToast('Hábito agregado'); habRefrescar();
+}
+function habRestaurar(id) {
+  const e = habCargar(), h = e.lista.find(x => x.id === id); if (!h) return;
+  h.arch = false; h.m = Date.now(); AET.guardar('aet_habitos', e); aetCerrar(); aetToast('Hábito restaurado'); habRefrescar();
+}
+function habLogros() {
+  const e = AET.leer('aet_habitos', null); if (!e || !e.reg) return { primero: false, perfecto: false, treinta: false };
+  let n = 0; Object.values(e.reg).forEach(d => Object.values(d).forEach(x => { if (x && x.v > 0) n++; }));
+  const c = habCtx(), act = habActivos(e); let perfecto = false;
+  for (let o = 0; o < 60 && !perfecto; o++) { const f = AET.dia(o), p = act.filter(h => habProgramado(h, f)); if (p.length >= 3 && p.every(h => habHecho(e, h, f, c))) perfecto = true; }
+  return { primero: n >= 1, perfecto, treinta: n >= 30 };
+}
 
 /* ---------- Inicio ---------- */
 function renderDashboardApp() {
@@ -7956,6 +8245,7 @@ function renderDashboardApp() {
       </div>
       <div class="aet-fila" style="margin-top:1rem"><button class="aet-btn e" onclick="aetFormEntreno()">＋ Ejercicio</button><button class="aet-btn n" onclick="aetFormComida()">＋ Comida</button><button class="aet-btn p" onclick="aetAgua(1)">＋ 💧</button></div>
     </div>
+    ${habPanelInicio()}
     <div class="aet-panel" style="border-color:rgba(74,168,255,.3)"><div class="aet-panel-t"><span style="color:var(--ac-p)">⚖ Peso</span><button class="lnk" onclick="aetIr('perfil')">Ver progreso →</button></div>
       ${u ? `<div class="aet-peso"><b>${u.peso} kg</b>${dif != null ? `<em>${dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : ''}${dif} kg</em>` : ''}<small>${AET.corta(u.fecha)}</small></div>${aetGrafica(ps.map(p => ({ l: AET.corta(p.fecha), y: p.peso })), '#4aa8ff', true)}`
         : '<p class="aet-nota" style="margin:0 0 .7rem">Aún no registras tu peso.</p>'}
@@ -8813,7 +9103,7 @@ function aetMmaFin() {
 }
 
 function aetRefrescar() {
-  try { renderDashboardApp(); aetRenderHero(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); } catch (e) { console.error(e); }
+  try { renderDashboardApp(); aetRenderHero(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); aetRenderHabitos(); } catch (e) { console.error(e); }
 }
 
 function renderPerfilResumenApp() {
