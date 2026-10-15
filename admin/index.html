@@ -166,7 +166,7 @@
 
   <div id="panel" class="oculto">
     <div class="stats" id="stats"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="premium">Premium</button></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button></div>
 
     <section id="tPedidos">
       <div class="filtros" id="filtros"></div>
@@ -234,6 +234,21 @@
       </div>
       <div class="card oculto" id="gResultado" style="margin-bottom:14px"></div>
       <div class="card" id="listaLotes"><div class="vacio">Cargando…</div></div>
+    </section>
+    <section id="tInventario" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <b>Registrar movimiento</b>
+        <div class="rejilla c4" style="margin-top:10px">
+          <div class="campo"><label>Producto</label><select id="iProd"></select></div>
+          <div class="campo"><label>Movimiento</label><select id="iTipo"><option value="entrada">Entrada (llegó mercancía)</option><option value="salida">Salida (entregué / se perdió)</option><option value="ajuste">Conteo (fijar cantidad exacta)</option></select></div>
+          <div class="campo"><label>Cantidad</label><input id="iCant" type="number" min="0" step="1" placeholder="10"></div>
+          <div class="campo"><label>Nota (opcional)</label><input id="iNota" maxlength="200" placeholder="Ej. entrega a gimnasio"></div>
+        </div>
+        <div class="fila" style="margin-top:12px"><button id="btnInv">Registrar</button></div>
+        <div class="peq" style="margin-top:8px">Las ventas de la tienda restan solas. Aquí registras lo demás: lo que te llega, lo que entregas fuera de la tienda y los conteos.</div>
+      </div>
+      <div id="invProductos"></div>
+      <div class="card" id="invMovs"></div>
     </section>
   </div>
 </main>
@@ -448,7 +463,7 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', premium: 'tPremium' };
+const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium' };
 let tabActiva = 'pedidos';
 function abrirTab(t) {
   tabActiva = t;
@@ -518,7 +533,7 @@ $('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closes
 ============================================================ */
 const money = (n) => '$' + Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
 const fechaDia = (s) => s ? new Date(s).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, datosGym = null, filtroCli = 'todos';
+let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, datosGym = null, datosInv = null, filtroCli = 'todos';
 function falloTab(e, silencioso) {
   if (e && (e.status === 401 || e.status === 403 || /autorizado/.test(e.message || ''))) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador o la sesión venció.'); }
   else if (!silencioso) aviso('No se pudo cargar. Revisa tu conexión.');
@@ -529,6 +544,7 @@ async function cargarTab(t, silencioso) {
     else if (t === 'productos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#cuerpoProductos')) return; datosProd = await rpc('panel_productos'); pintarProductos(); }
     else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
     else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
+    else if (t === 'inventario') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tInventario')) return; datosInv = await rpc('panel_inventario'); pintarInventario(); }
     else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; datosGym = await rpc('panel_lotes'); pintarGimnasios(); }
   } catch (e) { falloTab(e, silencioso); }
 }
@@ -787,6 +803,32 @@ $('listaLotes').addEventListener('click', async (e) => {
     b.disabled = false;
   }
 });
+
+/* ---- Inventario ---- */
+const ERR_INV = { stock_insuficiente: 'No hay suficientes piezas: quedan menos de las que intentas sacar.', cantidad_invalida: 'Escribe una cantidad válida (entera, 1 o más; en conteo puede ser 0).', producto_invalido: 'Producto no válido.', tipo_invalido: 'Movimiento no válido.' };
+function pintarInventario() {
+  const D = datosInv || { productos: [], movs: [] };
+  const sel = $('iProd'), act = sel.value;
+  sel.innerHTML = D.productos.map((p) => `<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join(''); if (act) sel.value = act;
+  const nombre = {}; D.productos.forEach((p) => { nombre[p.id] = p.nombre; });
+  $('invProductos').innerHTML = `<div class="kpis">${D.productos.map((p) => {
+    const sinControl = p.stock == null, bajo = !sinControl && p.stock <= p.stock_minimo;
+    return `<div class="kpi" style="${bajo ? 'border-color:var(--rojo,#e5484d)' : ''}"><small>${esc(p.nombre)}</small><b>${sinControl ? '—' : p.stock}</b><i class="${bajo ? 'baja' : 'igual'}">${sinControl ? 'sin conteo todavía' : bajo ? 'stock bajo (aviso en ' + p.stock_minimo + ')' : 'piezas'}</i><i class="igual">${p.codigos_disponibles} código(s) Premium disponibles</i></div>`;
+  }).join('')}</div>`;
+  const T = { entrada: '＋ Entrada', salida: '− Salida', ajuste: '＝ Conteo' };
+  $('invMovs').innerHTML = `<b>Últimos movimientos</b>` + (D.movs.length ? D.movs.map((m) => `<div class="fila-item"><div class="cab"><div><div class="nom">${T[m.tipo]} · ${m.cantidad}</div><div class="peq">${esc(nombre[m.producto] || m.producto)} · ${new Date(m.creado_en).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${m.nota ? ' · ' + esc(m.nota) : ''}</div></div><div style="text-align:right"><div class="monto">${m.saldo}</div><div class="peq">quedan</div></div></div></div>`).join('') : '<div class="vacio">Aún no hay movimientos registrados.</div>');
+}
+$('btnInv').onclick = async () => {
+  const tipo = $('iTipo').value, cant = Number($('iCant').value);
+  if ($('iCant').value === '' || !(cant >= 0) || cant !== Math.floor(cant) || (tipo !== 'ajuste' && cant < 1)) { aviso(ERR_INV.cantidad_invalida); return; }
+  $('btnInv').disabled = true;
+  try {
+    const r = await rpc('panel_inventario_registrar', { p_producto: $('iProd').value, p_tipo: tipo, p_cantidad: cant, p_nota: $('iNota').value.trim() || null });
+    if (r.ok) { aviso('Registrado. Quedan ' + r.stock + ' pieza(s).', true); $('iCant').value = ''; $('iNota').value = ''; await cargarTab('inventario', false); }
+    else aviso(ERR_INV[r.error] || 'No se pudo registrar: ' + r.error);
+  } catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('btnInv').disabled = false;
+};
 
 /* ---------- Instalación y avisos push ---------- */
 const b64 = (s) => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
