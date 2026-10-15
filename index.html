@@ -2710,6 +2710,7 @@
     <h2 class="app-titulo">Tu progreso</h2>
     <p class="app-subtitulo">Guardado en este dispositivo</p>
     <div id="appProgPeso"></div>
+    <div id="appProgMed"></div>
     <div id="appProgComp"></div>
     <div id="appProgHabitos"></div>
     <div id="appProgLogros"></div>
@@ -2769,7 +2770,7 @@
       <div class="app-card-desc">70+ actividades con evidencia (TCC, DBT, mindfulness) y retos de 21 días.</div>
     </button>
     <button class="app-card" onclick="abrirContenidoApp('salud', 'Salud &amp; Biohacking')">
-      <div class="app-card-top"><span class="app-card-titulo">Salud &amp; Biohacking</span><span class="app-card-meta">12 temas</span></div>
+      <div class="app-card-top"><span class="app-card-titulo">Salud &amp; Biohacking</span><span class="app-card-meta">6 temas</span></div>
       <div class="app-card-desc">Grasas, sueño, microbioma, ayuno intermitente y más — con evidencia real.</div>
     </button>
     <button class="app-card" onclick="abrirContenidoApp('guias-educacion', 'Educación')">
@@ -7319,7 +7320,7 @@ async function abrirCalculadora(tipo) {
   if (tipo === 'mma2') inicializarMma2();
   if (tipo === 'mma3') inicializarMma3();
   if (tipo === 'medidas') inicializarMedidas();
-  if (tipo === 'dashboard') inicializarDashboard();
+  if (tipo === 'dashboard') { inicializarDashboard(); try { aetDashExtra(); } catch (e) { console.error(e); } }
   if (typeof DIETA_CONF !== 'undefined' && DIETA_CONF[tipo]) restaurarDieta(tipo);
   if (tipo === 'alimentos') inicializarAlimentos();
   if (tipo === 'respaldo') inicializarRespaldo();
@@ -7365,7 +7366,8 @@ let medidasHistorial = JSON.parse(localStorage.getItem('medidas_historial') || '
 let medidasMeta = JSON.parse(localStorage.getItem('medidas_meta') || '{}');
 
 function inicializarMedidas() {
-  document.getElementById('med_fecha').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('med_fecha').value = AET.hoy();
+  try { const a = aetAlturaActual(); if (a && !document.getElementById('med_altura').value) document.getElementById('med_altura').value = a; } catch (e) {}
   if (medidasMeta.peso) document.getElementById('med_metaPeso').value = medidasMeta.peso;
   if (medidasMeta.cintura) document.getElementById('med_metaCintura').value = medidasMeta.cintura;
   if (medidasMeta.caderas) document.getElementById('med_metaCaderas').value = medidasMeta.caderas;
@@ -7373,7 +7375,7 @@ function inicializarMedidas() {
 }
 
 function guardarMedicion() {
-  const fecha = document.getElementById('med_fecha').value || new Date().toISOString().slice(0, 10);
+  const fecha = document.getElementById('med_fecha').value || AET.hoy();
   const entrada = { fecha, altura: parseFloat(document.getElementById('med_altura').value) || null };
   let algunValor = false;
   MEDIDAS_CAMPOS.forEach(campo => {
@@ -7384,8 +7386,12 @@ function guardarMedicion() {
   if (!algunValor) { alert('Ingresa al menos una medida.'); return; }
 
   const idxExistente = medidasHistorial.findIndex(m => m.fecha === fecha);
-  if (idxExistente >= 0) medidasHistorial[idxExistente] = entrada;
-  else medidasHistorial.push(entrada);
+  if (idxExistente >= 0) {
+    // lo que dejas en blanco no borra lo ya guardado ese día (por ejemplo el peso que registraste en Inicio)
+    const prev = medidasHistorial[idxExistente];
+    Object.keys(entrada).forEach(k => { if (entrada[k] == null && prev[k] != null) entrada[k] = prev[k]; });
+    medidasHistorial[idxExistente] = entrada;
+  } else medidasHistorial.push(entrada);
   medidasHistorial.sort((a, b) => a.fecha.localeCompare(b.fecha));
 
   localStorage.setItem('medidas_historial', JSON.stringify(medidasHistorial));
@@ -8049,6 +8055,41 @@ function aetRenderNutri() {
   </div>`;
 }
 
+/* ---------- Dashboard: suma lo que registras en la app (Mi registro, entrenos marcados, composición, hábitos) ---------- */
+function aetDashExtra() {
+  const sem = document.getElementById('dashSemanaContenido'), mes = document.getElementById('dashMesContenido');
+  const hoy = AET.hoy(), d7 = AET.dia(6), d30 = AET.dia(30);
+  const act = AET.leer('aet_actividad', {}), log = aetLogPropio();
+  if (sem) {
+    const l7 = log.filter(l => l.fecha >= d7 && l.fecha <= hoy), diasEnt = new Set(l7.map(l => l.fecha));
+    Object.keys(act).forEach(f => { if (f >= d7 && f <= hoy && (act[f] || []).includes('e')) diasEnt.add(f); });
+    const series = l7.reduce((t, l) => t + (l.series || []).length, 0), porEj = {};
+    l7.forEach(l => { porEj[l.ej] = (porEj[l.ej] || 0) + (l.series || []).length; });
+    const top = Object.keys(porEj).sort((a, b) => porEj[b] - porEj[a]).slice(0, 6);
+    const r = aetResumenDatos(0), m = r.meta;
+    sem.insertAdjacentHTML('beforeend', `<div class="form-seccion" style="margin-top:1.2rem"><div class="form-seccion-titulo">Lo que registras en la app (últimos 7 días)</div>
+      <div class="nivel-badge">⬤ ${diasEnt.size} día(s) con entreno · ${r.ent}/${m.entrenos} en la semana</div>
+      ${top.length ? `<table class="tabla-equiv" style="margin-top:.6rem"><thead><tr><th>Ejercicio (Mi registro)</th><th>Series</th></tr></thead><tbody>${top.map(n => `<tr><td>${esc(n)}</td><td>${porEj[n]}</td></tr>`).join('')}</tbody></table><p class="nota-chica">${series} serie(s) en total. El volumen por grupo muscular de arriba solo cuenta los ejercicios de tus rutinas.</p>` : '<p class="nota-chica" style="margin-top:.6rem">Aún no registras ejercicios propios esta semana (Entrenar → ＋ Registrar ejercicio).</p>'}
+      <p class="nota-chica">${r.habPct != null ? '🌱 Hábitos cumplidos esta semana: ' + r.habPct + ' %. ' : ''}${r.kcal != null ? '🍽 Promedio de ' + r.kcal + ' kcal y ' + r.prot + ' g de proteína en ' + r.comidasDias + ' día(s) con comidas. ' : ''}${r.agua != null ? '💧 Agua: ' + r.agua + ' vasos al día.' : ''}</p></div>`);
+  }
+  if (mes) {
+    const comp = aetComp().filter(c => c.fecha >= d30);
+    let htmlComp;
+    const todo = aetComp();
+    if (todo.length < 2) htmlComp = '<p class="nota-chica">Necesitas al menos 2 registros de composición para ver tu evolución. Progreso → ＋ Registrar composición.</p>';
+    else {
+      const ult = todo[todo.length - 1], base = comp.length >= 2 ? comp[0] : todo[todo.length - 2];
+      const filas = AET_COMP.map(([k, n]) => { if (base[k] == null || ult[k] == null) return ''; const d = Math.round((ult[k] - base[k]) * 10) / 10; return `<tr><td>${n}</td><td>${base[k]}%</td><td>${ult[k]}%</td><td style="color:var(--oro2)">${d > 0 ? '+' : ''}${d}</td></tr>`; }).join('');
+      htmlComp = filas ? `<table class="tabla-equiv"><thead><tr><th>Medida</th><th>Antes (${AET.corta(base.fecha)})</th><th>Ahora (${AET.corta(ult.fecha)})</th><th>Cambio</th></tr></thead><tbody>${filas}</tbody></table>` : '<p class="nota-chica">Aún no hay valores comparables.</p>';
+    }
+    const porEj = {};
+    log.filter(l => l.fecha >= d30 && l.fecha <= hoy).forEach(l => { (porEj[l.ej] = porEj[l.ej] || []).push(l); });
+    const sube = Object.keys(porEj).map(n => { const a = porEj[n].sort((x, y) => x.id - y.id); if (a.length < 2) return null; const p = aetMejorE1rm(a[0]), u = aetMejorE1rm(a[a.length - 1]); return u > p && p > 0 ? { n, p, u } : null; }).filter(Boolean);
+    mes.insertAdjacentHTML('beforeend', `<div class="form-seccion" style="margin-top:1.2rem"><div class="form-seccion-titulo">Composición corporal</div>${htmlComp}</div>
+      <div class="form-seccion"><div class="form-seccion-titulo">1RM estimado que subiste (Mi registro, 30 días)</div>${sube.length ? `<table class="tabla-equiv"><thead><tr><th>Ejercicio</th><th>Progreso</th></tr></thead><tbody>${sube.map(x => `<tr><td>${esc(x.n)}</td><td>${x.p} kg → ${x.u} kg</td></tr>`).join('')}</tbody></table>` : '<p class="nota-chica">Aún no hay suficientes registros propios este mes.</p>'}</div>`);
+  }
+}
+
 /* ---------- Peso (usa Medidas) ---------- */
 function aetFormPeso() {
   const u = AET.pesos().slice(-1)[0];
@@ -8150,7 +8191,29 @@ function aetRenderHabProg() {
     <div class="hab-sumas"><div><b>${r.semPct} %</b><span>Cumplimiento de esta semana</span></div><div><b>${r.mejor}</b><span>Mejor racha actual (días)</span></div><div><b>${r.perfectos}</b><span>Días perfectos en 30 días</span></div></div>
     <button class="aet-btn sec" style="margin-top:.9rem" onclick="aetResumen()">📊 Resumen semanal</button></div>`;
 }
-function aetRenderProgreso() { aetRenderPeso(); aetRenderComp(); aetRenderHabProg(); aetRenderLogros(); }
+function aetRenderMedidas() {
+  const el = document.getElementById('appProgMed'); if (!el) return;
+  const h = AET.leer('medidas_historial', []).filter(m => m && m.fecha).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)));
+  const campos = (typeof MEDIDAS_CAMPOS !== 'undefined' ? MEDIDAS_CAMPOS : []).filter(c => c.id !== 'peso');
+  const ult = k => { for (let i = h.length - 1; i >= 0; i--) if (h[i][k] > 0) return i; return -1; };
+  const filas = campos.map(c => {
+    const i = ult(c.id); if (i < 0) return null;
+    let j = -1; for (let q = i - 1; q >= 0; q--) if (h[q][c.id] > 0) { j = q; break; }
+    const d = j >= 0 ? Math.round((h[i][c.id] - h[j][c.id]) * 10) / 10 : null;
+    return { n: c.label, v: h[i][c.id], d };
+  }).filter(Boolean);
+  const mm = AET.leer('medidas_meta', {}) || {}, ps = AET.pesos(), pu = ps.length ? ps[ps.length - 1].peso : null;
+  const metas = [];
+  if (mm.peso && pu) { const f = Math.round((pu - mm.peso) * 10) / 10; metas.push(f === 0 ? '⚖ Llegaste a tu peso meta (' + mm.peso + ' kg) 🎯' : '⚖ Peso meta ' + mm.peso + ' kg · ' + (f > 0 ? 'faltan ' + f + ' kg por bajar' : 'faltan ' + Math.abs(f) + ' kg por subir')); }
+  [['cintura', 'Cintura'], ['caderas', 'Caderas']].forEach(([k, n]) => { const i = ult(k); if (mm[k] && i >= 0) { const f = Math.round((h[i][k] - mm[k]) * 10) / 10; metas.push('📏 ' + n + ' meta ' + mm[k] + ' cm · ' + (f === 0 ? 'meta lograda 🎯' : f > 0 ? 'faltan ' + f + ' cm por bajar' : 'faltan ' + Math.abs(f) + ' cm por subir')); } });
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(245,183,59,.3)">
+    <div class="aet-panel-t"><span style="color:#f5b73b">📏 Medidas corporales</span><span style="color:var(--gris)">${filas.length ? h.length + ' registro(s)' : ''}</span></div>
+    ${filas.length ? `<div class="aet-comp">${filas.slice(0, 8).map(f => `<div class="aet-cc" style="--cc:#f5b73b"><b>${f.v}</b><span>${esc(f.n)} (cm)</span>${f.d ? `<em>${f.d > 0 ? '+' : ''}${f.d}</em>` : ''}</div>`).join('')}</div>${filas.length > 8 ? '<p class="aet-nota" style="margin:0 0 .6rem">Ver todas en Medidas Corporales.</p>' : ''}`
+      : '<p class="aet-nota" style="margin-top:0">Registra cintura, caderas, pecho, brazos y piernas para ver cómo cambian mes a mes.</p>'}
+    ${metas.length ? `<div class="aet-nota" style="margin:0 0 .6rem">${metas.map(esc).join('<br>')}</div>` : ''}
+    <button class="aet-btn sec" onclick="abrirCalculadora('medidas')">＋ Registrar medidas</button></div>`;
+}
+function aetRenderProgreso() { aetRenderPeso(); aetRenderMedidas(); aetRenderComp(); aetRenderHabProg(); aetRenderLogros(); }
 
 /* ============================================================
    HÁBITOS — lista propia del usuario (con sugeridos), marcado
@@ -8749,6 +8812,8 @@ function aetPerfilCheck() {
     { ok: !!aetPlanNutri(), n: 'Plan de nutrición', d: 'Tus macros según tu objetivo (Premium)', a: "abrirCalculadora('sano')", b: 'Calcular' },
     { ok: hayEntreno, n: 'Tu primer entreno registrado', d: 'Ejercicios, series y kilos', a: 'aetFormEntreno()', b: 'Registrar' },
     { ok: hayComida, n: 'Tu primera comida registrada', d: 'Calorías y proteína del día', a: 'aetFormComida()', b: 'Registrar' },
+    { ok: AET.leer('medidas_historial', []).some(m => m && ['cuello', 'pecho', 'abdomen', 'cintura', 'caderas', 'bicepIzq', 'bicepDer', 'musloIzq', 'musloDer', 'pantorrillaIzq', 'pantorrillaDer'].some(k => m[k] > 0)), n: 'Medidas corporales', d: 'Cintura, caderas, pecho, brazos y piernas para ver tu evolución', a: "abrirCalculadora('medidas')", b: 'Registrar' },
+    { ok: aetComp().length > 0, n: 'Composición corporal', d: '% de grasa, músculo, agua y masa ósea', a: 'aetFormComp()', b: 'Registrar' },
     { ok: habs >= 3, n: 'Hábitos activos', d: 'Al menos 3 para empezar', a: "aetIr('habitos')", b: 'Ver' },
     { ok: !!sesionActiva, n: 'Cuenta creada', d: 'Guarda tu progreso en la nube', a: 'abrirCuenta()', b: 'Entrar' },
     { ok: !!p.tour, n: 'Recorrido por la app', d: 'Conoce cada sección', a: 'aetTour()', b: 'Ver' },
@@ -8795,7 +8860,7 @@ const TOUR = [
   { p: 'mas', s: '#app-screen-mas [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
   { p: 'mas', s: '#app-screen-mas [onclick="aetIr(\'habitos\')"]', t: '🌱 Mis hábitos', x: 'Elige hábitos sugeridos o crea los tuyos (con días y metas). Ves tu racha y el avance semanal.' },
   { p: 'mas', s: '#app-screen-mas [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
-  { p: 'mas', s: '#app-screen-mas [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Bienestar Mental (actividades y retos de 21 días), Salud & Biohacking y Educación. Son gratis y explican el porqué de cada cosa.' },
+  { p: 'mas', s: '#app-screen-mas [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Salud & Biohacking y Educación se leen aquí mismo; Bienestar Mental es un cuaderno descargable con 70+ actividades y retos de 21 días. Son gratis y explican el porqué de cada cosa.' },
   { p: 'mas', s: '#app-screen-mas .app-card.ac-o', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México. También la encuentras en la barra de abajo.' },
   { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Más, Tienda y Progreso: desde cualquier pantalla llegas a todo con un toque.' },
   { p: 'inicio', s: '.app-cuenta-btn', t: 'Tu cuenta', x: 'Este botón de arriba abre tu cuenta: entrar, ver tu Premium y tus compras, o cerrar sesión.' },
