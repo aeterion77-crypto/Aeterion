@@ -5,7 +5,7 @@
      el navegador habla directo con el servidor. Safari/iPhone exige respuestas parciales (206) reales
      para reproducir video, y las descargas no deben servirse desde una copia vieja.
    - Archivos pequeños (íconos, manifest) usan la copia guardada y se actualizan en segundo plano. */
-const CACHE = 'aeterion-v39';
+const CACHE = 'aeterion-v40';
 const ARCHIVOS_BASE = ['./index.html', './manifest.json'];
 const NO_INTERCEPTAR = /\.(mp4|m4v|mov|webm|mp3|m4a|wav|ogg|xlsx|xls|docx|doc|pdf|zip)$/i;
 
@@ -57,4 +57,27 @@ self.addEventListener('fetch', e => {
       return cached || red;
     })
   );
+});
+
+
+/* Recordatorios (avisos push): solo muestran el aviso y abren la app en la pantalla indicada */
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: 'Aeterion', body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Aeterion', {
+    body: d.body || '', icon: './icons/icon-192.png', badge: './icons/icon-192.png',
+    tag: d.tag || 'aeterion', renotify: false, data: { url: d.url || '/?modo=app' }
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/?modo=app';
+  const ir = new URL(url, self.location.origin).searchParams.get('ir');
+  e.waitUntil((async () => {
+    const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of cs) {
+      if (new URL(c.url).origin === self.location.origin && !c.url.includes('/admin')) { await c.focus(); if (ir) c.postMessage({ tipo: 'aet-ir', ir }); return; }
+    }
+    await self.clients.openWindow(url);
+  })());
 });
