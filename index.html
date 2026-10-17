@@ -5499,6 +5499,7 @@ function _refrescarToken() {
     try {
       const r = await _gotrue('token?grant_type=refresh_token', { refresh_token: _auth.refresh_token });
       if (r.ok && r.data && r.data.access_token) { _aplicarRespuestaAuth(r.data); return true; }
+      if (r.status >= 400 && r.status < 500 && _esSuspension(r.data)) { aetBloquearDispositivo(); return false; }
       if (r.status >= 400 && r.status < 500) { _cerrarLocal(); return false; }
     } catch (e) {}
     return null;
@@ -5533,6 +5534,66 @@ async function _api(metodo, ruta, cuerpo, extraHeaders) {
 }
 const _rpc = (fn, args) => _api('POST', 'rpc/' + fn, args || {});
 
+/* ---------- Cuenta suspendida (bloqueo de toda la app desde el panel) ----------
+   El bloqueo queda guardado en este dispositivo: la app no se puede usar hasta que la cuenta se desbloquee.
+   Se revisa al abrir, al volver a la app y cada 5 minutos. */
+const BLOQ_KEY = 'aet_bloqueo';
+let _ultimoEstado = 0;
+function _esSuspension(d) { return !!d && (d.error_code === 'user_banned' || /banned/i.test(String(d.msg || d.message || d.error_description || d.error || ''))); }
+function aetBloqueoLocal() { const b = _leerJSON(BLOQ_KEY); return b && typeof b === 'object' ? b : null; }
+function aetBloquearDispositivo() {
+  const prev = aetBloqueoLocal() || {};
+  _escribir(BLOQ_KEY, { user_id: (_auth && _auth.user_id) || prev.user_id || null, email: (_auth && _auth.email) || prev.email || '', rt: (_auth && _auth.refresh_token) || prev.rt || null, fecha: prev.fecha || new Date().toISOString() });
+  _cerrarLocal();
+  try { borrarCopiaPremium(); } catch (e) {}
+  aetPantallaBloqueo();
+}
+function aetPantallaBloqueo(msg) {
+  const b = aetBloqueoLocal() || {};
+  let d = document.getElementById('aetBloqueo');
+  if (!d) { d = document.createElement('div'); d.id = 'aetBloqueo'; d.setAttribute('role', 'alertdialog'); d.setAttribute('aria-modal', 'true'); (document.body || document.documentElement).appendChild(d); }
+  d.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#0a0a0a;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto';
+  d.innerHTML = `<div style="max-width:420px;width:100%;text-align:center;font-family:var(--font-ui,system-ui),sans-serif;color:#e8e8e8">
+    <div style="letter-spacing:.3em;color:#c9a84c;font-size:13px;margin-bottom:28px">AETERION</div>
+    <div style="font-size:42px;margin-bottom:10px">🔒</div>
+    <h2 style="font-size:22px;margin:0 0 12px;color:#fff">Cuenta suspendida</h2>
+    <p style="color:#9a9aa5;font-size:14.5px;line-height:1.6;margin:0 0 6px">La cuenta ${b.email ? '<b style="color:#e8e8e8">' + _e(b.email) + '</b>' : ''} fue suspendida por un uso indebido, así que la app no está disponible en este dispositivo.</p>
+    <p style="color:#9a9aa5;font-size:14.5px;line-height:1.6;margin:0 0 22px">Si crees que es un error, escríbenos a <a href="mailto:pedidos@aeterionlabs.tech" style="color:#c9a84c">pedidos@aeterionlabs.tech</a>.</p>
+    <button id="aetBloqBtn" onclick="aetComprobarBloqueo(true)" style="background:#c9a84c;color:#111;border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:14px;cursor:pointer;width:100%">Comprobar de nuevo</button>
+    <p id="aetBloqMsg" style="color:#f5b73b;font-size:13px;min-height:18px;margin:12px 0 0">${msg ? _e(msg) : ''}</p></div>`;
+  document.documentElement.style.overflow = 'hidden';
+}
+async function aetComprobarBloqueo(manual) {
+  const b = aetBloqueoLocal(); if (!b) return;
+  const decir = t => { const m = document.getElementById('aetBloqMsg'); if (m) m.textContent = t; };
+  const btn = document.getElementById('aetBloqBtn'); if (btn) btn.disabled = true;
+  try {
+    if (!b.rt) { if (manual) decir('No se puede comprobar desde aquí. Escríbenos al correo de arriba.'); return; }
+    let r; try { r = await _gotrue('token?grant_type=refresh_token', { refresh_token: b.rt }); } catch (e) { if (manual) decir('Sin conexión. Inténtalo de nuevo.'); return; }
+    if (!(r.ok && r.data && r.data.access_token)) { if (manual) decir(_esSuspension(r.data) || r.status < 500 ? 'Tu cuenta sigue suspendida.' : 'No se pudo comprobar. Inténtalo más tarde.'); return; }
+    _aplicarRespuestaAuth(r.data);
+    _escribir(BLOQ_KEY, Object.assign({}, b, { rt: _auth.refresh_token }));
+    sesionActiva = true; usuarioActual = { email: _auth.email, user_id: _auth.user_id };
+    const e = await _rpc('estado_acceso');
+    if (e.ok && e.data && typeof e.data === 'object' && !e.data.bloqueado) {
+      _escribir(BLOQ_KEY, null);
+      estadoAcceso = e.data; _guardarEstado();
+      const d = document.getElementById('aetBloqueo'); if (d) d.remove();
+      document.documentElement.style.overflow = '';
+      actualizarUIAcceso();
+      if (typeof sincronizarAlIniciarSesion === 'function') sincronizarAlIniciarSesion();
+      try { aetToast('Tu cuenta está activa de nuevo'); } catch (x) {}
+    } else {
+      _escribir(BLOQ_KEY, Object.assign({}, b, { rt: _auth.refresh_token }));
+      _cerrarLocal();
+      if (manual) decir(e.ok ? 'Tu cuenta sigue suspendida.' : 'No se pudo comprobar. Inténtalo más tarde.');
+    }
+  } finally { const bt = document.getElementById('aetBloqBtn'); if (bt) bt.disabled = false; }
+}
+function _revisarEstado() { if (sesionActiva && !_modoDev && !aetBloqueoLocal() && Date.now() - _ultimoEstado > 120000) refrescarEstado(); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) _revisarEstado(); });
+setInterval(() => { if (!document.hidden) { _ultimoEstado = Math.min(_ultimoEstado, Date.now() - 120001); _revisarEstado(); } }, 300000);
+
 /* ---------- Estado de acceso ---------- */
 function tienePremiumLocal() {
   if (!sesionActiva || !estadoAcceso || !estadoAcceso.activo || !estadoAcceso.vence_en) return false;
@@ -5546,8 +5607,9 @@ function _guardarEstado() {
 async function refrescarEstado() {
   if (_modoDev) { actualizarUIAcceso(); return { ok: true }; }
   const r = await _rpc('estado_acceso');
+  _ultimoEstado = Date.now();
   if (r.ok && r.data && typeof r.data === 'object') {
-    if (r.data.bloqueado) { _cerrarLocal(); aetAvisoBloqueo(); return r; }
+    if (r.data.bloqueado) { aetBloquearDispositivo(); return r; }
     estadoAcceso = r.data;
     _guardarEstado();
   }
@@ -5590,7 +5652,8 @@ document.addEventListener('DOMContentLoaded', function () {
   try { localStorage.removeItem('aeterion_sesion'); } catch (e) {}   // sesión antigua (ya no es válida)
   const q = new URLSearchParams(location.search);
 
-  const a = _leerJSON(AUTH_KEY);
+  if (aetBloqueoLocal()) { aetPantallaBloqueo(); aetComprobarBloqueo(false); }
+  const a = aetBloqueoLocal() ? null : _leerJSON(AUTH_KEY);
   if (a && a.access_token && a.refresh_token && a.user_id) {
     _auth = a; sesionActiva = true;
     usuarioActual = { email: a.email, user_id: a.user_id };
@@ -5742,7 +5805,7 @@ async function verificarCodigoLogin() {
       estadoAcceso = null;
       _emailPendiente = '';
       await despuesDeLogin();
-    } else if (r.data && (r.data.error_code === 'user_banned' || /banned/i.test(String(r.data.msg || r.data.message || r.data.error_description || '')))) {
+    } else if (_esSuspension(r.data)) {
       _txt('muro_error_codigo', 'Esta cuenta está suspendida. Si crees que es un error, escríbenos a pedidos@aeterionlabs.tech.');
     } else if (r.status === 429) {
       _txt('muro_error_codigo', 'Demasiados intentos. Espera un momento.');
@@ -6240,6 +6303,8 @@ async function pushPendiente() {
       } else if (r.ok && r.data && r.data.conflicto) {
         if (_fusionable(k)) { if (_aplicarFusion(k, v, r.data.valor, r.data.version)) aplicados++; }
         else { _sync.ver[k] = r.data.version; }   // perfil/bloque/día/dieta: gana tu última edición (se vuelve a subir)
+      } else if (r.ok && r.data && r.data.error === 'bloqueado') {
+        fallaRed = true; aetBloquearDispositivo(); break;   // cuenta suspendida: no se pierde lo pendiente
       } else if (r.ok && r.data && r.data.error) {
         delete _sync.sucias[k];                 // error permanente (clave/valor no válidos)
       } else { fallaRed = true; break; }       // sin red o sesión: se reintenta después
@@ -8596,9 +8661,6 @@ const AYU_ERR = {
   sin_sesion: 'Tu sesión venció. Vuelve a entrar.',
 };
 const AYU_TEMAS = [['📦', 'Mi pedido', 'Hola, tengo una duda sobre mi pedido: '], ['⭐', 'Mi Premium o código', 'Hola, tengo un problema con mi Premium / código: '], ['🐞', 'Un error en la app', 'Hola, encontré un error en la app: '], ['💡', 'Una sugerencia', 'Hola, tengo una sugerencia: ']];
-function aetAvisoBloqueo() {
-  aetSheet('Cuenta suspendida', `<p style="color:var(--gris);font-size:14px;line-height:1.55">Esta cuenta fue suspendida por un uso indebido de la app. Tu progreso sigue guardado en este dispositivo.<br><br>Si crees que es un error, escríbenos a <b style="color:var(--blanco)">pedidos@aeterionlabs.tech</b>.</p>`);
-}
 function aetAyudaBadge() {
   const n = (estadoAcceso && estadoAcceso.soporte_no_leidos) || 0;
   const m = document.getElementById('appAyudaMeta');
