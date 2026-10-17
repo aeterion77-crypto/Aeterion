@@ -915,7 +915,7 @@ $('listaTextos').addEventListener('click', async (e) => {
 function pintarUso() {
   const u = datosUso; if (!u) return;
   const sem = u.semanas || [], maxU = Math.max(1, ...sem.map((x) => x.usuarios));
-  const NOM = { sec_inicio: 'Inicio', sec_entrenar: 'Entrenar', sec_nutricion: 'Nutrición', sec_habitos: 'Hábitos', sec_progreso: 'Progreso', sec_mas: 'Más', sec_tienda: 'Tienda' };
+  const NOM = { sec_inicio: 'Inicio', sec_entrenar: 'Entrenar', sec_nutricion: 'Nutrición', sec_habitos: 'Hábitos', sec_progreso: 'Progreso', sec_educacion: 'Educación', sec_mas: 'Más', sec_tienda: 'Tienda', sec_cuenta: 'Cuenta' };
   const s7 = u.secciones_7d || {}, ks = Object.keys(NOM).filter((k) => s7[k] || (u.secciones_30d || {})[k]).sort((a, b) => (s7[b] || 0) - (s7[a] || 0));
   const maxS = Math.max(1, ...ks.map((k) => s7[k] || 0));
   $('cuerpoUso').innerHTML = `

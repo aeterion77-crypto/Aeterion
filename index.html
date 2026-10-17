@@ -842,10 +842,12 @@
     .app-nav-btn {
       flex: 1; background: transparent; border: none; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; gap: .25rem;
-      padding: .7rem 0 .5rem; color: var(--gris); font-family: var(--font-ui);
-      font-size: 9.5px; letter-spacing: .04em;
+      padding: .65rem 0 .5rem; color: var(--gris); font-family: var(--font-ui);
+      font-size: 9px; letter-spacing: 0; min-width: 0;
     }
+    .app-nav-btn > span:last-child { max-width: 100%; overflow: hidden; text-overflow: clip; white-space: nowrap; }
     .app-nav-btn span.icono { font-size: 18px; line-height: 1; }
+    @media (max-width: 360px) { .app-nav-btn { font-size: 8.2px; } .app-nav-btn span.icono { font-size: 17px; } }
     .app-visor-volver {
       background: transparent; border: none; color: var(--oro2); cursor: pointer;
       font-family: var(--font-ui); font-size: 11px; letter-spacing: .05em;
@@ -2375,9 +2377,9 @@
     .app-nav-btn { position: relative; }
     .app-nav-btn::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 2px; border-radius: 0 0 3px 3px; background: transparent; transition: background .2s; }
     .app-nav-btn.activo::before { background: currentColor; }
-    .app-nav-btn:nth-child(2).activo { color: var(--ac-e); }
-    .app-nav-btn:nth-child(3).activo { color: var(--ac-n); }
-    .app-nav-btn:nth-child(6).activo { color: var(--ac-p); }
+    .app-nav-btn[data-p="entrenar"].activo { color: var(--ac-e); }
+    .app-nav-btn[data-p="nutricion"].activo { color: var(--ac-n); }
+    .app-nav-btn[data-p="perfil"].activo { color: var(--ac-p); }
     .app-nav-btn span.icono { filter: saturate(1.15); }
 
     .app-header-sub { color: var(--oro2); font-weight: 600; }
@@ -2647,7 +2649,6 @@
   <header class="app-header">
     <span class="app-header-logo">AETERION</span>
     <span class="app-header-sub" id="appHeaderSub"></span>
-    <button class="app-cuenta-btn" onclick="abrirCuenta()">👤 <span class="app-cuenta-txt">Entrar</span></button>
   </header>
 
   <!-- INICIO -->
@@ -2747,18 +2748,36 @@
     </button>
   </div>
 
+  <!-- EDUCACIÓN -->
+  <div class="app-screen" id="app-screen-educacion">
+    <h2 class="app-titulo">Educación</h2>
+    <p class="app-subtitulo">Recetas, protocolos y guías con evidencia</p>
+    <button class="app-card" onclick="abrirCalculadora('recetas')">
+      <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
+      <div class="app-card-desc">Cocina mexicana, ensaladas, postres, snacks y comidas saludables — con ingredientes y pasos.</div>
+    </button>
+    <button class="app-card" onclick="abrirContenidoApp('protocolos-avanzados', 'Protocolos Avanzados')">
+      <div class="app-card-top"><span class="app-card-titulo">Protocolos Avanzados</span><span class="app-card-meta">7 protocolos</span></div>
+      <div class="app-card-desc">Reparación intestinal, testosterona, longevidad, células madre y más.</div>
+    </button>
+    <button class="app-card" onclick="abrirContenidoApp('tab-bienestar', 'Bienestar Mental')">
+      <div class="app-card-top"><span class="app-card-titulo">Bienestar Mental</span><span class="app-card-meta">Cuaderno</span></div>
+      <div class="app-card-desc">70+ actividades con evidencia (TCC, DBT, mindfulness) y retos de 21 días.</div>
+    </button>
+    <button class="app-card" onclick="abrirContenidoApp('salud', 'Salud &amp; Biohacking')">
+      <div class="app-card-top"><span class="app-card-titulo">Salud &amp; Biohacking</span><span class="app-card-meta">6 temas</span></div>
+      <div class="app-card-desc">Grasas, sueño, microbioma, ayuno intermitente y más — con evidencia real.</div>
+    </button>
+    <button class="app-card" onclick="abrirContenidoApp('guias-educacion', 'Educación')">
+      <div class="app-card-top"><span class="app-card-titulo">Guías de educación</span><span class="app-card-meta">Guías</span></div>
+      <div class="app-card-desc">Energía diaria y otras guías con base científica, sin vender nada.</div>
+    </button>
+  </div>
+
   <!-- MÁS -->
   <div class="app-screen" id="app-screen-mas">
     <h2 class="app-titulo">Más</h2>
-    <p class="app-subtitulo">Recetas, protocolos y guías</p>
-    <button class="app-card continuar" onclick="abrirCuenta()">
-      <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
-      <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
-    </button>
-    <button class="app-card" onclick="aetAyuda()" id="appAyudaCard">
-      <div class="app-card-top"><span class="app-card-titulo">💬 Ayuda y soporte</span><span class="app-card-meta" id="appAyudaMeta">Escríbenos</span></div>
-      <div class="app-card-desc">¿Dudas, un problema con tu pedido, tu Premium o la app? Escríbenos y te respondemos aquí mismo.</div>
-    </button>
+    <p class="app-subtitulo">Tu perfil, hábitos, recordatorios y el recorrido por la app</p>
     <button class="app-card" onclick="recAbrir()">
       <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
       <div class="app-card-desc">Elige qué avisos quieres y a qué hora. Máximo uno al día.</div>
@@ -2775,29 +2794,19 @@
       <div class="app-card-top"><span class="app-card-titulo">🌱 Mis hábitos</span><span class="app-card-meta">Marcar y ver progreso</span></div>
       <div class="app-card-desc">Hábitos sugeridos o propios, con racha y seguimiento semanal.</div>
     </button>
-    <button class="app-card" onclick="abrirCalculadora('recetas')">
-      <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
-      <div class="app-card-desc">Cocina mexicana, ensaladas, postres, snacks y comidas saludables — con ingredientes y pasos.</div>
+  </div>
+
+  <!-- CUENTA -->
+  <div class="app-screen" id="app-screen-cuenta">
+    <h2 class="app-titulo">Cuenta</h2>
+    <p class="app-subtitulo">Tu cuenta, tus compras y ayuda</p>
+    <button class="app-card continuar" id="appCuentaCard" onclick="abrirCuenta()">
+      <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
+      <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
     </button>
-    <button class="app-card ac-o" onclick="abrirContenidoApp('productos', 'Tienda')">
-      <div class="app-card-top"><span class="app-card-titulo">🛍 Tienda</span><span class="app-card-meta">Suplementos Aeterion</span></div>
-      <div class="app-card-desc">Creatina, magnesio y vitamina — compra con tarjeta y envío a todo México.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('protocolos-avanzados', 'Protocolos Avanzados')">
-      <div class="app-card-top"><span class="app-card-titulo">Protocolos Avanzados</span><span class="app-card-meta">7 protocolos</span></div>
-      <div class="app-card-desc">Reparación intestinal, testosterona, longevidad, células madre y más.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('tab-bienestar', 'Bienestar Mental')">
-      <div class="app-card-top"><span class="app-card-titulo">Bienestar Mental</span><span class="app-card-meta">Cuaderno</span></div>
-      <div class="app-card-desc">70+ actividades con evidencia (TCC, DBT, mindfulness) y retos de 21 días.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('salud', 'Salud &amp; Biohacking')">
-      <div class="app-card-top"><span class="app-card-titulo">Salud &amp; Biohacking</span><span class="app-card-meta">6 temas</span></div>
-      <div class="app-card-desc">Grasas, sueño, microbioma, ayuno intermitente y más — con evidencia real.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('guias-educacion', 'Educación')">
-      <div class="app-card-top"><span class="app-card-titulo">Educación</span><span class="app-card-meta">Guías</span></div>
-      <div class="app-card-desc">Energía diaria y otras guías con base científica, sin vender nada.</div>
+    <button class="app-card" onclick="aetAyuda()" id="appAyudaCard">
+      <div class="app-card-top"><span class="app-card-titulo">💬 Ayuda y soporte</span><span class="app-card-meta" id="appAyudaMeta">Escríbenos</span></div>
+      <div class="app-card-desc">¿Dudas, un problema con tu pedido, tu Premium o la app? Escríbenos y te respondemos aquí mismo.</div>
     </button>
   </div>
 
@@ -2811,18 +2820,20 @@
 
   <!-- VISOR DE CONTENIDO (recibe el contenido real movido desde la página) -->
   <div class="app-screen" id="app-screen-visor">
-    <button class="app-visor-volver" onclick="volverDeVisorApp()">← Volver a Más</button>
+    <button class="app-visor-volver" id="appVisorVolver" onclick="volverDeVisorApp()">← Volver a Educación</button>
     <h2 class="app-titulo" id="appVisorTitulo">—</h2>
     <div id="appVisorContenido" class="app-visor-contenido"></div>
   </div>
 
   <nav class="app-bottomnav">
-    <button class="app-nav-btn activo" onclick="cambiarPantallaApp('inicio', this)"><span class="icono">🏠</span><span>Inicio</span></button>
-    <button class="app-nav-btn" onclick="cambiarPantallaApp('entrenar', this)"><span class="icono">💪</span><span>Entrenar</span></button>
-    <button class="app-nav-btn" onclick="cambiarPantallaApp('nutricion', this)"><span class="icono">🥗</span><span>Nutrición</span></button>
-    <button class="app-nav-btn" onclick="cambiarPantallaApp('mas', this)"><span class="icono">📚</span><span>Más</span></button>
-    <button class="app-nav-btn" id="appNavTienda" onclick="abrirContenidoApp('productos', 'Tienda')"><span class="icono">🛍</span><span>Tienda</span></button>
-    <button class="app-nav-btn" onclick="cambiarPantallaApp('perfil', this)"><span class="icono">📊</span><span>Progreso</span></button>
+    <button class="app-nav-btn activo" data-p="inicio" onclick="cambiarPantallaApp('inicio', this)"><span class="icono">🏠</span><span>Inicio</span></button>
+    <button class="app-nav-btn" data-p="entrenar" onclick="cambiarPantallaApp('entrenar', this)"><span class="icono">💪</span><span>Entrenar</span></button>
+    <button class="app-nav-btn" data-p="nutricion" onclick="cambiarPantallaApp('nutricion', this)"><span class="icono">🥗</span><span>Nutrición</span></button>
+    <button class="app-nav-btn" data-p="educacion" onclick="cambiarPantallaApp('educacion', this)"><span class="icono">📚</span><span>Educación</span></button>
+    <button class="app-nav-btn" data-p="mas" onclick="cambiarPantallaApp('mas', this)"><span class="icono">⚙️</span><span>Más</span></button>
+    <button class="app-nav-btn" data-p="tienda" id="appNavTienda" onclick="abrirContenidoApp('productos', 'Tienda')"><span class="icono">🛍</span><span>Tienda</span></button>
+    <button class="app-nav-btn" data-p="perfil" onclick="cambiarPantallaApp('perfil', this)"><span class="icono">📊</span><span>Progreso</span></button>
+    <button class="app-nav-btn" data-p="cuenta" onclick="cambiarPantallaApp('cuenta', this)"><span class="icono">👤</span><span>Cuenta</span></button>
   </nav>
 </div>
 
@@ -7564,7 +7575,7 @@ function cambiarPantallaApp(pantalla, btn) {
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-' + pantalla).classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
-  btn.classList.add('activo');
+  if (btn) btn.classList.add('activo');
   aetEvento('sec_' + ({ perfil: 'progreso' }[pantalla] || pantalla));
   if (pantalla === 'inicio') renderDashboardApp();
   if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); }
@@ -7604,11 +7615,14 @@ function abrirContenidoApp(idContenido, titulo) {
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-visor').classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
-  const nb = document.querySelectorAll('.app-nav-btn')[idContenido === 'productos' ? 4 : 3];
+  appVisorOrigen = idContenido === 'productos' ? 'tienda' : 'educacion';
+  const nb = aetNavBtn(appVisorOrigen);
   if (nb) nb.classList.add('activo');
+  const vv = document.getElementById('appVisorVolver'); if (vv) { vv.textContent = appVisorOrigen === 'tienda' ? '← Volver' : '← Volver a Educación'; }
   window.scrollTo(0, 0);
 }
 
+let appVisorOrigen = 'educacion';
 function volverDeVisorApp(cambiarPantalla = true) {
   if (appVisorNodoActual && appVisorPadreOriginal) {
     appVisorPadreOriginal.insertBefore(appVisorNodoActual, appVisorSiguienteOriginal);
@@ -7618,9 +7632,10 @@ function volverDeVisorApp(cambiarPantalla = true) {
   appVisorSiguienteOriginal = null;
   if (cambiarPantalla) {
     document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
-    document.getElementById('app-screen-mas').classList.add('activo');
+    const dest = appVisorOrigen === 'tienda' ? 'inicio' : 'educacion';
+    document.getElementById('app-screen-' + dest).classList.add('activo');
     document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
-    document.querySelectorAll('.app-nav-btn')[3].classList.add('activo');
+    const nb = aetNavBtn(dest); if (nb) nb.classList.add('activo');
   }
 }
 
@@ -7721,8 +7736,9 @@ const AET = {
   pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
   idg: 0,
 };
-const AET_IR = { inicio: 0, entrenar: 1, nutricion: 2, mas: 3, perfil: 5, habitos: 0 };
-function aetIr(p) { cambiarPantallaApp(p, document.querySelectorAll('.app-nav-btn')[AET_IR[p]]); }
+const AET_IR = { habitos: 'inicio' };   // pantallas sin botón propio: qué botón se ilumina
+function aetNavBtn(p) { return document.querySelector('.app-nav-btn[data-p="' + (AET_IR[p] || p) + '"]'); }
+function aetIr(p) { cambiarPantallaApp(p, aetNavBtn(p)); }
 function aetToast(m) {
   const t = document.createElement('div'); t.className = 'aet-toast'; t.textContent = m;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
@@ -7904,7 +7920,7 @@ function aetFormComida() {
     <div><label class="aet-lbl">Proteína (g)</label><input class="aet-in" id="aetCp" type="number" inputmode="decimal"></div></div>
     <div class="aet-fila"><div><label class="aet-lbl">Carbos (g)</label><input class="aet-in" id="aetCc" type="number" inputmode="decimal"></div>
     <div><label class="aet-lbl">Grasa (g)</label><input class="aet-in" id="aetCg" type="number" inputmode="decimal"></div></div>
-    <p class="aet-nota">Solo las calorías son obligatorias. También puedes agregar una receta desde Más → Recetas.</p>
+    <p class="aet-nota">Solo las calorías son obligatorias. También puedes agregar una receta desde Educación → Recetas.</p>
     <button class="aet-btn n" style="margin-top:1rem" onclick="aetGuardarComida()">Agregar</button>`);
 }
 function aetGuardarComida() {
@@ -8562,8 +8578,8 @@ async function recPrueba() {
 }
 function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
-  if (d === 'ayuda') { aetIr('mas'); aetAyuda(); return; }
-  if (['inicio', 'entrenar', 'nutricion', 'mas', 'perfil', 'habitos'].includes(d)) aetIr(d);
+  if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
+  if (['inicio', 'entrenar', 'nutricion', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d);
 }
 
 /* ============================================================
@@ -8587,7 +8603,7 @@ function aetAyudaBadge() {
   const n = (estadoAcceso && estadoAcceso.soporte_no_leidos) || 0;
   const m = document.getElementById('appAyudaMeta');
   if (m) m.innerHTML = n > 0 ? 'Respuesta nueva<span class="ayu-punto">' + n + '</span>' : 'Escríbenos';
-  const mas = document.querySelectorAll('.app-nav-btn')[AET_IR.mas];
+  const mas = aetNavBtn('cuenta');
   if (mas) { let d = mas.querySelector('.ayu-punto'); if (n > 0 && !d) { d = document.createElement('span'); d.className = 'ayu-punto'; d.style.cssText = 'position:absolute;top:4px;right:18%;margin:0;min-width:9px;height:9px;padding:0'; mas.style.position = 'relative'; mas.appendChild(d); } else if (!n && d) d.remove(); }
 }
 function aetAyuda() {
@@ -8968,16 +8984,15 @@ const TOUR = [
   { p: 'perfil', s: '#appProgLogros', t: '🏅 Logros', x: 'Hitos que se desbloquean solos: primer peso, primera composición, rachas y más. Sirven para ver tu constancia.' },
   { p: 'perfil', s: '#app-screen-perfil [onclick*="dashboard"]', t: 'Dashboard y medidas', x: 'El Dashboard junta volumen, bloque, medidas y cargas, semanal y mensual. «Medidas Corporales» guarda peso, cintura, caderas y más, con tu meta.' },
   { p: 'perfil', s: '#app-screen-perfil [onclick*="respaldo"]', t: '💾 Respaldo de datos', x: 'Exporta tu progreso para pasarlo a otro celular o recuperarlo. Con una cuenta se sincroniza solo, así que es tu seguro extra.' },
-  { p: 'mas', s: '#app-screen-mas .app-card', t: '👤 Mi cuenta y compras', x: 'Crea tu cuenta gratis para guardar tu progreso en la nube y verlo en todos tus dispositivos. Aquí activas Premium con tu código o pago, y sigues tus compras y envíos.' },
-  { p: 'mas', s: '#appAyudaCard', t: '💬 Ayuda y soporte', x: '¿Una duda o un problema con tu pedido, tu Premium o la app? Escríbenos aquí y te respondemos en el mismo chat.' },
+  { p: 'educacion', s: '#app-screen-educacion [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
+  { p: 'educacion', s: '#app-screen-educacion [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Bienestar Mental, Salud & Biohacking y Guías de educación: todo lo que se lee y aprende está en esta pestaña.' },
   { p: 'mas', s: '#app-screen-mas [onclick="recAbrir()"]', t: '🔔 Recordatorios', x: 'Tú eliges qué avisos quieres (entrenar, hábitos, resumen semanal) y a qué hora. Máximo uno al día y se pausan solos si dejas de usar la app.' },
   { p: 'mas', s: '#app-screen-mas [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
   { p: 'mas', s: '#app-screen-mas [onclick="aetIr(\'habitos\')"]', t: '🌱 Mis hábitos', x: 'Elige hábitos sugeridos o crea los tuyos (con días y metas). Ves tu racha y el avance semanal.' },
-  { p: 'mas', s: '#app-screen-mas [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
-  { p: 'mas', s: '#app-screen-mas [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Salud & Biohacking y Educación se leen aquí mismo; Bienestar Mental es un cuaderno descargable con 70+ actividades y retos de 21 días. Son gratis y explican el porqué de cada cosa.' },
-  { p: 'mas', s: '#app-screen-mas .app-card.ac-o', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México. También la encuentras en la barra de abajo.' },
-  { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Más, Tienda y Progreso: desde cualquier pantalla llegas a todo con un toque.' },
-  { p: 'inicio', s: '.app-cuenta-btn', t: 'Tu cuenta', x: 'Este botón de arriba abre tu cuenta: entrar, ver tu Premium y tus compras, o cerrar sesión.' },
+  { s: '#appNavTienda', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México.' },
+  { p: 'cuenta', s: '#appCuentaCard', t: '👤 Mi cuenta y compras', x: 'Crea tu cuenta gratis para guardar tu progreso en la nube y verlo en todos tus dispositivos. Aquí activas Premium con tu código o pago, y sigues tus compras y envíos.' },
+  { p: 'cuenta', s: '#appAyudaCard', t: '💬 Ayuda y soporte', x: '¿Una duda o un problema con tu pedido, tu Premium o la app? Escríbenos aquí y te respondemos en el mismo chat.' },
+  { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Educación, Más, Tienda, Progreso y Cuenta: desde cualquier pantalla llegas a todo con un toque.' },
   { t: 'Gratis y Premium', x: 'Gratis: registro de entrenos, comidas, agua, peso y hábitos; logros; recordatorios; guías y protocolos. Premium: programas guiados GYM y MMA, planes de nutrición, recetario y ciencia del entrenamiento. ¡Listo! Puedes repetir este recorrido o editar tu perfil desde Más.' },
 ];
 let _tour = null;
@@ -9089,7 +9104,7 @@ function renderDashboardApp() {
       <div class="app-card-desc">Calculadora de macros según tu objetivo y condición.</div></button>
     <button class="app-card ac-o" onclick="abrirContenidoApp('productos', 'Tienda')"><div class="app-card-top"><span class="app-card-titulo">🛍 Tienda</span><span class="app-card-meta">Suplementos</span></div>
       <div class="app-card-desc">Creatina, magnesio y vitamina de Aeterion, con envío.</div></button>
-    <button class="app-card ac-o" onclick="aetIr('mas')"><div class="app-card-top"><span class="app-card-titulo">📚 Más</span><span class="app-card-meta">Recetas · Protocolos</span></div>
+    <button class="app-card ac-o" onclick="aetIr('educacion')"><div class="app-card-top"><span class="app-card-titulo">📚 Educación</span><span class="app-card-meta">Recetas · Protocolos</span></div>
       <div class="app-card-desc">Recetas, Protocolos Avanzados, Bienestar, Salud &amp; Biohacking, Educación.</div></button>`;
   cont.innerHTML = html;
 }
