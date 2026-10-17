@@ -34,7 +34,7 @@ self.addEventListener('notificationclick', (e) => {
   const url = (e.notification.data && e.notification.data.url) || '/admin/';
   e.waitUntil((async () => {
     const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const c of cs) { if (c.url.includes('/admin/')) { await c.focus(); c.postMessage({ tipo: 'push' }); return; } }
+    for (const c of cs) { if (c.url.includes('/admin/')) { await c.focus(); c.postMessage({ tipo: 'push', url }); return; } }
     await self.clients.openWindow(url);
   })());
 });

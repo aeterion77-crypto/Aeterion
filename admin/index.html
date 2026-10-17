@@ -86,6 +86,16 @@
   .tag { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; margin-right:6px; }
   .tag.v { background:rgba(46,204,113,.15); color:var(--verde); } .tag.x { background:rgba(154,154,165,.15); color:var(--gris); }
   .vacio { text-align:center; color:var(--gris); padding:30px 10px; }
+  /* Soporte */
+  .sop-hilo { display:block; width:100%; text-align:left; background:none; border:0; border-bottom:1px solid var(--linea); color:var(--txt); padding:12px 2px; cursor:pointer; font:inherit; min-height:0; border-radius:0; }
+  .sop-hilo:last-child { border-bottom:0; }
+  .sop-hilo .t { color:var(--gris); font-size:13px; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sop-chat { display:flex; flex-direction:column; gap:8px; max-height:55vh; overflow-y:auto; padding:4px 2px 10px; }
+  .sop-msg { max-width:86%; padding:9px 12px; border-radius:14px; font-size:14px; line-height:1.45; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .sop-msg.u { align-self:flex-start; background:var(--card2); border:1px solid var(--linea); border-bottom-left-radius:4px; }
+  .sop-msg.a { align-self:flex-end; background:rgba(201,168,76,.14); border:1px solid rgba(201,168,76,.35); border-bottom-right-radius:4px; }
+  .sop-msg small { display:block; color:var(--gris); font-size:11px; margin-top:4px; }
+  .tab .cnt { display:inline-block; min-width:18px; height:18px; line-height:18px; padding:0 5px; border-radius:9px; background:#e74c3c; color:#fff; font-size:11px; font-weight:700; margin-left:5px; }
   details.menu { position:relative; } details.menu > summary { list-style:none; } details.menu > summary::-webkit-details-marker { display:none; }
   .menu-caja { position:absolute; right:0; top:48px; width:min(300px,86vw); background:var(--card); border:1px solid var(--linea); border-radius:14px; padding:12px; z-index:40; box-shadow:0 12px 40px rgba(0,0,0,.6); display:grid; gap:8px; }
 
@@ -191,7 +201,7 @@
   <div id="panel" class="oculto">
     <div class="stats" id="stats"></div>
     <div id="pendientes" class="oculto"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button><button class="tab" data-tab="ajustes">Ajustes</button><button class="tab" data-tab="uso">Uso</button><button class="tab" data-tab="exportar">Exportar</button><button class="tab" data-tab="historial">Historial</button><button class="tab" data-tab="seguridad">Seguridad</button></div>
+    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="soporte" id="tabSoporte">Soporte</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button><button class="tab" data-tab="ajustes">Ajustes</button><button class="tab" data-tab="uso">Uso</button><button class="tab" data-tab="exportar">Exportar</button><button class="tab" data-tab="historial">Historial</button><button class="tab" data-tab="seguridad">Seguridad</button></div>
 
     <section id="tPedidos">
       <div class="filtros" id="filtros"></div>
@@ -289,6 +299,28 @@
     <section id="tProductos" class="oculto">
       <div class="peq" style="margin-bottom:10px">Los cambios se ven en la tienda de inmediato y el cobro usa siempre el precio guardado aquí. Si dejas las existencias vacías, ese producto no controla inventario.</div>
       <div id="cuerpoProductos"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tSoporte" class="oculto">
+      <div id="sopLista">
+        <div class="filtros" id="filtrosSop"></div>
+        <div class="card" id="listaSop"><div class="vacio">Cargando…</div></div>
+        <div class="card" style="margin-top:14px"><b>Usuarios bloqueados</b>
+          <div class="peq" style="margin:4px 0 10px"><b>Soporte:</b> ya no puede escribirte. <b>Toda la app:</b> se le cierra la sesión y no puede volver a entrar, ni usar Premium, ni sincronizar, ni escribir al soporte. Lo que tiene guardado en su teléfono no se borra.</div>
+          <div class="fila" style="gap:8px;flex-wrap:wrap"><input id="blqEmail" type="email" placeholder="Correo de la cuenta" style="flex:2;min-width:180px"><select id="blqTipo" style="flex:1;min-width:140px"><option value="soporte">Solo soporte</option><option value="app">Toda la app</option></select></div>
+          <div class="fila" style="gap:8px;margin-top:8px"><input id="blqMotivo" maxlength="300" placeholder="Motivo (solo lo ven los administradores)" style="flex:1;min-width:0"><button id="blqBtn" class="mal">Bloquear</button></div>
+          <div id="listaBlq" style="margin-top:10px"></div>
+        </div>
+      </div>
+      <div id="sopChatBox" class="oculto">
+        <div class="fila" style="gap:8px;margin-bottom:10px"><button class="sec mini" id="sopVolver">← Volver</button><div style="min-width:0;flex:1"><div class="nom" id="sopQuien" style="font-weight:700;overflow-wrap:anywhere"></div><div class="peq" id="sopInfo"></div></div></div>
+        <div class="card"><div class="sop-chat" id="sopChat"></div>
+          <div class="fila" style="gap:6px;flex-wrap:wrap;margin:8px 0" id="sopPlantillas"></div>
+          <textarea id="sopTxt" maxlength="2000" placeholder="Escribe tu respuesta… (el usuario la ve en la app y le llega un aviso)"></textarea>
+          <div class="acciones" style="margin-top:8px"><button id="sopEnviar">Responder</button><button class="sec" id="sopResolver">Marcar resuelto</button><button class="sec" id="sopCopiar">Copiar correo</button></div>
+          <div class="acciones" id="sopBloq"></div>
+        </div>
+      </div>
     </section>
 
     <section id="tClientes" class="oculto">
@@ -654,6 +686,113 @@ $('btnPuertaEntrar').onclick = async () => {
 ['peEnt', 'peDisp'].forEach((k) => $(k).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnPuertaEntrar').click(); }));
 $('btnPuertaSalir').onclick = () => $('btnSalir').click();
 
+/* ---- Soporte (chat con usuarios) y bloqueos ---- */
+let sopFiltro = 'abiertos', sopHilos = null, sopUser = null, sopDatos = null, sopPendientes = 0, sopBloqueos = null;
+const SOP_PLANTILLAS = [
+  ['Saludo', '¡Hola! Gracias por escribirnos. '],
+  ['Lo reviso', 'Gracias por avisarnos. Lo estamos revisando y te escribimos aquí en cuanto tengamos respuesta.'],
+  ['Pedido en camino', 'Tu pedido ya va en camino. En «Mi cuenta → Mis compras» puedes ver la guía y el seguimiento del envío.'],
+  ['Premium activado', 'Listo, ya quedó activado tu Premium. Cierra y vuelve a abrir la app para que se actualice.'],
+  ['Actualizar app', 'Prueba cerrando la app por completo y volviéndola a abrir (así se instala la última versión). Si sigue igual, avísanos y lo vemos.'],
+  ['Resuelto', 'Quedó resuelto. Si necesitas algo más, escríbenos por aquí. ¡Gracias por usar Aeterion! 💪'],
+];
+function contarSoporte(h) {
+  sopPendientes = Array.isArray(h) ? h.filter((x) => x && x.pend).length : 0;
+  const t = $('tabSoporte'); if (t) t.innerHTML = 'Soporte' + (sopPendientes ? `<span class="cnt">${sopPendientes}</span>` : '');
+}
+async function cargarSoporte(silencioso) {
+  const [h, b] = await Promise.all([rpc('panel_soporte_hilos', { p_filtro: sopFiltro }), rpc('panel_bloqueos')]);
+  sopHilos = Array.isArray(h) ? h : []; sopBloqueos = Array.isArray(b) ? b : [];
+  if (sopFiltro === 'abiertos') contarSoporte(sopHilos);
+  pintarSopLista();
+  if (sopUser) await cargarSopChat(true);
+}
+function pintarSopLista() {
+  const F = [['abiertos', 'Abiertos'], ['resueltos', 'Resueltos'], ['todos', 'Todos']];
+  $('filtrosSop').innerHTML = F.map(([k, t]) => `<button class="pill${sopFiltro === k ? ' on' : ''}" data-fs="${k}">${t}</button>`).join('');
+  const L = sopHilos || [];
+  $('listaSop').innerHTML = L.length ? L.map((x) => `<button class="sop-hilo" data-sop="${esc(x.user_id)}"><div class="cab" style="display:flex;justify-content:space-between;gap:10px"><div style="min-width:0"><b style="overflow-wrap:anywhere">${esc(x.nombre || x.email || 'Usuario')}</b>${x.nombre ? `<div class="peq" style="overflow-wrap:anywhere">${esc(x.email || '')}</div>` : ''}</div><div class="peq" style="white-space:nowrap">${esc(fechaCorta(x.ultimo_en))}</div></div>
+    <div class="t">${x.ultimo_autor === 'admin' ? 'Tú: ' : ''}${esc(x.ultimo_texto || '')}</div>
+    <div style="margin-top:5px">${x.no_leidos ? `<span class="tag r">${x.no_leidos} sin leer</span>` : ''}${x.pend && !x.no_leidos ? '<span class="tag o">Falta responder</span>' : ''}${x.resuelto ? '<span class="tag v">Resuelto</span>' : ''}${x.bloq_app ? '<span class="tag r">Bloqueado de la app</span>' : x.bloq_soporte ? '<span class="tag r">Bloqueado del soporte</span>' : ''}</div></button>`).join('')
+    : `<div class="vacio">${sopFiltro === 'abiertos' ? 'No hay conversaciones abiertas. 🎉' : 'No hay conversaciones aquí.'}</div>`;
+  const B = sopBloqueos || [];
+  $('listaBlq').innerHTML = B.length ? B.map((x) => `<div class="fila-item" style="padding:8px 0"><div class="cab"><div style="min-width:0"><div class="nom" style="overflow-wrap:anywhere">${esc(x.email || x.user_id)}</div><div class="peq">${x.app ? '<span class="tag r">Toda la app</span>' : '<span class="tag o">Solo soporte</span>'}${esc(fechaDia(x.actualizado_en))}${x.por ? ' · por ' + esc(x.por) : ''}</div>${x.motivo ? `<div class="peq" style="overflow-wrap:anywhere">Motivo: ${esc(x.motivo)}</div>` : ''}</div><button class="sec mini" data-desbloq="${esc(x.user_id)}">Quitar bloqueo</button></div></div>`).join('') : '<div class="peq">Nadie está bloqueado.</div>';
+}
+async function cargarSopChat(silencioso) {
+  if (!sopUser) return;
+  const d = await rpc('panel_soporte_mensajes', { p_user: sopUser });
+  if (!sopUser) return;
+  const antes = sopDatos ? sopDatos.mensajes.length : -1;
+  sopDatos = d;
+  $('sopQuien').textContent = d.nombre ? d.nombre + ' · ' + (d.email || '') : (d.email || 'Usuario');
+  $('sopInfo').innerHTML = `${d.premium ? '<span class="tag v">Premium</span>' : '<span class="tag x">Sin Premium</span>'}Cuenta desde ${esc(fechaDia(d.creado_en))}${d.resuelto ? ' · <b>Resuelto</b>' : ''}`;
+  const M = d.mensajes || [];
+  const box = $('sopChat'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.innerHTML = M.length ? M.map((m) => `<div class="sop-msg ${m.autor === 'admin' ? 'a' : 'u'}">${esc(m.texto)}<small>${esc(fechaCorta(m.creado_en))}${m.autor === 'admin' ? ' · ' + esc((m.admin || '').split('@')[0]) + (m.leido ? ' · ✓ visto' : '') : ''}</small></div>`).join('') : '<div class="vacio">Sin mensajes.</div>';
+  if (!silencioso || abajo || antes !== M.length) box.scrollTop = box.scrollHeight;
+  $('sopResolver').textContent = d.resuelto ? 'Reabrir' : 'Marcar resuelto';
+  const b = d.bloqueo || {};
+  $('sopBloq').innerHTML = b.app ? '<span class="tag r">Bloqueado de toda la app</span><button class="sec mini" data-sb="nada">Quitar bloqueo</button>'
+    : b.soporte ? '<span class="tag r">Bloqueado del soporte</span><button class="sec mini" data-sb="nada">Quitar bloqueo</button><button class="mal mini" data-sb="app">Bloquear de toda la app</button>'
+    : '<button class="mal mini" data-sb="soporte">Bloquear del soporte</button><button class="mal mini" data-sb="app">Bloquear de toda la app</button>';
+}
+async function abrirSopChat(uid) {
+  sopUser = uid; sopDatos = null;
+  $('sopLista').classList.add('oculto'); $('sopChatBox').classList.remove('oculto');
+  $('sopChat').innerHTML = '<div class="vacio">Cargando…</div>'; $('sopTxt').value = '';
+  $('sopPlantillas').innerHTML = SOP_PLANTILLAS.map(([n], i) => `<button class="pill" data-sp="${i}">${esc(n)}</button>`).join('');
+  try { await cargarSopChat(false); } catch (e) { falloTab(e); }
+}
+function cerrarSopChat() { sopUser = null; sopDatos = null; $('sopChatBox').classList.add('oculto'); $('sopLista').classList.remove('oculto'); cargarTab('soporte', true); }
+async function sopBloquear(uid, email, tipo) {
+  const etiqueta = { soporte: 'bloquear del soporte', app: 'bloquear de TODA la app', nada: 'quitar el bloqueo' }[tipo];
+  let motivo = null;
+  if (tipo !== 'nada') {
+    motivo = prompt('¿Por qué vas a ' + etiqueta + ' a ' + (email || 'esta cuenta') + '? (solo lo ven los administradores)' + (tipo === 'app' ? '\n\nSe le cerrará la sesión y no podrá volver a entrar, ni usar Premium, ni sincronizar.' : ''), '');
+    if (motivo === null) return false;
+  } else if (!confirm('¿Quitar el bloqueo a ' + (email || 'esta cuenta') + '?')) return false;
+  try {
+    const r = await rpc('panel_bloqueo_guardar', { p_user: uid || null, p_email: uid ? null : email, p_soporte: tipo === 'soporte', p_app: tipo === 'app', p_motivo: motivo });
+    if (r.ok) { aviso(tipo === 'nada' ? 'Bloqueo quitado.' : 'Listo: ' + (r.email || '') + ' quedó bloqueado' + (tipo === 'app' ? ' de toda la app.' : ' del soporte.'), true); return true; }
+    aviso({ usuario_no_encontrado: 'No hay ninguna cuenta con ese correo.', es_admin: 'No puedes bloquear a un administrador.' }[r.error] || 'No se pudo: ' + r.error);
+  } catch (e) { falloTab(e); }
+  return false;
+}
+$('filtrosSop').addEventListener('click', (e) => { const b = e.target.closest('[data-fs]'); if (b) { sopFiltro = b.dataset.fs; cargarTab('soporte', false); } });
+$('listaSop').addEventListener('click', (e) => { const b = e.target.closest('[data-sop]'); if (b) abrirSopChat(b.dataset.sop); });
+$('sopVolver').onclick = cerrarSopChat;
+$('sopPlantillas').addEventListener('click', (e) => { const b = e.target.closest('[data-sp]'); if (!b) return; const t = $('sopTxt'); const p = SOP_PLANTILLAS[Number(b.dataset.sp)][1]; t.value = t.value.trim() ? t.value.trimEnd() + ' ' + p : p; t.focus(); });
+$('sopCopiar').onclick = async () => { if (sopDatos && sopDatos.email) { await copiar(sopDatos.email); aviso('Correo copiado.', true); } };
+$('sopEnviar').onclick = async () => {
+  const t = $('sopTxt').value.trim(); if (!t || !sopUser) { aviso('Escribe tu respuesta.'); return; }
+  $('sopEnviar').disabled = true;
+  try {
+    const r = await rpc('panel_soporte_responder', { p_user: sopUser, p_texto: t });
+    if (r.ok) {
+      $('sopTxt').value = '';
+      conToken(() => fetch(SUPABASE_URL + '/functions/v1/soporte-aviso', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id }) })).catch(() => {});
+      await cargarSopChat(false); aviso('Respuesta enviada.', true);
+    } else aviso({ texto_invalido: 'La respuesta debe tener entre 1 y 2000 caracteres.', limite: 'Llegaste al límite de respuestas por hora.', usuario_no_encontrado: 'Esa cuenta ya no existe.' }[r.error] || 'No se pudo enviar: ' + r.error);
+  } catch (e) { falloTab(e); }
+  $('sopEnviar').disabled = false;
+};
+$('sopResolver').onclick = async () => {
+  if (!sopUser || !sopDatos) return;
+  try { await rpc('panel_soporte_resolver', { p_user: sopUser, p_resuelto: !sopDatos.resuelto }); aviso(sopDatos.resuelto ? 'Conversación reabierta.' : 'Marcada como resuelta.', true); if (!sopDatos.resuelto) cerrarSopChat(); else await cargarSopChat(true); } catch (e) { falloTab(e); }
+};
+$('sopBloq').addEventListener('click', async (e) => { const b = e.target.closest('[data-sb]'); if (!b || !sopUser) return; if (await sopBloquear(sopUser, sopDatos && sopDatos.email, b.dataset.sb)) await cargarSopChat(true); });
+$('listaBlq').addEventListener('click', async (e) => { const b = e.target.closest('[data-desbloq]'); if (!b) return; const x = (sopBloqueos || []).find((y) => y.user_id === b.dataset.desbloq); if (await sopBloquear(b.dataset.desbloq, x && x.email, 'nada')) cargarTab('soporte', true); });
+$('blqBtn').onclick = async () => {
+  const em = $('blqEmail').value.trim(); if (!em.includes('@')) { aviso('Escribe el correo de la cuenta.'); return; }
+  const tipo = $('blqTipo').value, motivo = $('blqMotivo').value.trim();
+  if (!confirm('¿Bloquear a ' + em + (tipo === 'app' ? ' de TODA la app?\nSe le cerrará la sesión y no podrá volver a entrar, ni usar Premium, ni sincronizar.' : ' del soporte?\nYa no podrá escribirte.'))) return;
+  try {
+    const r = await rpc('panel_bloqueo_guardar', { p_user: null, p_email: em, p_soporte: tipo === 'soporte', p_app: tipo === 'app', p_motivo: motivo || null });
+    if (r.ok) { aviso('Listo: ' + r.email + ' quedó bloqueado.', true); $('blqEmail').value = ''; $('blqMotivo').value = ''; cargarTab('soporte', true); }
+    else aviso({ usuario_no_encontrado: 'No hay ninguna cuenta con ese correo.', es_admin: 'No puedes bloquear a un administrador.' }[r.error] || 'No se pudo: ' + r.error);
+  } catch (e) { falloTab(e); }
+};
+
 /* ---- Historial ---- */
 let datosHist = [], histFin = false;
 function pintarHistorial() {
@@ -694,10 +833,11 @@ $('btnBloquear').onclick = async () => { try { await rpc('admin_bloquear'); } ca
    AVISOS DE PENDIENTES · AJUSTES · USO · EXPORTAR · ADMINISTRADORES · CORREOS
 ============================================================ */
 let datosPend = null, datosAj = null, datosGymRes = null, datosUso = null, datosAdm = null;
-const IR_TAB = { pedidos: 'pedidos', stock: 'inventario', codigos: 'gimnasios', premium: 'premium' };
+const IR_TAB = { soporte: 'soporte', pedidos: 'pedidos', stock: 'inventario', codigos: 'gimnasios', premium: 'premium' };
 function pintarPendientes() {
   const d = datosPend, el = $('pendientes'); if (!d) { el.classList.add('oculto'); return; }
   const c = [];
+  if (sopPendientes) c.push(['rojo', 'soporte', `${sopPendientes} mensaje(s) de soporte sin responder`]);
   if (Number(d.pedidos_urgentes)) c.push(['rojo', 'pedidos', `${d.pedidos_urgentes} pedido(s) sin enviar de más de ${urgenteH} h`]);
   if ((d.stock || []).length) c.push(['amar', 'stock', 'Poco stock: ' + d.stock.map((x) => `${esc(x.nombre)} (${x.stock})`).join(', ')]);
   (d.codigos_pocos || []).forEach((x) => c.push(['amar', 'codigos', `Quedan ${x.disponibles} código(s) de ${esc(x.nombre)} sin asignar o disponibles`]));
@@ -708,7 +848,7 @@ function pintarPendientes() {
   pintarPremVencer();
 }
 $('pendientes').addEventListener('click', (e) => { const b = e.target.closest('[data-ir]'); if (!b) return; if (b.dataset.ir === 'pedidos') filtro = 'urgentes'; abrirTab(b.dataset.ir); if (b.dataset.ir === 'pedidos') pintarPedidos(); });
-async function cargarPendientes() { try { datosPend = await rpc('panel_pendientes', { p_horas: urgenteH }); pintarPendientes(); } catch (e) { if (e.status === 401 || e.status === 403) falloTab(e, true); } }
+async function cargarPendientes() { try { const [pd, sh] = await Promise.all([rpc('panel_pendientes', { p_horas: urgenteH }), rpc('panel_soporte_hilos', { p_filtro: 'abiertos' }).catch(() => null)]); datosPend = pd; if (sh) contarSoporte(sh); pintarPendientes(); } catch (e) { if (e.status === 401 || e.status === 403) falloTab(e, true); } }
 function pintarPremVencer() {
   const L = (datosPend && datosPend.premium_por_vencer) || [];
   $('premVencer').innerHTML = L.length ? `<div class="bloque"><h3>Premium que vence esta semana</h3>${L.map((x) => `<div class="acc"><div><b style="overflow-wrap:anywhere">${esc(x.email)}</b><div class="peq">vence ${fechaCorta(x.hasta)}</div></div><div class="acciones"><button class="sec mini" data-pv-correo="${esc(x.email)}" data-pv-hasta="${esc(x.hasta)}">Avisar</button><button class="mini" data-pv-dar="${esc(x.email)}">Dar días</button></div></div>`).join('')}</div>` : '';
@@ -936,7 +1076,7 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { pedidos: 'tPedidos', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
+const TABS = { pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
 let tabActiva = 'pedidos';
 function abrirTab(t) {
   tabActiva = t;
@@ -1024,7 +1164,8 @@ function falloTab(e, silencioso) {
 }
 async function cargarTab(t, silencioso) {
   try {
-    if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
+    if (t === 'soporte') { await cargarSoporte(silencioso); }
+    else if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
     else if (t === 'productos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#cuerpoProductos')) return; datosProd = await rpc('panel_productos'); pintarProductos(); }
     else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
     else if (t === 'cupones') { datosCup = await rpc('panel_cupones'); pintarCupones(); }
@@ -1213,7 +1354,7 @@ function pintarClientes() {
       <div class="campo"><label>Nota interna (solo tú la ves)</label><textarea class="c-nota" maxlength="1000">${esc(c.nota || '')}</textarea></div>
       <div class="campo" style="margin-top:8px"><label>Etiqueta (ej. VIP, mayorista)</label><input class="c-etq" maxlength="30" value="${esc(c.etiqueta || '')}"></div>
       <div class="acciones" style="margin-top:10px"><button data-cli-guardar>Guardar nota</button>${wa.length === 10 ? `<a class="btn sec" href="https://wa.me/52${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}<button class="sec" data-cli-copiar>Copiar correo</button><button class="sec" data-cli-correo>Enviar correo</button></div>
-      <div class="acciones" style="margin-top:8px"><button class="sec" data-cli-dar>Dar Premium</button>${c.premium_hasta ? '<button class="mal" data-cli-quitar>Quitar Premium</button>' : ''}</div>
+      <div class="acciones" style="margin-top:8px"><button class="sec" data-cli-dar>Dar Premium</button>${c.premium_hasta ? '<button class="mal" data-cli-quitar>Quitar Premium</button>' : ''}${c.tiene_cuenta ? '<button class="mal" data-cli-bloq>Bloquear…</button>' : ''}</div>
     </details>`;
   }).join('') : '<div class="vacio">No hay clientes en esta vista.</div>';
 }
@@ -1222,6 +1363,7 @@ $('filtrosCli').addEventListener('click', (e) => { const b = e.target.closest('[
 $('listaClientes').addEventListener('click', async (e) => {
   const d = e.target.closest('details.cli'); if (!d) return; const email = d.dataset.email;
   if (e.target.closest('[data-cli-dar]')) { await darPremium(email); return; }
+  if (e.target.closest('[data-cli-bloq]')) { abrirTab('soporte'); $('blqEmail').value = email; $('blqMotivo').focus(); aviso('Elige el tipo de bloqueo y escribe el motivo.', true); return; }
   if (e.target.closest('[data-cli-quitar]')) { await quitar(email); return; }
   if (e.target.closest('[data-cli-correo]')) { const c = (datosCli || []).find((x) => x.email === email) || {}; abrirCorreo({ email, nombre: c.nombre || '', vence: c.premium_hasta ? fechaDia(c.premium_hasta) : '' }, c.premium_hasta ? 'premium' : 'libre'); return; }
   if (e.target.closest('[data-cli-copiar]')) { await copiar(email); aviso('Correo copiado.', true); return; }
@@ -1573,7 +1715,7 @@ let swReg = null;
 async function registrarSW() {
   if (!('serviceWorker' in navigator)) return;
   try { swReg = await navigator.serviceWorker.register('sw.js', { scope: '/admin/' }); } catch (e) {}
-  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.tipo === 'push') cargar(true); });
+  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.tipo === 'push') { cargar(true); if (e.data.url && String(e.data.url).includes('tab=soporte') && !$('panel').classList.contains('oculto')) abrirTab('soporte'); } });
 }
 async function estadoAvisos() {
   const sop = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
@@ -1616,6 +1758,7 @@ $('btnInstalar').onclick = async () => { if (!instalarEvt) return; instalarEvt.p
 })();
 function abrirPanel() {
   vista(true); cargar(false); estadoAvisos();
+  if (/[?&]tab=soporte\b/.test(location.search)) { abrirTab('soporte'); try { history.replaceState(null, '', location.pathname); } catch (e) {} }
   clearInterval(timer); timer = setInterval(() => { if (!document.hidden) cargar(true); }, 60000);
 }
 function iniciar() { puerta(); }
