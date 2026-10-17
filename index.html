@@ -5674,7 +5674,7 @@ document.addEventListener('DOMContentLoaded', function () {
   actualizarUIAcceso();
 
   if (sesionActiva && !_modoDev) {
-    refrescarEstado().then(() => { _despuesDeEstado(q.get('pago') === 'ok'); });
+    refrescarEstado().then(() => { _despuesDeEstado(q.get('pago') === 'ok'); setTimeout(() => { try { aetNombreDesdeNube(true); } catch (e) {} }, 2500); });
   } else {
     _despuesDeEstado(false);
   }
@@ -5812,6 +5812,7 @@ async function despuesDeLogin() {
   _api('PATCH', 'perfiles?id=eq.' + encodeURIComponent(_auth.user_id), { acepto_privacidad_en: new Date().toISOString() }, { 'Prefer': 'return=minimal' });
   await refrescarEstado();
   if (typeof sincronizarAlIniciarSesion === 'function') sincronizarAlIniciarSesion();
+  setTimeout(() => { try { aetNombreDesdeNube(true); } catch (e) {} }, 1500);
   const banner = _$('banner-acceso');
   _txt('banner-nombre', '¡Sesión iniciada! 👋');
   banner.classList.remove('oculto');
@@ -8771,7 +8772,7 @@ async function aetAyudaCargar(primera) {
   if (firma === _ayuUltimo) return;
   _ayuUltimo = firma;
   L.innerHTML = ms.length ? ms.map(m => `<div class="ayu-msg ${m.autor === 'usuario' ? 'yo' : 'ellos'}">${m.autor === 'admin' ? '<span class="ayu-quien">Aeterion</span>' : ''}${_e(m.texto)}<small>${_fechaHora(m.creado_en)}</small></div>`).join('')
-    : `<div class="ayu-vacio">¿En qué te ayudamos? Cuéntanos tu duda o problema y te respondemos aquí.<div class="ayu-temas">${AYU_TEMAS.map((t, i) => `<button onclick="aetAyudaTema(${i})">${t[0]} ${t[1]}</button>`).join('')}</div></div>`;
+    : `<div class="ayu-vacio">${aetNombre() ? 'Hola, ' + esc(aetNombre()) + '. ' : ''}¿En qué te ayudamos? Cuéntanos tu duda o problema y te respondemos aquí.<div class="ayu-temas">${AYU_TEMAS.map((t, i) => `<button onclick="aetAyudaTema(${i})">${t[0]} ${t[1]}</button>`).join('')}</div></div>`;
   L.scrollTop = L.scrollHeight;
   if (d.bloqueado) {
     const p = document.getElementById('ayuPie');
@@ -8888,7 +8889,7 @@ const ONB_EXTRAS = { musculo: ['suple'], grasa: ['sol'], salud: ['respirar', 'so
 let _onb = { paso: 1 };
 const ONB_TOTAL = 6;
 function aetPerfil() { const p = AET.leer('aet_perfil_agua', {}); return p && typeof p === 'object' && !Array.isArray(p) ? p : {}; }
-function aetPerfilGuardar(o) { AET.guardar('aet_perfil_agua', Object.assign({}, aetPerfil(), o)); }
+function aetPerfilGuardar(o) { AET.guardar('aet_perfil_agua', Object.assign({}, aetPerfil(), o)); if (o && 'nombre' in o) { try { aetNombreNube(o.nombre); aetSaludo(); } catch (e) {} } }
 function aetAlturaActual() {
   const h = AET.leer('medidas_historial', []).filter(m => m && m.altura > 0).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).pop();
   return h ? h.altura : (aetPerfil().altura || null);
@@ -8906,10 +8907,39 @@ function aetMedidasHoy(peso, altura) {
   AET.guardar('medidas_historial', hist);
   try { medidasHistorial = hist; } catch (e) {}
 }
+function aetNombre() { return String(aetPerfil().nombre || '').trim(); }
 function aetSaludo() {
   const el = document.getElementById('appSaludo'); if (!el) return;
-  const h = new Date().getHours(), n = String(aetPerfil().nombre || '').trim();
-  el.textContent = (h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches') + (n ? ', ' + n : '') + ' 👋';
+  const h = new Date().getHours(), n = aetNombre();
+  el.innerHTML = esc((h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches') + (n ? ', ' + n : '') + ' 👋')
+    + (n ? '' : ' <button class="lnk" style="font-size:12px;vertical-align:middle" onclick="aetPedirNombre()">¿Cómo te llamas?</button>');
+}
+/* Nombre: se guarda en tu perfil y en tu cuenta, para saludarte en todos tus dispositivos */
+function aetPedirNombre() {
+  aetSheet('¿Cómo te llamas?', `<p class="aet-nota" style="margin-top:0">Para saludarte por tu nombre en la app.</p>
+    <input class="aet-in" id="aetNomIn" maxlength="30" autocomplete="given-name" placeholder="Tu nombre o apodo" value="${esc(aetNombre())}" onkeydown="if(event.key==='Enter')aetGuardarNombre()">
+    <button class="aet-btn" style="margin-top:1rem" onclick="aetGuardarNombre()">Guardar</button>`);
+  try { AET.guardar('aet_nombre_pedido', 1); } catch (e) {}
+  setTimeout(() => { const i = document.getElementById('aetNomIn'); if (i) i.focus(); }, 100);
+}
+function aetGuardarNombre() {
+  const n = (document.getElementById('aetNomIn').value || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+  if (!n) { aetToast('Escribe tu nombre'); return; }
+  aetPerfilGuardar({ nombre: n });
+  aetCerrar(); aetSaludo(); aetToast('¡Mucho gusto, ' + n + '! 👋');
+}
+function aetNombreNube(n) {
+  if (!sesionActiva || _modoDev || !_auth || !_auth.user_id) return;
+  _api('PATCH', 'perfiles?id=eq.' + encodeURIComponent(_auth.user_id), { nombre: n || null }, { 'Prefer': 'return=minimal' });
+}
+async function aetNombreDesdeNube(preguntar) {
+  if (!sesionActiva || _modoDev || !_auth || !_auth.user_id) return;
+  const local = aetNombre();
+  const r = await _api('GET', 'perfiles?select=nombre&id=eq.' + encodeURIComponent(_auth.user_id));
+  const nube = r.ok && Array.isArray(r.data) && r.data[0] ? String(r.data[0].nombre || '').trim() : '';
+  if (local && local !== nube) aetNombreNube(local);                      // tu nombre en este teléfono se guarda en tu cuenta
+  else if (!local && nube) { AET.guardar('aet_perfil_agua', Object.assign({}, aetPerfil(), { nombre: nube })); aetSaludo(); }
+  else if (!local && !nube && preguntar && !AET.leer('aet_nombre_pedido', 0) && document.body.classList.contains('modo-app') && !document.querySelector('#appSheet.abierto')) aetPedirNombre();
 }
 function aetOnbNuevo() {
   return !aetPrograma() && !Object.keys(AET.leer('aet_actividad', {})).length && !AET.pesos().length && !AET.leer('aet_log_entreno', []).length;
@@ -10085,7 +10115,7 @@ function aetMmaFin() {
 }
 
 function aetRefrescar() {
-  try { renderDashboardApp(); aetRenderHero(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); aetRenderHabitos(); } catch (e) { console.error(e); }
+  try { aetSaludo(); renderDashboardApp(); aetRenderHero(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); aetRenderHabitos(); } catch (e) { console.error(e); }
 }
 
 function renderPerfilResumenApp() { const c = document.getElementById('appPerfilResumen'); if (c) c.innerHTML = ''; }   // Mi perfil vive en Cuenta
