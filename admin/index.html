@@ -141,6 +141,28 @@
   .ojo-btn { position:absolute; right:2px; top:0; bottom:0; width:44px; background:none; border:0; color:var(--gris,#999); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; min-height:0; }
   .ojo-btn svg { width:20px; height:20px; }
   .ojo-btn.on { color:var(--oro,#c9a84c); }
+  /* ===== Navegación por secciones ===== */
+  main { padding-bottom:calc(96px + env(safe-area-inset-bottom)); }
+  .nav-adm { position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; background:rgba(11,11,13,.97); backdrop-filter:blur(12px); border-top:1px solid var(--linea); padding-bottom:env(safe-area-inset-bottom); }
+  .nav-adm.oculto { display:none; }
+  .nav-adm button { flex:1; min-width:0; background:none; border:0; border-radius:0; color:var(--gris); display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 0 8px; font-size:10.5px; font-weight:600; min-height:0; position:relative; }
+  .nav-adm button i { font-style:normal; font-size:19px; line-height:1; }
+  .nav-adm button.on { color:var(--oro); }
+  .nav-adm button.on::before { content:''; position:absolute; top:0; left:28%; right:28%; height:2px; background:var(--oro); border-radius:0 0 3px 3px; }
+  .nav-adm .cnt { position:absolute; top:4px; left:calc(50% + 6px); min-width:17px; height:17px; line-height:17px; padding:0 4px; border-radius:9px; background:#e74c3c; color:#fff; font-size:10.5px; font-weight:700; }
+  .sec-titulo { font-size:22px; font-weight:800; margin:2px 0 10px; letter-spacing:-.01em; }
+  .subtabs { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-bottom:14px; }
+  .subtabs::-webkit-scrollbar { display:none; }
+  .subtabs button { flex:0 0 auto; background:var(--card); color:var(--gris); border:1px solid var(--linea); border-radius:30px; padding:7px 12px; min-height:36px; font-size:13px; }
+  .subtabs button.on { background:var(--oro); color:#111; border-color:var(--oro); }
+  .subtabs button .cnt { display:inline-block; min-width:17px; height:17px; line-height:17px; padding:0 4px; border-radius:9px; background:#e74c3c; color:#fff; font-size:10.5px; font-weight:700; margin-left:5px; }
+  /* Pedidos compactos */
+  .ped .ped-top { cursor:pointer; }
+  .ped .ped-flecha { color:var(--gris); font-size:13px; margin-left:8px; transition:transform .2s; display:inline-block; }
+  .ped.abierto .ped-flecha { transform:rotate(180deg); }
+  .ped .ped-res { color:var(--gris); font-size:13px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ped:not(.abierto) .ped-cuerpo { display:none; }
+  .ped.abierto .ped-res { display:none; }
 </style>
 </head>
 <body>
@@ -149,19 +171,6 @@
   <div class="top">
     <div class="logo">AETERION<small>Admin</small></div>
     <button class="sec mini" id="btnRefrescar" title="Actualizar">↻</button>
-    <details class="menu">
-      <summary><span class="btn sec mini" style="display:inline-flex">⚙ Ajustes</span></summary>
-      <div class="menu-caja">
-        <button class="sec" id="btnAvisos">🔔 Activar avisos de pedidos</button>
-        <button class="sec oculto" id="btnPrueba">Enviar aviso de prueba</button>
-        <button class="sec oculto" id="btnInstalar">📲 Instalar app</button>
-        <div class="peq oculto" id="notaIos">En iPhone: toca Compartir → "Añadir a pantalla de inicio", abre la app desde ahí y activa los avisos.</div>
-        <label class="peq">Marcar como urgente un pedido sin enviar después de:
-          <select id="selUrgente" style="margin-top:4px"><option value="6">6 horas</option><option value="12">12 horas</option><option value="24">24 horas</option><option value="48">48 horas</option><option value="72">72 horas</option></select></label>
-        <div class="peq" id="quien"></div>
-        <button class="mal" id="btnSalir">Cerrar sesión</button>
-      </div>
-    </details>
   </div>
 </header>
 
@@ -199,11 +208,15 @@
   </div>
 
   <div id="panel" class="oculto">
-    <div class="stats" id="stats"></div>
-    <div id="pendientes" class="oculto"></div>
-    <div class="tabs"><button class="tab on" data-tab="pedidos">Pedidos</button><button class="tab" data-tab="soporte" id="tabSoporte">Soporte</button><button class="tab" data-tab="resumen">Resumen</button><button class="tab" data-tab="productos">Productos</button><button class="tab" data-tab="clientes">Clientes</button><button class="tab" data-tab="cupones">Cupones</button><button class="tab" data-tab="gimnasios">Gimnasios</button><button class="tab" data-tab="inventario">Inventario</button><button class="tab" data-tab="premium">Premium</button><button class="tab" data-tab="frases">Frases</button><button class="tab" data-tab="ajustes">Ajustes</button><button class="tab" data-tab="uso">Uso</button><button class="tab" data-tab="exportar">Exportar</button><button class="tab" data-tab="historial">Historial</button><button class="tab" data-tab="seguridad">Seguridad</button></div>
+    <div class="sec-titulo" id="secTitulo">Inicio</div>
+    <div class="subtabs" id="subtabs"></div>
 
-    <section id="tPedidos">
+    <section id="tInicio">
+      <div id="pendientes" class="oculto"></div>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section id="tPedidos" class="oculto">
       <div class="filtros" id="filtros"></div>
       <input type="search" id="buscar" placeholder="Buscar por nombre, correo, teléfono o guía…" style="margin-bottom:12px">
       <div id="listaPedidos"></div>
@@ -238,6 +251,13 @@
     </section>
 
     <section id="tAjustes" class="oculto">
+      <div class="card"><b>Textos de la app</b>
+        <div class="peq" style="margin:4px 0 0">Recordatorios, guía de primer uso y hábitos de fábrica. Los cambios llegan a la gente la próxima vez que abre la app. Los hábitos que una persona ya tiene no cambian; solo afectan a quienes los agreguen o empiecen ahora. «Restablecer» regresa el texto original.</div>
+      </div>
+      <div id="listaTextos"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tTiendaAj" class="oculto">
       <div class="card" style="margin-bottom:14px">
         <b>Aviso general</b>
         <div class="peq" style="margin:4px 0 8px">Una franja arriba de la tienda y de la app, para cosas como «envíos retrasados por el puente» o una promoción. Se ve en la próxima vez que se abra; cada persona puede cerrarla.</div>
@@ -252,10 +272,6 @@
         <div class="fila" style="margin-top:8px"><button id="tdPausar" class="mal">Pausar la tienda</button><button id="tdAbrir">Abrir la tienda</button></div>
         <div class="peq" id="tdEstado" style="margin-top:8px"></div>
       </div>
-      <div class="card"><b>Textos de la app</b>
-        <div class="peq" style="margin:4px 0 0">Recordatorios, guía de primer uso y hábitos de fábrica. Los cambios llegan a la gente la próxima vez que abre la app. Los hábitos que una persona ya tiene no cambian; solo afectan a quienes los agreguen o empiecen ahora. «Restablecer» regresa el texto original.</div>
-      </div>
-      <div id="listaTextos"><div class="vacio">Cargando…</div></div>
     </section>
 
     <section id="tUso" class="oculto"><div id="cuerpoUso"><div class="vacio">Cargando…</div></div></section>
@@ -294,6 +310,19 @@
       <div class="card"><button class="sec" id="btnBloquear">Bloquear el panel ahora</button></div>
     </section>
 
+    <section id="tSesion" class="oculto">
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <button class="sec" id="btnAvisos">🔔 Activar avisos de pedidos</button>
+        <button class="sec oculto" id="btnPrueba">Enviar aviso de prueba</button>
+        <button class="sec oculto" id="btnInstalar">📲 Instalar app</button>
+        <div class="peq oculto" id="notaIos">En iPhone: toca Compartir → "Añadir a pantalla de inicio", abre la app desde ahí y activa los avisos.</div>
+        <label class="peq">Marcar como urgente un pedido sin enviar después de:
+          <select id="selUrgente" style="margin-top:4px"><option value="6">6 horas</option><option value="12">12 horas</option><option value="24">24 horas</option><option value="48">48 horas</option><option value="72">72 horas</option></select></label>
+        <div class="peq" id="quien"></div>
+        <button class="mal" id="btnSalir">Cerrar sesión</button>
+      </div>
+    </section>
+
     <section id="tResumen" class="oculto"><div id="cuerpoResumen"><div class="vacio">Cargando…</div></div></section>
 
     <section id="tProductos" class="oculto">
@@ -305,12 +334,6 @@
       <div id="sopLista">
         <div class="filtros" id="filtrosSop"></div>
         <div class="card" id="listaSop"><div class="vacio">Cargando…</div></div>
-        <div class="card" style="margin-top:14px"><b>Usuarios bloqueados</b>
-          <div class="peq" style="margin:4px 0 10px"><b>Soporte:</b> ya no puede escribirte. <b>Toda la app:</b> se le cierra la sesión y no puede volver a entrar, ni usar Premium, ni sincronizar, ni escribir al soporte. Lo que tiene guardado en su teléfono no se borra.</div>
-          <div class="fila" style="gap:8px;flex-wrap:wrap"><input id="blqEmail" type="email" placeholder="Correo de la cuenta" style="flex:2;min-width:180px"><select id="blqTipo" style="flex:1;min-width:140px"><option value="soporte">Solo soporte</option><option value="app">Toda la app</option></select></div>
-          <div class="fila" style="gap:8px;margin-top:8px"><input id="blqMotivo" maxlength="300" placeholder="Motivo (solo lo ven los administradores)" style="flex:1;min-width:0"><button id="blqBtn" class="mal">Bloquear</button></div>
-          <div id="listaBlq" style="margin-top:10px"></div>
-        </div>
       </div>
       <div id="sopChatBox" class="oculto">
         <div class="fila" style="gap:8px;margin-bottom:10px"><button class="sec mini" id="sopVolver">← Volver</button><div style="min-width:0;flex:1"><div class="nom" id="sopQuien" style="font-weight:700;overflow-wrap:anywhere"></div><div class="peq" id="sopInfo"></div></div></div>
@@ -321,6 +344,15 @@
           <div class="acciones" id="sopBloq"></div>
         </div>
       </div>
+    </section>
+
+    <section id="tBloqueos" class="oculto">
+        <div class="card"><b>Usuarios bloqueados</b>
+          <div class="peq" style="margin:4px 0 10px"><b>Soporte:</b> ya no puede escribirte. <b>Toda la app:</b> se le cierra la sesión y no puede volver a entrar, ni usar Premium, ni sincronizar, ni escribir al soporte. Lo que tiene guardado en su teléfono no se borra.</div>
+          <div class="fila" style="gap:8px;flex-wrap:wrap"><input id="blqEmail" type="email" placeholder="Correo de la cuenta" style="flex:2;min-width:180px"><select id="blqTipo" style="flex:1;min-width:140px"><option value="soporte">Solo soporte</option><option value="app">Toda la app</option></select></div>
+          <div class="fila" style="gap:8px;margin-top:8px"><input id="blqMotivo" maxlength="300" placeholder="Motivo (solo lo ven los administradores)" style="flex:1;min-width:0"><button id="blqBtn" class="mal">Bloquear</button></div>
+          <div id="listaBlq" style="margin-top:10px"></div>
+        </div>
     </section>
 
     <section id="tClientes" class="oculto">
@@ -400,6 +432,14 @@
     </section>
   </div>
 </main>
+<nav class="nav-adm oculto" id="navAdm">
+  <button data-g="inicio" class="on"><i>🏠</i>Inicio</button>
+  <button data-g="ventas"><i>📦</i>Ventas</button>
+  <button data-g="tienda"><i>🏪</i>Tienda</button>
+  <button data-g="premium"><i>⭐</i>Premium</button>
+  <button data-g="soporte"><i>💬</i>Soporte</button>
+  <button data-g="ajustes"><i>⚙</i>Ajustes</button>
+</nav>
 <div id="msg" role="status"></div>
 
 <div id="modalCorreo" class="oculto" style="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:60;overflow:auto;padding:16px">
@@ -498,7 +538,7 @@ async function funcion(cuerpo) {
   }
   return { ok: r.ok, d };
 }
-function vista(panel) { $('puerta').classList.add('oculto'); $('login').classList.toggle('oculto', panel); $('panel').classList.toggle('oculto', !panel); $('cab').classList.toggle('oculto', !panel); }
+function vista(panel) { $('puerta').classList.add('oculto'); $('login').classList.toggle('oculto', panel); $('panel').classList.toggle('oculto', !panel); $('cab').classList.toggle('oculto', !panel); $('navAdm').classList.toggle('oculto', !panel); }
 
 /* ---------- Utilidades de pedidos ---------- */
 function horasDesde(iso) { return (Date.now() - new Date(iso).getTime()) / 36e5; }
@@ -549,6 +589,7 @@ function pintarStats() {
     `<div class="stat rojo" data-f="urgentes"><b>${urgentes.length}</b><span>Urgentes (&gt; ${urgenteH} h)</span></div>` +
     `<div class="stat verde" data-f="enviados"><b>${enviados.length}</b><span>Enviados / entregados</span></div>` +
     `<div class="stat oro"><b>$${venta.toLocaleString('es-MX')}</b><span>Ventas del mes (${mes.length})</span></div>`;
+  cntPedidos = porEnviar.length; try { pintarSubtabs(); } catch (e) {}
   try { if (navigator.setAppBadge) { porEnviar.length ? navigator.setAppBadge(porEnviar.length) : navigator.clearAppBadge(); } } catch (e) {}
 }
 function pintarFiltros() {
@@ -564,6 +605,7 @@ function pasa(p, f) {
   if (f === 'urgentes') return (p.estado === 'pagado' || p.estado === 'preparando') && semaforo(p) === 'rojo';
   return true;
 }
+const pedAbiertos = new Set();
 function tarjeta(p) {
   const sem = semaforo(p);
   const h = Math.floor(horasDesde(p.creado_en));
@@ -575,8 +617,9 @@ function tarjeta(p) {
   const botones = BOTONES.map(([v, t]) => `<button class="e-${v}${p.estado === v ? ' on' : ''}" data-est="${v}">${t}</button>`).join('');
   const necesitaGuia = p.estado === 'enviado' || p.estado === 'entregado';
   const puedeGuia = (p.estado === 'pagado' || p.estado === 'preparando') && !p.guia && !p.etiqueta_url;
-  return `<article class="ped ${sem}" data-id="${esc(p.id)}" data-estado="${esc(p.estado)}">
-    <div class="ped-top"><div><div class="ped-nom">${esc(p.nombre)}</div><span class="badge ${sem}">${esc(NOMBRE_ESTADO[p.estado] || p.estado)}</span> <span class="peq">${hace(p.creado_en)}</span></div><div class="ped-total">$${esc(p.total)}</div></div>
+  return `<article class="ped ${sem}${pedAbiertos.has(String(p.id)) ? ' abierto' : ''}" data-id="${esc(p.id)}" data-estado="${esc(p.estado)}">
+    <div class="ped-top" data-abrir><div style="min-width:0"><div class="ped-nom">${esc(p.nombre)}</div><span class="badge ${sem}">${esc(NOMBRE_ESTADO[p.estado] || p.estado)}</span> <span class="peq">${hace(p.creado_en)}</span><div class="ped-res">${esc(String(p.productos || '').split('\n').join(' · '))}</div></div><div class="ped-total">$${esc(p.total)}<span class="ped-flecha">▼</span></div></div>
+    <div class="ped-cuerpo">
     ${al}
     <div class="prod">${esc(p.productos)}</div>
     <dl class="datos">
@@ -600,6 +643,7 @@ function tarjeta(p) {
       </div>
       <label class="peq"><input type="checkbox" class="p-avisar" checked style="width:auto;min-height:0;margin-right:6px">Avisar al cliente por correo al marcar Enviado o Entregado</label>
       <div class="fila" style="margin-top:10px"><button data-guardar>Guardar cambios</button><button class="sec" data-recibo>Reenviar recibo al cliente</button></div>
+    </div>
     </div>
   </article>`;
 }
@@ -642,7 +686,7 @@ async function puerta() {
     const e = await rpc('admin_estado', { p_dispositivo: devToken() });
     if (!e || !e.miembro) { sesion = null; guardar(); vista(false); aviso('Esta cuenta no es de administrador.'); return; }
     ['pcEnt', 'pcEnt2', 'pcDisp', 'pcDisp2', 'peEnt', 'peDisp'].forEach((k) => { $(k).value = ''; }); if (window.ojosOcultar) window.ojosOcultar();
-    $('login').classList.add('oculto'); $('panel').classList.add('oculto'); $('cab').classList.add('oculto'); $('puerta').classList.remove('oculto');
+    $('login').classList.add('oculto'); $('panel').classList.add('oculto'); $('cab').classList.add('oculto'); $('navAdm').classList.add('oculto'); $('puerta').classList.remove('oculto');
     $('pConfig').classList.toggle('oculto', !!e.configurado); $('pEntrar').classList.toggle('oculto', !e.configurado);
     $('peDispBox').classList.toggle('oculto', !!e.dispositivo_ok);
     $('peTexto').textContent = e.dispositivo_ok ? 'Escribe tu contraseña de entrada.' : 'Dispositivo nuevo: escribe tu contraseña de entrada y la de dispositivo nuevo.';
@@ -650,7 +694,7 @@ async function puerta() {
   } catch (err) {
     if (err.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
     else {   // sin señal: la sesión sigue guardada; no se pide el código del correo otra vez
-      $('login').classList.add('oculto'); $('panel').classList.add('oculto'); $('cab').classList.add('oculto'); $('puerta').classList.remove('oculto');
+      $('login').classList.add('oculto'); $('panel').classList.add('oculto'); $('cab').classList.add('oculto'); $('navAdm').classList.add('oculto'); $('puerta').classList.remove('oculto');
       $('pConfig').classList.add('oculto'); $('pEntrar').classList.remove('oculto'); $('peDispBox').classList.add('oculto');
       $('peTexto').textContent = 'No se pudo conectar. Revisa tu señal y escribe tu contraseña de entrada.';
       aviso('Sin conexión. Tu sesión sigue guardada; inténtalo cuando vuelva la señal.');
@@ -698,7 +742,7 @@ const SOP_PLANTILLAS = [
 ];
 function contarSoporte(h) {
   sopPendientes = Array.isArray(h) ? h.filter((x) => x && x.pend).length : 0;
-  const t = $('tabSoporte'); if (t) t.innerHTML = 'Soporte' + (sopPendientes ? `<span class="cnt">${sopPendientes}</span>` : '');
+  pintarSubtabs();
 }
 async function cargarSoporte(silencioso) {
   const [h, b] = await Promise.all([rpc('panel_soporte_hilos', { p_filtro: sopFiltro }), rpc('panel_bloqueos')]);
@@ -843,8 +887,8 @@ function pintarPendientes() {
   (d.codigos_pocos || []).forEach((x) => c.push(['amar', 'codigos', `Quedan ${x.disponibles} código(s) de ${esc(x.nombre)} sin asignar o disponibles`]));
   (d.gimnasios_por_acabar || []).forEach((x) => c.push(['amar', 'codigos', `${esc(x.gimnasio)}: quedan ${x.disponibles} código(s) de ${esc(x.nombre)}`]));
   if ((d.premium_por_vencer || []).length) c.push(['amar', 'premium', `${d.premium_por_vencer.length} Premium vence(n) esta semana`]);
-  el.classList.toggle('oculto', !c.length);
-  el.innerHTML = c.length ? '<div class="bloque" style="padding:10px 12px"><h3 style="margin-bottom:6px">Necesita tu atención</h3>' + c.map(([k, t, txt]) => `<button class="pill" data-ir="${IR_TAB[t]}" style="display:block;width:100%;text-align:left;margin:4px 0;white-space:normal;border-color:${k === 'rojo' ? 'var(--rojo,#e74c3c)' : 'var(--amar,#f1c40f)'}">${txt}</button>`).join('') + '</div>' : '';
+  el.classList.remove('oculto');
+  el.innerHTML = c.length ? '<div class="bloque" style="padding:10px 12px"><h3 style="margin-bottom:6px">Necesita tu atención</h3>' + c.map(([k, t, txt]) => `<button class="pill" data-ir="${IR_TAB[t]}" style="display:block;width:100%;text-align:left;margin:4px 0;white-space:normal;border-color:${k === 'rojo' ? 'var(--rojo,#e74c3c)' : 'var(--amar,#f1c40f)'}">${txt}</button>`).join('') + '</div>' : '<div class="bloque" style="padding:12px"><h3 style="margin:0">✓ Todo al día</h3><div class="peq" style="margin-top:4px">No hay pedidos urgentes, mensajes sin responder ni avisos pendientes.</div></div>';
   pintarPremVencer();
 }
 $('pendientes').addEventListener('click', (e) => { const b = e.target.closest('[data-ir]'); if (!b) return; if (b.dataset.ir === 'pedidos') filtro = 'urgentes'; abrirTab(b.dataset.ir); if (b.dataset.ir === 'pedidos') pintarPedidos(); });
@@ -1048,7 +1092,7 @@ async function cargar(silencioso) {
     vista(true);
     if (nuevos && silencioso) aviso('Llegó un pedido nuevo', true);
     cargarPendientes();
-    if (tabActiva !== 'pedidos' && tabActiva !== 'premium') cargarTab(tabActiva, true);
+    if (!['pedidos', 'premium', 'inicio', 'sesion', 'exportar'].includes(tabActiva)) cargarTab(tabActiva, true);
   } catch (e) {
     if (e.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
     else if (e.status === 403 || /autorizado/.test(e.message)) puerta();
@@ -1076,21 +1120,47 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
-let tabActiva = 'pedidos';
+const TABS = { inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
+// 6 secciones, cada una con sus sub-pestañas
+const GRUPOS = {
+  inicio: ['Inicio', [['inicio', 'Hoy'], ['resumen', 'Ventas y métricas'], ['uso', 'Uso de la app']]],
+  ventas: ['Ventas', [['pedidos', 'Pedidos'], ['clientes', 'Clientes'], ['cupones', 'Cupones'], ['exportar', 'Exportar']]],
+  tienda: ['Tienda', [['productos', 'Productos'], ['inventario', 'Inventario'], ['tiendaAj', 'Aviso y pausa']]],
+  premium: ['Premium', [['premium', 'Dar o quitar'], ['gimnasios', 'Códigos de gimnasios']]],
+  soporte: ['Soporte', [['soporte', 'Conversaciones'], ['bloqueos', 'Bloqueados']]],
+  ajustes: ['Ajustes', [['ajustes', 'Textos de la app'], ['frases', 'Frases'], ['seguridad', 'Seguridad'], ['historial', 'Historial'], ['sesion', 'Avisos y sesión']]],
+};
+const GRUPO_DE = {}; Object.keys(GRUPOS).forEach((g) => GRUPOS[g][1].forEach(([t]) => { GRUPO_DE[t] = g; }));
+const ULTIMA_DE = {};   // última sub-pestaña abierta en cada sección
+let tabActiva = 'inicio', cntPedidos = 0;
+function pintarSubtabs() {
+  const g = GRUPO_DE[tabActiva] || 'inicio';
+  $('secTitulo').textContent = GRUPOS[g][0];
+  $('subtabs').innerHTML = GRUPOS[g][1].map(([t, n]) => `<button data-t="${t}" class="${t === tabActiva ? 'on' : ''}">${n}${t === 'pedidos' && cntPedidos ? `<span class="cnt">${cntPedidos}</span>` : ''}${t === 'soporte' && sopPendientes ? `<span class="cnt">${sopPendientes}</span>` : ''}</button>`).join('');
+  document.querySelectorAll('#navAdm button').forEach((b) => {
+    b.classList.toggle('on', b.dataset.g === g);
+    const n = b.dataset.g === 'ventas' ? cntPedidos : b.dataset.g === 'soporte' ? sopPendientes : 0;
+    let c = b.querySelector('.cnt'); if (n && !c) { c = document.createElement('span'); c.className = 'cnt'; b.appendChild(c); }
+    if (c) { if (n) c.textContent = n > 99 ? '99+' : n; else c.remove(); }
+  });
+}
 function abrirTab(t) {
-  tabActiva = t;
-  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x.dataset.tab === t));
+  if (!TABS[t]) t = 'inicio';
+  tabActiva = t; ULTIMA_DE[GRUPO_DE[t]] = t;
   Object.keys(TABS).forEach((k) => $(TABS[k]).classList.toggle('oculto', k !== t));
+  pintarSubtabs();
+  window.scrollTo(0, 0);
   cargarTab(t, false);
 }
-document.querySelectorAll('.tab').forEach((b) => b.onclick = () => abrirTab(b.dataset.tab));
-$('stats').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; pintarPedidos(); } });
+$('subtabs').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) abrirTab(b.dataset.t); });
+document.querySelectorAll('#navAdm button').forEach((b) => b.onclick = () => abrirTab(ULTIMA_DE[b.dataset.g] || GRUPOS[b.dataset.g][1][0][0]));
+$('stats').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; abrirTab('pedidos'); pintarPedidos(); } });
 $('filtros').addEventListener('click', (e) => { const s = e.target.closest('[data-f]'); if (s) { filtro = s.dataset.f; pintarPedidos(); } });
 $('buscar').oninput = pintarPedidos; $('buscarAcc').oninput = pintarAccesos;
 
 $('listaPedidos').addEventListener('click', async (e) => {
   const art = e.target.closest('.ped'); if (!art) return;
+  if (e.target.closest('[data-abrir]') && !e.target.closest('a,button,input')) { const id = art.dataset.id; art.classList.toggle('abierto'); if (art.classList.contains('abierto')) pedAbiertos.add(id); else pedAbiertos.delete(id); return; }
   const p = pedidos.find((x) => String(x.id) === art.dataset.id); if (!p) return;
   if (e.target.closest('[data-correo]')) { abrirCorreo({ email: p.email, nombre: p.nombre, guia: p.guia, rastreo: p.url_rastreo }, p.guia ? 'enviado' : (semaforo(p) === 'rojo' ? 'retraso' : 'libre')); return; }
   const est = e.target.closest('[data-est]');
@@ -1164,7 +1234,9 @@ function falloTab(e, silencioso) {
 }
 async function cargarTab(t, silencioso) {
   try {
-    if (t === 'soporte') { await cargarSoporte(silencioso); }
+    if (t === 'soporte' || t === 'bloqueos') { await cargarSoporte(silencioso); }
+    else if (t === 'inicio') { cargarPendientes(); }
+    else if (t === 'tiendaAj') { datosAj = await rpc('panel_ajustes'); pintarAjustes(); }
     else if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
     else if (t === 'productos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#cuerpoProductos')) return; datosProd = await rpc('panel_productos'); pintarProductos(); }
     else if (t === 'clientes') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tClientes')) return; datosCli = await rpc('panel_clientes'); pintarClientes(); }
@@ -1363,7 +1435,7 @@ $('filtrosCli').addEventListener('click', (e) => { const b = e.target.closest('[
 $('listaClientes').addEventListener('click', async (e) => {
   const d = e.target.closest('details.cli'); if (!d) return; const email = d.dataset.email;
   if (e.target.closest('[data-cli-dar]')) { await darPremium(email); return; }
-  if (e.target.closest('[data-cli-bloq]')) { abrirTab('soporte'); $('blqEmail').value = email; $('blqMotivo').focus(); aviso('Elige el tipo de bloqueo y escribe el motivo.', true); return; }
+  if (e.target.closest('[data-cli-bloq]')) { abrirTab('bloqueos'); $('blqEmail').value = email; $('blqMotivo').focus(); aviso('Elige el tipo de bloqueo y escribe el motivo.', true); return; }
   if (e.target.closest('[data-cli-quitar]')) { await quitar(email); return; }
   if (e.target.closest('[data-cli-correo]')) { const c = (datosCli || []).find((x) => x.email === email) || {}; abrirCorreo({ email, nombre: c.nombre || '', vence: c.premium_hasta ? fechaDia(c.premium_hasta) : '' }, c.premium_hasta ? 'premium' : 'libre'); return; }
   if (e.target.closest('[data-cli-copiar]')) { await copiar(email); aviso('Correo copiado.', true); return; }
@@ -1757,7 +1829,7 @@ $('btnInstalar').onclick = async () => { if (!instalarEvt) return; instalarEvt.p
   window.ojosOcultar = () => document.querySelectorAll('.ojo-btn.on').forEach((b) => b.click());
 })();
 function abrirPanel() {
-  vista(true); cargar(false); estadoAvisos();
+  vista(true); cargar(false); estadoAvisos(); abrirTab('inicio');
   if (/[?&]tab=soporte\b/.test(location.search)) { abrirTab('soporte'); try { history.replaceState(null, '', location.pathname); } catch (e) {} }
   clearInterval(timer); timer = setInterval(() => { if (!document.hidden) cargar(true); }, 60000);
 }
