@@ -771,6 +771,7 @@
     .modal-overlay.activo { display: flex; }
 
     body.modo-app > nav, body.modo-app > section, body.modo-app > footer { display: none !important; }
+    body.modo-app:not(.en-tienda) #carrito-btn { display: none !important; }
     body.modo-app #carrito-btn { display: flex !important; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); right: 1rem; width: 52px; height: 52px; z-index: 600; }
 
     #btnInstalarApp {
@@ -2495,6 +2496,9 @@
     .app-sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; }
     .app-sheet-head h3 { font-family: var(--font-display); font-size: 1.35rem; color: var(--blanco); margin: 0; }
     .app-sheet-head button { background: none; border: none; color: var(--gris); font-size: 20px; cursor: pointer; }
+    .aet-panel.cuerpo .cuerpo-sec { padding: .9rem 0; border-top: 1px solid rgba(255,255,255,.07); }
+    .aet-panel.cuerpo .cuerpo-sec:first-of-type { border-top: 0; padding-top: .2rem; }
+    .aet-panel.cuerpo .cuerpo-t { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .6rem; font-family: var(--font-ui); }
     /* Ayuda / soporte */
     .ayu-lista { display: flex; flex-direction: column; gap: .5rem; max-height: 52vh; overflow-y: auto; padding: .2rem .1rem .6rem; }
     .ayu-msg { max-width: 84%; padding: .6rem .8rem; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -2727,28 +2731,14 @@
   <!-- PROGRESO -->
   <div class="app-screen" id="app-screen-perfil">
     <h2 class="app-titulo">Tu progreso</h2>
-    <p class="app-subtitulo">Guardado en este dispositivo</p>
-    <div id="appProgPeso"></div>
-    <div id="appProgMed"></div>
-    <div id="appProgComp"></div>
+    <p class="app-subtitulo">Tu cuerpo, tus hábitos y tus logros a lo largo del tiempo</p>
+    <div id="appProgCuerpo"></div>
     <div id="appProgHabitos"></div>
     <div id="appProgLogros"></div>
     <div id="appPerfilResumen"></div>
-    <button class="app-card" style="margin-top:.5rem;" onclick="aetIr('habitos')">
-      <div class="app-card-top"><span class="app-card-titulo">🌱 Mis hábitos</span><span class="app-card-meta">Marcar y ver progreso</span></div>
-      <div class="app-card-desc">Hábitos sugeridos o propios, con racha y seguimiento semanal.</div>
-    </button>
     <button class="app-card continuar" onclick="abrirCalculadora('dashboard')" style="margin-top:.5rem;">
       <div class="app-card-top"><span class="app-card-titulo">📊 Tu Dashboard</span><span class="app-card-meta">Semanal + Mensual</span></div>
       <div class="app-card-desc">Volumen, bloque, medidas y cargas — todo junto.</div>
-    </button>
-    <button class="app-card continuar" onclick="abrirCalculadora('medidas')" style="margin-top:.5rem;">
-      <div class="app-card-top"><span class="app-card-titulo">📏 Medidas Corporales</span><span class="app-card-meta">Registrar / Ver progreso</span></div>
-      <div class="app-card-desc">Peso, medidas y evolución mes a mes — con tu meta.</div>
-    </button>
-    <button class="app-card" onclick="abrirCalculadora('respaldo')" style="margin-top:.5rem;">
-      <div class="app-card-top"><span class="app-card-titulo">💾 Respaldo de datos</span><span class="app-card-meta">Exportar / Restaurar</span></div>
-      <div class="app-card-desc">Protege tu progreso: pásalo a otro celular o recupéralo si lo pierdes.</div>
     </button>
   </div>
 
@@ -2781,7 +2771,7 @@
   <!-- CUENTA -->
   <div class="app-screen" id="app-screen-cuenta">
     <h2 class="app-titulo">Cuenta</h2>
-    <p class="app-subtitulo">Tu cuenta, tu perfil, tus avisos y ayuda</p>
+    <p class="app-subtitulo">Tu cuenta, tu perfil, tus avisos, tus datos y ayuda</p>
     <button class="app-card continuar" id="appCuentaCard" onclick="abrirCuenta()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
       <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
@@ -2793,6 +2783,10 @@
     <button class="app-card" onclick="recAbrir()">
       <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
       <div class="app-card-desc">Elige qué avisos quieres y a qué hora. Máximo uno al día.</div>
+    </button>
+    <button class="app-card" onclick="abrirCalculadora('respaldo')">
+      <div class="app-card-top"><span class="app-card-titulo">💾 Respaldo de datos</span><span class="app-card-meta">Exportar / Restaurar</span></div>
+      <div class="app-card-desc">Protege tu progreso: pásalo a otro celular o recupéralo si lo pierdes.</div>
     </button>
     <button class="app-card" onclick="aetAyuda()" id="appAyudaCard">
       <div class="app-card-top"><span class="app-card-titulo">💬 Ayuda y soporte</span><span class="app-card-meta" id="appAyudaMeta">Escríbenos</span></div>
@@ -2808,7 +2802,7 @@
   <div class="app-screen" id="app-screen-habitos">
     <button class="app-visor-volver" id="appHabVolver" onclick="aetIr(aetHabOrigen)">← Volver a Inicio</button>
     <h2 class="app-titulo">Mis hábitos</h2>
-    <p class="app-subtitulo">Marca lo que haces cada día y mira cómo vas</p>
+    <p class="app-subtitulo">Crea, edita y corrige tus hábitos</p>
     <div id="appHabitos"></div>
   </div>
 
@@ -7696,6 +7690,7 @@ function aetAtrasIniciar() {
 }
 
 function cambiarPantallaApp(pantalla, btn) {
+  document.body.classList.remove('en-tienda');
   if (pantalla === 'habitos') {
     const prev = document.querySelector('.app-screen.activo');
     aetHabOrigen = prev && prev.id === 'app-screen-perfil' ? 'perfil' : (prev && prev.id === 'app-screen-habitos' ? aetHabOrigen : 'inicio');
@@ -7746,6 +7741,7 @@ function abrirContenidoApp(idContenido, titulo) {
   document.getElementById('app-screen-visor').classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
   appVisorOrigen = idContenido === 'productos' ? 'tienda' : 'educacion';
+  document.body.classList.toggle('en-tienda', idContenido === 'productos');
   const nb = aetNavBtn(appVisorOrigen);
   if (nb) nb.classList.add('activo');
   const vv = document.getElementById('appVisorVolver'); if (vv) { vv.textContent = appVisorOrigen === 'tienda' ? '← Volver' : '← Volver a Educación'; }
@@ -7757,6 +7753,7 @@ function volverDeVisorApp(cambiarPantalla = true) {
   if (appVisorNodoActual && appVisorPadreOriginal) {
     appVisorPadreOriginal.insertBefore(appVisorNodoActual, appVisorSiguienteOriginal);
   }
+  document.body.classList.remove('en-tienda');
   appVisorNodoActual = null;
   appVisorPadreOriginal = null;
   appVisorSiguienteOriginal = null;
@@ -8289,11 +8286,11 @@ function aetGuardarPeso() {
   aetMarcar('m'); aetCerrar(); aetToast('✓ Peso guardado'); aetRefrescar();
 }
 function aetRenderPeso() {
-  const el = document.getElementById('appProgPeso'); if (!el) return;
+  const el = document.getElementById('appProgPeso'); if (!el) return '';
   const ps = AET.pesos(), u = ps[ps.length - 1], a = ps[ps.length - 2];
   const dif = u && a ? Math.round((u.peso - a.peso) * 10) / 10 : null;
   el.innerHTML = `<div class="aet-panel" style="border-color:rgba(74,168,255,.3)">
-    <div class="aet-panel-t"><span style="color:var(--ac-p)">⚖ Peso</span><button class="lnk" onclick="abrirCalculadora('medidas')">Medidas →</button></div>
+    <div class="aet-panel-t"><span style="color:var(--ac-p)">⚖ Peso</span></div>
     ${u ? `<div class="aet-peso"><b>${u.peso} kg</b>${dif != null ? `<em>${dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : ''}${dif} kg</em>` : ''}<small>${AET.corta(u.fecha)}</small></div>` : ''}
     ${aetGrafica(ps.map(p => ({ l: AET.corta(p.fecha), y: p.peso })), '#4aa8ff') || ''}
     ${u ? '' : '<p class="aet-nota">Registra tu peso para ver tu evolución.</p>'}
@@ -8361,7 +8358,7 @@ function aetRenderLogros() {
 function aetRenderHabProg() {
   const el = document.getElementById('appProgHabitos'); if (!el) return;
   const e = habCargar(), c = habCtx(), r = habResumen(e, c);
-  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="aet-panel-t"><span style="color:var(--ac-n)">🌱 Hábitos</span><button class="lnk" onclick="aetIr('habitos')">Ver todos →</button></div>
+  el.innerHTML = `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="aet-panel-t"><span style="color:var(--ac-n)">🌱 Hábitos</span><button class="lnk" onclick="aetIr('habitos')">Administrar →</button></div>
     <div class="hab-sumas"><div><b>${r.semPct} %</b><span>Cumplimiento de esta semana</span></div><div><b>${r.mejor}</b><span>Mejor racha actual (días)</span></div><div><b>${r.perfectos}</b><span>Días perfectos en 30 días</span></div></div>
     <button class="aet-btn sec" style="margin-top:.9rem" onclick="aetResumen()">📊 Resumen semanal</button></div>`;
 }
@@ -8387,7 +8384,18 @@ function aetRenderMedidas() {
     ${metas.length ? `<div class="aet-nota" style="margin:0 0 .6rem">${metas.map(esc).join('<br>')}</div>` : ''}
     <button class="aet-btn sec" onclick="abrirCalculadora('medidas')">＋ Registrar medidas</button></div>`;
 }
-function aetRenderProgreso() { aetRenderPeso(); aetRenderMedidas(); aetRenderComp(); aetRenderHabProg(); aetRenderLogros(); }
+/* ---------- Progreso: «Tu cuerpo» = peso + medidas + composición en una sola tarjeta ---------- */
+function aetRenderCuerpo() {
+  const el = document.getElementById('appProgCuerpo'); if (!el) return;
+  const tmp = id => { const d = document.createElement('div'); d.id = id; return d; };
+  const dP = tmp('appProgPeso'), dM = tmp('appProgMed'), dC = tmp('appProgComp');
+  el.innerHTML = ''; el.append(dP, dM, dC);
+  aetRenderPeso(); aetRenderMedidas(); aetRenderComp();
+  const cuerpo = (d, t, color) => { const p = d.querySelector('.aet-panel'); if (!p) return ''; const tt = p.querySelector('.aet-panel-t'); if (tt) tt.remove(); return `<div class="cuerpo-sec"><div class="cuerpo-t" style="color:${color}">${t}</div>${p.innerHTML}</div>`; };
+  el.innerHTML = `<div class="aet-panel cuerpo" id="appTuCuerpo"><div class="aet-panel-t"><span>🧍 Tu cuerpo</span><button class="lnk" onclick="abrirCalculadora('medidas')">Historial →</button></div>
+    ${cuerpo(dP, '⚖ Peso', 'var(--ac-p)')}${cuerpo(dM, '📏 Medidas', '#f5b73b')}${cuerpo(dC, '🧬 Composición', '#ff6b9d')}</div>`;
+}
+function aetRenderProgreso() { aetRenderCuerpo(); aetRenderHabProg(); aetRenderLogros(); }
 
 /* ============================================================
    HÁBITOS — lista propia del usuario (con sugeridos), marcado
@@ -8488,7 +8496,7 @@ function habPanelInicio() {
   const e = habCargar(), c = habCtx(), hoy = AET.hoy(), r = habResumen(e, c);
   const prog = habActivos(e).filter(h => habProgramado(h, hoy));
   const pct = r.total ? Math.round(r.hechos / r.total * 100) : 0;
-  return `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="aet-panel-t"><span style="color:var(--ac-n)">🌱 Hábitos de hoy</span><button class="lnk" onclick="aetIr('habitos')">Ver todos →</button></div>
+  return `<div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="aet-panel-t"><span style="color:var(--ac-n)">🌱 Hábitos de hoy</span><button class="lnk" onclick="aetIr('habitos')">Administrar →</button></div>
     ${prog.length ? `<div class="hab-barra"><i style="width:${pct}%"></i></div><p class="aet-nota" style="margin:.3rem 0 .8rem">${r.hechos} de ${r.total} hoy${r.mejor ? ' · mejor racha ' + r.mejor + (r.mejor === 1 ? ' día' : ' días') : ''}</p>
     ${prog.slice(0, 5).map(h => habItem(e, h, hoy, c)).join('')}${prog.length > 5 ? `<button class="aet-btn sec mini" onclick="aetIr('habitos')">+${prog.length - 5} más</button>` : ''}`
       : '<p class="aet-nota" style="margin:0 0 .7rem">Hoy no tienes hábitos programados. Crea el primero y empieza a construir tu racha.</p><button class="aet-btn sec" onclick="aetIr(\'habitos\')">Ir a mis hábitos</button>'}
@@ -8512,13 +8520,7 @@ function aetRenderHabitos() {
       <p class="aet-nota" style="margin:.4rem 0 0">${h.t === 'n' ? 'Meta: ' + habFmtNum(h.meta) + ' ' + esc(h.u || '') + ' · ' : ''}${habDiasTxt(h)}</p></div>`;
   };
   el.innerHTML = `
-    <div class="aet-panel" style="border-color:rgba(62,207,142,.3)"><div class="hab-resumen">
-      ${aetAnillo(r.total ? r.hechos / r.total : 0, '#3ecf8e', r.hechos + '/' + r.total, 'Hoy', 'hábitos', '')}
-      <div class="hab-sumas"><div><b>${r.semPct} %</b><span>Cumplimiento de esta semana</span></div><div><b>${r.mejor}</b><span>Mejor racha actual (días)</span></div><div><b>${r.perfectos}</b><span>Días perfectos en 30 días</span></div></div>
-    </div></div>
-    <div class="app-seccion-titulo">Hoy</div>
-    ${prog.length ? prog.map(h => habItem(e, h, hoy, c)).join('') : '<p class="aet-nota">No tienes hábitos programados para hoy.</p>'}
-    ${act.length ? '<div class="app-seccion-titulo">Cómo vas (toca un día para marcarlo o corregirlo)</div>' + act.map(card).join('') : ''}
+    ${act.length ? '<p class="aet-nota" style="margin-top:0">Toca un día para marcarlo o corregirlo. Lo de hoy también lo marcas desde Inicio.</p>' + act.map(card).join('') : '<p class="aet-nota">Aún no tienes hábitos. Crea uno o elige de los sugeridos.</p>'}
     <div class="aet-fila" style="margin-top:.4rem"><button class="aet-btn n" onclick="habForm()">＋ Crear hábito</button><button class="aet-btn sec" onclick="habSugeridos()">✨ Sugeridos</button></div>
     <p class="aet-nota">Los hábitos con 🔸 automático se marcan solos cuando registras tu entreno, tu agua o tus comidas. Puedes crear los tuyos, elegir qué días aplican y archivarlos cuando quieras.</p>`;
 }
@@ -9094,11 +9096,9 @@ function aetPerfilCardHtml() {
 const _en = (txt) => () => [...document.querySelectorAll('#appDashboardCards .aet-panel')].find(x => x.textContent.indexOf(txt) >= 0) || null;
 const TOUR = [
   { t: 'Bienvenido a Aeterion 👋', x: 'En unos 2 minutos te muestro cada parte de la app y para qué sirve. Puedes salir cuando quieras y repetirlo desde Cuenta → Recorrido por la app.' },
-  { p: 'inicio', s: '#appDashboardCards .aet-tiles', t: '🏠 Tu resumen rápido', x: 'Racha: días seguidos en los que registraste algo. Entrenos: los de esta semana contra tu meta. Logros: los que has desbloqueado. Toca cualquiera para ver el detalle.' },
-  { p: 'inicio', s: '#appDashboardCards .aros', t: 'Tu día en 4 anillos', x: 'Entrenos, calorías, proteína y agua. Se llenan solos conforme registras y se comparan con tus metas, que salen de tu perfil (las ajustas en Nutrición → Metas ⚙).' },
+  { p: 'inicio', s: '#appTuDia', t: 'Tu día en 4 anillos', x: 'Entrenos de la semana, calorías, proteína y agua de hoy. Se llenan solos conforme registras. Arriba a la derecha ves tu racha: días seguidos registrando algo.' },
   { p: 'inicio', s: '#appDashboardCards .aet-fila', t: 'Registrar en un toque', x: '＋ Ejercicio, ＋ Comida y ＋ 💧 (un vaso de agua). Desde aquí anotas todo sin entrar a otras pantallas.' },
-  { p: 'inicio', s: _en('Hábitos de hoy'), t: '🌱 Hábitos de hoy', x: 'Marca lo que haces cada día. Los que tienen 🔸 se marcan solos (entrenar, llegar a tu meta de agua, registrar comidas). Crea los tuyos en Progreso → Mis hábitos.' },
-  { p: 'inicio', s: _en('Peso'), t: '⚖ Peso', x: 'Registra tu peso cuando quieras y verás la gráfica de cómo vas. También se guarda en Medidas corporales.' },
+  { p: 'inicio', s: _en('Hábitos de hoy'), t: '🌱 Hábitos de hoy', x: 'Marca lo que haces cada día. Los que tienen 🔸 se marcan solos (entrenar, llegar a tu meta de agua, registrar comidas). Créalos o edítalos en «Administrar →». Mis hábitos.' },
   { p: 'inicio', s: '#appDashboardCards .app-frase', t: '✦ Frase de la semana', x: 'Cada lunes cambia la frase, igual para todos. Un empujón corto para la semana.' },
   { p: 'entrenar', s: '#appEntrenarChips', t: '💪 Elige tu programa', x: 'GYM (hombre 5 o 3 días, mujer 5 días) o MMA por niveles. Toca uno para verlo y marcarlo como el tuyo; la app ajusta tu meta de entrenos a ese programa.' },
   { p: 'entrenar', s: '#appEntrenarHero', t: 'Tu entreno de hoy', x: 'Con un programa elegido aparece el día que toca: ejercicios, series, repeticiones, peso sugerido y descansos con temporizador. Los programas guiados son parte de Premium.' },
@@ -9107,18 +9107,17 @@ const TOUR = [
   { p: 'nutricion', s: '#appNutriHoy', t: '🍽 Mi día', x: 'Calorías, proteína y agua del día contra tus metas, con el reparto de carbos, proteína y grasa. ＋ Agregar comida, ＋ vaso de agua, y «Metas ⚙» para ajustar tus números.' },
   { p: 'nutricion', s: '#app-screen-nutricion .app-card', t: '🥗 Planes de nutrición', x: 'Plan General, SII (low FODMAP) y Diabetes: calculan tus macros según tu objetivo y condición y te dan la guía de alimentos. Son parte de Premium.' },
   { p: 'nutricion', s: '#app-screen-nutricion [onclick*="alimentos"]', t: 'Catálogo de alimentos', x: 'Macros por porción de más de 100 alimentos y equivalencias para cambiar uno por otro sin descuadrar tu plan.' },
-  { p: 'perfil', s: '#appProgPeso', t: '📊 Tu progreso: peso', x: 'La gráfica de tu peso y el cambio desde la última vez. Aquí es donde ves si vas hacia tu meta.' },
-  { p: 'perfil', s: '#appProgComp', t: '🧬 Composición corporal', x: 'Registra % de grasa, músculo y otras lecturas (por ejemplo de una báscula de bioimpedancia) para ver cambios que la báscula sola no muestra.' },
+  { p: 'perfil', s: '#appTuCuerpo', t: '🧍 Tu cuerpo', x: 'Peso, medidas y composición corporal en un solo lugar, con lo que cambió desde la última vez. Regístralos aquí; «Historial →» muestra todo mes a mes con tus metas.' },
   { p: 'perfil', s: '#appProgLogros', t: '🏅 Logros', x: 'Hitos que se desbloquean solos: primer peso, primera composición, rachas y más. Sirven para ver tu constancia.' },
-  { p: 'perfil', s: '#app-screen-perfil [onclick="aetIr(\'habitos\')"]', t: '🌱 Mis hábitos', x: 'Elige hábitos sugeridos o crea los tuyos (con días y metas). Ves tu racha y el avance semanal.' },
-  { p: 'perfil', s: '#app-screen-perfil [onclick*="dashboard"]', t: 'Dashboard y medidas', x: 'El Dashboard junta volumen, bloque, medidas y cargas, semanal y mensual. «Medidas Corporales» guarda peso, cintura, caderas y más, con tu meta.' },
-  { p: 'perfil', s: '#app-screen-perfil [onclick*="respaldo"]', t: '💾 Respaldo de datos', x: 'Exporta tu progreso para pasarlo a otro celular o recuperarlo. Con una cuenta se sincroniza solo, así que es tu seguro extra.' },
+  { p: 'perfil', s: '#appProgHabitos', t: '🌱 Tus hábitos', x: 'Cómo vas esta semana, tu mejor racha y tus días perfectos. En «Administrar →» creas, editas o corriges tus hábitos.' },
+  { p: 'perfil', s: '#app-screen-perfil [onclick*="dashboard"]', t: '📊 Dashboard', x: 'El Dashboard junta volumen, bloque, medidas y cargas, semanal y mensual. «Medidas Corporales» guarda peso, cintura, caderas y más, con tu meta.' },
   { p: 'educacion', s: '#app-screen-educacion [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
   { p: 'educacion', s: '#app-screen-educacion [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Bienestar Mental, Salud & Biohacking y Guías de educación: todo lo que se lee y aprende está en esta pestaña.' },
   { s: '#appNavTienda', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México.' },
   { p: 'cuenta', s: '#appCuentaCard', t: '👤 Mi cuenta y compras', x: 'Crea tu cuenta gratis para guardar tu progreso en la nube y verlo en todos tus dispositivos. Aquí activas Premium con tu código o pago, y sigues tus compras y envíos.' },
   { p: 'cuenta', s: '#app-screen-cuenta [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
   { p: 'cuenta', s: '#app-screen-cuenta [onclick="recAbrir()"]', t: '🔔 Recordatorios', x: 'Tú eliges qué avisos quieres (entrenar, hábitos, resumen semanal) y a qué hora. Máximo uno al día y se pausan solos si dejas de usar la app.' },
+  { p: 'cuenta', s: '#app-screen-cuenta [onclick*="respaldo"]', t: '💾 Respaldo de datos', x: 'Exporta tu progreso para pasarlo a otro celular o recuperarlo. Con una cuenta se sincroniza solo, así que es tu seguro extra.' },
   { p: 'cuenta', s: '#appAyudaCard', t: '💬 Ayuda y soporte', x: '¿Una duda o un problema con tu pedido, tu Premium o la app? Escríbenos aquí y te respondemos en el mismo chat.' },
   { p: 'cuenta', s: '#app-screen-cuenta [onclick="aetTour()"]', t: '🧭 Recorrido por la app', x: 'Este mismo recorrido: repítelo cuando quieras desde aquí.' },
   { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Educación, Tienda, Progreso y Cuenta: desde cualquier pantalla llegas a todo con un toque.' },
@@ -9184,17 +9183,9 @@ function aetTourFin(completo) {
 function renderDashboardApp() {
   const cont = document.getElementById('appDashboardCards'); if (!cont) return;
   const m = AET.metas(), dia = aetDia(), t = aetTotDia(dia), racha = aetRacha(), sem = aetEntrenosSemana();
-  const logros = aetLogros().filter(x => x.ok).length;
   const hs = document.getElementById('appHeaderSub'); if (hs) hs.textContent = racha ? '🔥 ' + racha + (racha === 1 ? ' día' : ' días') : '';
   const fr = fraseDeLaSemana();
-  const ps = AET.pesos(), u = ps[ps.length - 1], a = ps[ps.length - 2];
-  const dif = u && a ? Math.round((u.peso - a.peso) * 10) / 10 : null;
-  let html = `<div class="aet-tiles">
-      <div class="aet-tile" style="--tc:#ff7a2f" onclick="aetIr('perfil')"><b>🔥 ${racha}</b><span>Racha (días)</span></div>
-      <div class="aet-tile" style="--tc:#3ecf8e" onclick="aetIr('entrenar')"><b>${sem}/${m.entrenos}</b><span>Entrenos semana</span></div>
-      <div class="aet-tile" style="--tc:#C9A84C" onclick="aetIr('perfil')"><b>🏅 ${logros}</b><span>Logros</span></div>
-    </div>
-    <div class="aet-panel"><div class="aet-panel-t"><span>Tu día</span><button class="lnk" onclick="aetIr('nutricion')">Mi día →</button></div>
+  let html = `<div class="aet-panel" id="appTuDia"><div class="aet-panel-t"><span>Tu día</span><span style="color:#ff7a2f">${racha ? '🔥 ' + racha + (racha === 1 ? ' día de racha' : ' días de racha') : ''}</span></div>
       <div class="aros">
         ${aetAnillo(sem / m.entrenos, '#ff7a2f', sem, 'Entrenos', 'de ' + m.entrenos, "aetIr('entrenar')")}
         ${aetAnillo(t.k / m.kcal, '#3ecf8e', Math.round(t.k), 'Calorías', 'de ' + m.kcal, "aetIr('nutricion')")}
@@ -9204,10 +9195,6 @@ function renderDashboardApp() {
       <div class="aet-fila" style="margin-top:1rem"><button class="aet-btn e" onclick="aetFormEntreno()">＋ Ejercicio</button><button class="aet-btn n" onclick="aetFormComida()">＋ Comida</button><button class="aet-btn p" onclick="aetAgua(1)">＋ 💧</button></div>
     </div>
     ${aetOnbCard()}${aetResumenCard()}${habPanelInicio()}
-    <div class="aet-panel" style="border-color:rgba(74,168,255,.3)"><div class="aet-panel-t"><span style="color:var(--ac-p)">⚖ Peso</span><button class="lnk" onclick="aetIr('perfil')">Ver progreso →</button></div>
-      ${u ? `<div class="aet-peso"><b>${u.peso} kg</b>${dif != null ? `<em>${dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : ''}${dif} kg</em>` : ''}<small>${AET.corta(u.fecha)}</small></div>${aetGrafica(ps.map(p => ({ l: AET.corta(p.fecha), y: p.peso })), '#4aa8ff', true)}`
-        : '<p class="aet-nota" style="margin:0 0 .7rem">Aún no registras tu peso.</p>'}
-      <button class="aet-btn sec" style="margin-top:.6rem" onclick="aetFormPeso()">＋ Registrar peso</button></div>
     <div class="app-frase"><div class="app-frase-top"><span>✦ Frase de la semana</span><span>${fr.num} / ${fr.total}</span></div><p>“${esc(fr.texto)}”</p></div>`;
 
   const nivelesMma = [
@@ -9226,15 +9213,6 @@ function renderDashboardApp() {
   });
   if (continuar) html += `<div class="app-seccion-titulo">Continuar</div>` + continuar;
 
-  html += `<div class="app-seccion-titulo">Accesos rápidos</div>
-    <button class="app-card ac-e" onclick="aetIr('entrenar')"><div class="app-card-top"><span class="app-card-titulo">💪 Entrenar</span><span class="app-card-meta">GYM · MMA</span></div>
-      <div class="app-card-desc">3 rutinas de GYM personalizadas + MMA Niveles 1, 2 y 3.</div></button>
-    <button class="app-card ac-n" onclick="aetIr('nutricion')"><div class="app-card-top"><span class="app-card-titulo">🥗 Nutrición</span><span class="app-card-meta">3 planes</span></div>
-      <div class="app-card-desc">Calculadora de macros según tu objetivo y condición.</div></button>
-    <button class="app-card ac-o" onclick="abrirContenidoApp('productos', 'Tienda')"><div class="app-card-top"><span class="app-card-titulo">🛍 Tienda</span><span class="app-card-meta">Suplementos</span></div>
-      <div class="app-card-desc">Creatina, magnesio y vitamina de Aeterion, con envío.</div></button>
-    <button class="app-card ac-o" onclick="aetIr('educacion')"><div class="app-card-top"><span class="app-card-titulo">📚 Educación</span><span class="app-card-meta">Recetas · Protocolos</span></div>
-      <div class="app-card-desc">Recetas, Protocolos Avanzados, Bienestar, Salud &amp; Biohacking, Educación.</div></button>`;
   cont.innerHTML = html;
 }
 /* ============================================================
@@ -10064,25 +10042,7 @@ function aetRefrescar() {
   try { renderDashboardApp(); aetRenderHero(); aetRenderEntrenar(); aetRenderNutri(); aetRenderProgreso(); aetRenderHabitos(); } catch (e) { console.error(e); }
 }
 
-function renderPerfilResumenApp() {
-  const cont = document.getElementById('appPerfilResumen');
-  const semanaMma = localStorage.getItem('mma_semana');
-  const rm = JSON.parse(localStorage.getItem('mma_1rm') || '{}');
-  let html = aetPerfilCardHtml();
-
-  if (semanaMma) {
-    const sem = (typeof MMA_SEMANAS === 'undefined') ? { s: parseInt(semanaMma, 10), bloque: '' } : MMA_SEMANAS[parseInt(semanaMma, 10) - 1];
-    html += `<div class="app-seccion-titulo">MMA — Nivel 1</div>
-      <div class="app-card">
-        <div class="app-card-top"><span class="app-card-titulo">Semana ${sem.s} de 16</span><span class="app-card-meta">${sem.bloque}</span></div>
-        <div class="app-card-desc">${rm.squat ? `1RM Sentadilla/Zercher: ${rm.squat}kg` : 'Aún no registras tu 1RM'} ${rm.deadlift ? `· 1RM Peso muerto: ${rm.deadlift}kg` : ''}</div>
-      </div>`;
-  } else {
-    html += `<p class="nota-chica">Aún no tienes progreso guardado. Abre cualquier sistema de entrenamiento y empieza — se va guardando solo en este dispositivo.</p>`;
-  }
-
-  cont.innerHTML = html;
-}
+function renderPerfilResumenApp() { const c = document.getElementById('appPerfilResumen'); if (c) c.innerHTML = ''; }   // Mi perfil vive en Cuenta
 
 /* ============================================================
    BOTÓN "INSTALAR APP" — la captura real del evento ya está
