@@ -2734,6 +2734,10 @@
     <div id="appProgHabitos"></div>
     <div id="appProgLogros"></div>
     <div id="appPerfilResumen"></div>
+    <button class="app-card" style="margin-top:.5rem;" onclick="aetIr('habitos')">
+      <div class="app-card-top"><span class="app-card-titulo">🌱 Mis hábitos</span><span class="app-card-meta">Marcar y ver progreso</span></div>
+      <div class="app-card-desc">Hábitos sugeridos o propios, con racha y seguimiento semanal.</div>
+    </button>
     <button class="app-card continuar" onclick="abrirCalculadora('dashboard')" style="margin-top:.5rem;">
       <div class="app-card-top"><span class="app-card-titulo">📊 Tu Dashboard</span><span class="app-card-meta">Semanal + Mensual</span></div>
       <div class="app-card-desc">Volumen, bloque, medidas y cargas — todo junto.</div>
@@ -2774,45 +2778,35 @@
     </button>
   </div>
 
-  <!-- MÁS -->
-  <div class="app-screen" id="app-screen-mas">
-    <h2 class="app-titulo">Más</h2>
-    <p class="app-subtitulo">Tu perfil, hábitos, recordatorios y el recorrido por la app</p>
-    <button class="app-card" onclick="recAbrir()">
-      <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
-      <div class="app-card-desc">Elige qué avisos quieres y a qué hora. Máximo uno al día.</div>
+  <!-- CUENTA -->
+  <div class="app-screen" id="app-screen-cuenta">
+    <h2 class="app-titulo">Cuenta</h2>
+    <p class="app-subtitulo">Tu cuenta, tu perfil, tus avisos y ayuda</p>
+    <button class="app-card continuar" id="appCuentaCard" onclick="abrirCuenta()">
+      <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
+      <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
     </button>
     <button class="app-card continuar" onclick="aetPerfilVer()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi perfil</span><span class="app-card-meta" id="appPerfilMeta">Completar</span></div>
       <div class="app-card-desc">Tus datos, metas y lo que falta para dejar la app lista para ti. Puedes cambiarlo cuando quieras.</div>
     </button>
-    <button class="app-card" onclick="aetTour()">
-      <div class="app-card-top"><span class="app-card-titulo">🧭 Recorrido por la app</span><span class="app-card-meta">2 minutos</span></div>
-      <div class="app-card-desc">Te muestro cada sección y para qué sirve. Puedes repetirlo cuando quieras.</div>
-    </button>
-    <button class="app-card" onclick="aetIr('habitos')">
-      <div class="app-card-top"><span class="app-card-titulo">🌱 Mis hábitos</span><span class="app-card-meta">Marcar y ver progreso</span></div>
-      <div class="app-card-desc">Hábitos sugeridos o propios, con racha y seguimiento semanal.</div>
-    </button>
-  </div>
-
-  <!-- CUENTA -->
-  <div class="app-screen" id="app-screen-cuenta">
-    <h2 class="app-titulo">Cuenta</h2>
-    <p class="app-subtitulo">Tu cuenta, tus compras y ayuda</p>
-    <button class="app-card continuar" id="appCuentaCard" onclick="abrirCuenta()">
-      <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
-      <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
+    <button class="app-card" onclick="recAbrir()">
+      <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
+      <div class="app-card-desc">Elige qué avisos quieres y a qué hora. Máximo uno al día.</div>
     </button>
     <button class="app-card" onclick="aetAyuda()" id="appAyudaCard">
       <div class="app-card-top"><span class="app-card-titulo">💬 Ayuda y soporte</span><span class="app-card-meta" id="appAyudaMeta">Escríbenos</span></div>
       <div class="app-card-desc">¿Dudas, un problema con tu pedido, tu Premium o la app? Escríbenos y te respondemos aquí mismo.</div>
     </button>
+    <button class="app-card" onclick="aetTour()">
+      <div class="app-card-top"><span class="app-card-titulo">🧭 Recorrido por la app</span><span class="app-card-meta">2 minutos</span></div>
+      <div class="app-card-desc">Te muestro cada sección y para qué sirve. Puedes repetirlo cuando quieras.</div>
+    </button>
   </div>
 
   <!-- HÁBITOS -->
   <div class="app-screen" id="app-screen-habitos">
-    <button class="app-visor-volver" onclick="aetIr('inicio')">← Volver a Inicio</button>
+    <button class="app-visor-volver" id="appHabVolver" onclick="aetIr(aetHabOrigen)">← Volver a Inicio</button>
     <h2 class="app-titulo">Mis hábitos</h2>
     <p class="app-subtitulo">Marca lo que haces cada día y mira cómo vas</p>
     <div id="appHabitos"></div>
@@ -2830,7 +2824,6 @@
     <button class="app-nav-btn" data-p="entrenar" onclick="cambiarPantallaApp('entrenar', this)"><span class="icono">💪</span><span>Entrenar</span></button>
     <button class="app-nav-btn" data-p="nutricion" onclick="cambiarPantallaApp('nutricion', this)"><span class="icono">🥗</span><span>Nutrición</span></button>
     <button class="app-nav-btn" data-p="educacion" onclick="cambiarPantallaApp('educacion', this)"><span class="icono">📚</span><span>Educación</span></button>
-    <button class="app-nav-btn" data-p="mas" onclick="cambiarPantallaApp('mas', this)"><span class="icono">⚙️</span><span>Más</span></button>
     <button class="app-nav-btn" data-p="tienda" id="appNavTienda" onclick="abrirContenidoApp('productos', 'Tienda')"><span class="icono">🛍</span><span>Tienda</span></button>
     <button class="app-nav-btn" data-p="perfil" onclick="cambiarPantallaApp('perfil', this)"><span class="icono">📊</span><span>Progreso</span></button>
     <button class="app-nav-btn" data-p="cuenta" onclick="cambiarPantallaApp('cuenta', this)"><span class="icono">👤</span><span>Cuenta</span></button>
@@ -7648,6 +7641,7 @@ function _atrasCapas() {
   const act = document.querySelector('.app-screen.activo');
   const id = act ? act.id.replace('app-screen-', '') : 'inicio';
   if (id === 'visor') { if (typeof appVisorOrigen !== 'undefined' && appVisorOrigen !== 'tienda') L.push('pantalla'); L.push('visor'); }
+  else if (id === 'habitos') { if (aetHabOrigen === 'perfil') L.push('pantalla'); L.push('habitos'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
   if (document.querySelector('#appSheet.abierto')) L.push('hoja');
@@ -7673,6 +7667,7 @@ function _atrasCerrarCapa() {
   else if (top === 'hoja') aetCerrar();
   else if (top === 'sesion') aetSesSalir();
   else if (top === 'visor') volverDeVisorApp();
+  else if (top === 'habitos') { aetIr(aetHabOrigen); window.scrollTo(0, 0); }
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
 // Quita pasos de más (cuando algo se cerró con su propio botón ✕)
@@ -7701,6 +7696,12 @@ function aetAtrasIniciar() {
 }
 
 function cambiarPantallaApp(pantalla, btn) {
+  if (pantalla === 'habitos') {
+    const prev = document.querySelector('.app-screen.activo');
+    aetHabOrigen = prev && prev.id === 'app-screen-perfil' ? 'perfil' : (prev && prev.id === 'app-screen-habitos' ? aetHabOrigen : 'inicio');
+    const v = document.getElementById('appHabVolver'); if (v) v.textContent = aetHabOrigen === 'perfil' ? '← Volver a Progreso' : '← Volver a Inicio';
+    btn = aetNavBtn('habitos');
+  }
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-' + pantalla).classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
@@ -7865,9 +7866,10 @@ const AET = {
   pesos() { return AET.leer('medidas_historial', []).filter(m => m && m.peso != null && m.peso > 0).sort((a, b) => a.fecha.localeCompare(b.fecha)); },
   idg: 0,
 };
-const AET_IR = { habitos: 'inicio' };   // pantallas sin botón propio: qué botón se ilumina
-function aetNavBtn(p) { return document.querySelector('.app-nav-btn[data-p="' + (AET_IR[p] || p) + '"]'); }
-function aetIr(p) { cambiarPantallaApp(p, aetNavBtn(p)); }
+let aetHabOrigen = 'inicio';   // Mis hábitos se abre desde Inicio o desde Progreso
+const AET_IR = { mas: 'cuenta' };   // pantallas sin botón propio: qué botón se ilumina
+function aetNavBtn(p) { if (p === 'habitos') p = aetHabOrigen; return document.querySelector('.app-nav-btn[data-p="' + (AET_IR[p] || p) + '"]'); }
+function aetIr(p) { if (p === 'mas') p = 'cuenta'; cambiarPantallaApp(p, aetNavBtn(p)); }
 function aetToast(m) {
   const t = document.createElement('div'); t.className = 'aet-toast'; t.textContent = m;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
@@ -8708,7 +8710,7 @@ async function recPrueba() {
 function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
   if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
-  if (['inicio', 'entrenar', 'nutricion', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d);
+  if (['inicio', 'entrenar', 'nutricion', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
 }
 
 /* ============================================================
@@ -8872,7 +8874,7 @@ function aetResumenOcultar(off) { try { localStorage.setItem('aet_res_visto', ae
 
 /* ============================================================
    PRIMER USO GUIADO — una tarjeta discreta en Inicio (no bloquea nada).
-   Se puede saltar y volver a abrir desde Más → Configuración inicial.
+   Se puede saltar y volver a abrir desde Cuenta → Mi perfil.
 ============================================================ */
 const ONB_OBJ = { musculo: ['💪', 'Ganar músculo y fuerza', 'Programa de gym con progresión de cargas'], grasa: ['🔥', 'Perder grasa', 'Entreno + hábitos de pasos y comidas'], salud: ['🌿', 'Salud y energía', 'Constancia, sueño y bienestar'], mma: ['🥊', 'Rendimiento en combate (MMA)', 'Programa de 16 semanas por niveles'] };
 const ONB_EXTRAS = { musculo: ['suple'], grasa: ['sol'], salud: ['respirar', 'sol', 'pantallas'], mma: ['movilidad', 'suple'] };
@@ -8909,7 +8911,7 @@ function aetOnbCard() {
   if (AET.leer('aet_inicio', null) || !aetOnbNuevo()) return '';
   return `<div class="aet-panel onb-card"><div class="aet-panel-t"><span>${esc(aetTxt('onb.card.titulo', '👋 Configura tu app en 1 minuto'))}</span><button class="lnk" onclick="aetOnbSaltar()" aria-label="Ahora no">✕</button></div><p class="aet-nota" style="margin:0 0 .8rem">${esc(aetTxt('onb.card.texto', 'Te sugerimos programa, hábitos y recordatorios según tu objetivo. Puedes saltarlo y hacerlo después desde Más.'))}</p><div class="aet-fila"><button class="aet-btn" onclick="aetOnb(true)">Empezar</button><button class="aet-btn sec" onclick="aetTour()">Ver recorrido</button></div><button class="lnk" style="margin-top:.6rem" onclick="aetOnbSaltar()">Ahora no</button></div>`;
 }
-function aetOnbSaltar() { AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() }); aetToast('Cuando quieras: Más → Mi perfil'); renderDashboardApp(); }
+function aetOnbSaltar() { AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() }); aetToast('Cuando quieras: Cuenta → Mi perfil'); renderDashboardApp(); }
 function aetOnbPrograma() {
   const o = _onb;
   if (o.obj === 'mma') return o.nivel ? { principiante: 'mma1', intermedio: 'mma2', avanzado: 'mma3' }[o.nivel] : null;
@@ -8950,7 +8952,7 @@ function aetOnb(reiniciar) {
   const nav = (atras, sig, txt) => `<div class="aet-fila" style="margin-top:1rem">${atras ? `<button class="aet-btn sec mini" onclick="aetOnbPaso(${o.paso - 1})">← Atrás</button>` : ''}<button class="aet-btn" onclick="aetOnbPaso(${sig})">${txt || 'Continuar'}</button></div><button class="lnk" style="margin-top:.5rem" onclick="aetOnbFin(false)">Saltar la configuración</button>`;
   const val = v => esc(v == null ? '' : v);
   if (o.paso === 1) {
-    aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Así personalizamos tu app. Todo se guarda en tu dispositivo y puedes cambiarlo después en Más → Mi perfil.</p>
+    aetSheet(tit, `<p class="aet-nota" style="margin-top:0">Así personalizamos tu app. Todo se guarda en tu dispositivo y puedes cambiarlo después en Cuenta → Mi perfil.</p>
       <label class="aet-lbl">¿Cómo te llamamos? (opcional)</label><input class="aet-in" id="onbNombre" maxlength="30" autocomplete="given-name" value="${val(o.nombre)}" placeholder="Tu nombre o apodo">
       <p class="aet-nota" style="margin:1rem 0 .4rem"><b style="color:var(--blanco)">${esc(aetTxt('onb.paso1.pregunta', '¿Cuál es tu objetivo principal?'))}</b></p>${Object.keys(ONB_OBJ).map(k => op(k, ONB_OBJ[k][0], ONB_OBJ[k][1], ONB_OBJ[k][2], o.obj === k, `aetOnbElegir('obj','${k}')`)).join('')}
       ${nav(false, 2)}`);
@@ -9041,7 +9043,7 @@ function aetOnbFin(aplicar) {
     aetSaludo(); aetRefrescar(); aetOnbListo();
   } else {
     if (!AET.leer('aet_inicio', null)) AET.guardar('aet_inicio', { estado: 'saltado', fecha: AET.hoy() });
-    aetCerrar(); aetRefrescar(); aetToast('Cuando quieras: Más → Mi perfil');
+    aetCerrar(); aetRefrescar(); aetToast('Cuando quieras: Cuenta → Mi perfil');
   }
 }
 function aetOnbListo() {
@@ -9091,11 +9093,11 @@ function aetPerfilCardHtml() {
 /* ---------- Recorrido guiado ---------- */
 const _en = (txt) => () => [...document.querySelectorAll('#appDashboardCards .aet-panel')].find(x => x.textContent.indexOf(txt) >= 0) || null;
 const TOUR = [
-  { t: 'Bienvenido a Aeterion 👋', x: 'En unos 2 minutos te muestro cada parte de la app y para qué sirve. Puedes salir cuando quieras y repetirlo desde Más → Recorrido por la app.' },
+  { t: 'Bienvenido a Aeterion 👋', x: 'En unos 2 minutos te muestro cada parte de la app y para qué sirve. Puedes salir cuando quieras y repetirlo desde Cuenta → Recorrido por la app.' },
   { p: 'inicio', s: '#appDashboardCards .aet-tiles', t: '🏠 Tu resumen rápido', x: 'Racha: días seguidos en los que registraste algo. Entrenos: los de esta semana contra tu meta. Logros: los que has desbloqueado. Toca cualquiera para ver el detalle.' },
   { p: 'inicio', s: '#appDashboardCards .aros', t: 'Tu día en 4 anillos', x: 'Entrenos, calorías, proteína y agua. Se llenan solos conforme registras y se comparan con tus metas, que salen de tu perfil (las ajustas en Nutrición → Metas ⚙).' },
   { p: 'inicio', s: '#appDashboardCards .aet-fila', t: 'Registrar en un toque', x: '＋ Ejercicio, ＋ Comida y ＋ 💧 (un vaso de agua). Desde aquí anotas todo sin entrar a otras pantallas.' },
-  { p: 'inicio', s: _en('Hábitos de hoy'), t: '🌱 Hábitos de hoy', x: 'Marca lo que haces cada día. Los que tienen 🔸 se marcan solos (entrenar, llegar a tu meta de agua, registrar comidas). Crea los tuyos en Más → Mis hábitos.' },
+  { p: 'inicio', s: _en('Hábitos de hoy'), t: '🌱 Hábitos de hoy', x: 'Marca lo que haces cada día. Los que tienen 🔸 se marcan solos (entrenar, llegar a tu meta de agua, registrar comidas). Crea los tuyos en Progreso → Mis hábitos.' },
   { p: 'inicio', s: _en('Peso'), t: '⚖ Peso', x: 'Registra tu peso cuando quieras y verás la gráfica de cómo vas. También se guarda en Medidas corporales.' },
   { p: 'inicio', s: '#appDashboardCards .app-frase', t: '✦ Frase de la semana', x: 'Cada lunes cambia la frase, igual para todos. Un empujón corto para la semana.' },
   { p: 'entrenar', s: '#appEntrenarChips', t: '💪 Elige tu programa', x: 'GYM (hombre 5 o 3 días, mujer 5 días) o MMA por niveles. Toca uno para verlo y marcarlo como el tuyo; la app ajusta tu meta de entrenos a ese programa.' },
@@ -9108,17 +9110,18 @@ const TOUR = [
   { p: 'perfil', s: '#appProgPeso', t: '📊 Tu progreso: peso', x: 'La gráfica de tu peso y el cambio desde la última vez. Aquí es donde ves si vas hacia tu meta.' },
   { p: 'perfil', s: '#appProgComp', t: '🧬 Composición corporal', x: 'Registra % de grasa, músculo y otras lecturas (por ejemplo de una báscula de bioimpedancia) para ver cambios que la báscula sola no muestra.' },
   { p: 'perfil', s: '#appProgLogros', t: '🏅 Logros', x: 'Hitos que se desbloquean solos: primer peso, primera composición, rachas y más. Sirven para ver tu constancia.' },
+  { p: 'perfil', s: '#app-screen-perfil [onclick="aetIr(\'habitos\')"]', t: '🌱 Mis hábitos', x: 'Elige hábitos sugeridos o crea los tuyos (con días y metas). Ves tu racha y el avance semanal.' },
   { p: 'perfil', s: '#app-screen-perfil [onclick*="dashboard"]', t: 'Dashboard y medidas', x: 'El Dashboard junta volumen, bloque, medidas y cargas, semanal y mensual. «Medidas Corporales» guarda peso, cintura, caderas y más, con tu meta.' },
   { p: 'perfil', s: '#app-screen-perfil [onclick*="respaldo"]', t: '💾 Respaldo de datos', x: 'Exporta tu progreso para pasarlo a otro celular o recuperarlo. Con una cuenta se sincroniza solo, así que es tu seguro extra.' },
   { p: 'educacion', s: '#app-screen-educacion [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
   { p: 'educacion', s: '#app-screen-educacion [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Bienestar Mental, Salud & Biohacking y Guías de educación: todo lo que se lee y aprende está en esta pestaña.' },
-  { p: 'mas', s: '#app-screen-mas [onclick="recAbrir()"]', t: '🔔 Recordatorios', x: 'Tú eliges qué avisos quieres (entrenar, hábitos, resumen semanal) y a qué hora. Máximo uno al día y se pausan solos si dejas de usar la app.' },
-  { p: 'mas', s: '#app-screen-mas [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
-  { p: 'mas', s: '#app-screen-mas [onclick="aetIr(\'habitos\')"]', t: '🌱 Mis hábitos', x: 'Elige hábitos sugeridos o crea los tuyos (con días y metas). Ves tu racha y el avance semanal.' },
   { s: '#appNavTienda', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México.' },
   { p: 'cuenta', s: '#appCuentaCard', t: '👤 Mi cuenta y compras', x: 'Crea tu cuenta gratis para guardar tu progreso en la nube y verlo en todos tus dispositivos. Aquí activas Premium con tu código o pago, y sigues tus compras y envíos.' },
+  { p: 'cuenta', s: '#app-screen-cuenta [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
+  { p: 'cuenta', s: '#app-screen-cuenta [onclick="recAbrir()"]', t: '🔔 Recordatorios', x: 'Tú eliges qué avisos quieres (entrenar, hábitos, resumen semanal) y a qué hora. Máximo uno al día y se pausan solos si dejas de usar la app.' },
   { p: 'cuenta', s: '#appAyudaCard', t: '💬 Ayuda y soporte', x: '¿Una duda o un problema con tu pedido, tu Premium o la app? Escríbenos aquí y te respondemos en el mismo chat.' },
-  { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Educación, Más, Tienda, Progreso y Cuenta: desde cualquier pantalla llegas a todo con un toque.' },
+  { p: 'cuenta', s: '#app-screen-cuenta [onclick="aetTour()"]', t: '🧭 Recorrido por la app', x: 'Este mismo recorrido: repítelo cuando quieras desde aquí.' },
+  { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Educación, Tienda, Progreso y Cuenta: desde cualquier pantalla llegas a todo con un toque.' },
   { t: 'Gratis y Premium', x: 'Gratis: registro de entrenos, comidas, agua, peso y hábitos; logros; recordatorios; guías y protocolos. Premium: programas guiados GYM y MMA, planes de nutrición, recetario y ciencia del entrenamiento. ¡Listo! Puedes repetir este recorrido o editar tu perfil desde Más.' },
 ];
 let _tour = null;
@@ -9173,7 +9176,7 @@ function aetTourFin(completo) {
   ['tourCapa', 'tourFoco', 'tourCaja'].forEach(id => { const e = document.getElementById(id); if (e) e.remove(); });
   window.removeEventListener('resize', aetTourRe); document.removeEventListener('keydown', aetTourTecla);
   aetIr('inicio'); window.scrollTo(0, 0);
-  if (completo) { aetPerfilGuardar({ tour: AET.hoy() }); aetToast('✓ Listo. Repítelo cuando quieras desde Más'); }
+  if (completo) { aetPerfilGuardar({ tour: AET.hoy() }); aetToast('✓ Listo. Repítelo cuando quieras desde Cuenta'); }
   aetRefrescar();
 }
 
