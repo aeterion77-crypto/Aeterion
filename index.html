@@ -7638,44 +7638,66 @@ function detectarModoApp() {
 }
 
 /* ---------- Botón «atrás» del teléfono (app instalada) ----------
-   Primero cierra lo que esté abierto (ventana, hoja, carrito, sesión de entreno…), luego regresa a Inicio,
-   y solo desde Inicio sale de la app (tocando atrás dos veces). */
-let _atrasListo = false, _atrasGuardia = false;
+   Cada «capa» abierta (pestaña distinta de Inicio, contenido, ventana, hoja, carrito, sesión…) tiene un paso en el historial.
+   «Atrás» cierra la capa de arriba; en Inicio sin nada abierto, sale de la app.
+   Importante: Chrome en Android SALTA los pasos que una página agrega sin que la persona haya tocado la pantalla,
+   así que los pasos solo se agregan justo después de un toque (nunca al abrir ni dentro del evento «atrás»). */
+let _atrasListo = false, _atrasN = 0, _atrasIgnorar = 0;
+function _atrasCapas() {
+  const L = [];   // de abajo hacia arriba
+  const act = document.querySelector('.app-screen.activo');
+  const id = act ? act.id.replace('app-screen-', '') : 'inicio';
+  if (id === 'visor') { if (typeof appVisorOrigen !== 'undefined' && appVisorOrigen !== 'tienda') L.push('pantalla'); L.push('visor'); }
+  else if (id !== 'inicio') L.push('pantalla');
+  if (document.querySelector('#appSesion.abierto')) L.push('sesion');
+  if (document.querySelector('#appSheet.abierto')) L.push('hoja');
+  document.querySelectorAll('.modal-overlay.activo').forEach(() => L.push('modal'));
+  if (document.querySelector('#muro-acceso.visible')) L.push('muro');
+  if (document.querySelector('#carrito-panel.abierto')) L.push('carrito');
+  if (document.querySelector('#modal-checkout.visible')) L.push('checkout');
+  if (document.getElementById('tourCapa')) L.push('tour');
+  return L;
+}
 function _atrasCerrarCapa() {
-  if (document.getElementById('aetBloqueo')) return true;                       // cuenta suspendida: no se sale de la pantalla
-  if (document.getElementById('tourCapa')) { aetTourFin(false); return true; }
-  const ver = sel => document.querySelector(sel);
-  if (ver('#modal-checkout.visible')) { cerrarCheckout(); return true; }
-  if (ver('#carrito-panel.abierto')) { cerrarCarrito(); return true; }
-  if (ver('#muro-acceso.visible')) { cerrarMuro(); return true; }
-  const ms = Array.from(document.querySelectorAll('.modal-overlay.activo'));
-  if (ms.length) {
-    const m = ms[ms.length - 1];
+  if (document.getElementById('aetBloqueo')) return;                       // cuenta suspendida: la pantalla no se quita
+  const L = _atrasCapas(), top = L[L.length - 1];
+  if (top === 'tour') aetTourFin(false);
+  else if (top === 'checkout') cerrarCheckout();
+  else if (top === 'carrito') cerrarCarrito();
+  else if (top === 'muro') cerrarMuro();
+  else if (top === 'modal') {
+    const ms = Array.from(document.querySelectorAll('.modal-overlay.activo')), m = ms[ms.length - 1];
     if (m.id && m.id.indexOf('modalCalc') === 0) { const t = m.id.slice(9); cerrarCalculadora(t.charAt(0).toLowerCase() + t.slice(1)); }
     else { m.classList.remove('activo'); document.body.style.overflow = document.querySelector('.modal-overlay.activo') ? 'hidden' : ''; }
-    return true;
   }
-  if (ver('#appSheet.abierto')) { aetCerrar(); return true; }
-  if (ver('#appSesion.abierto')) { aetSesSalir(); return true; }
-  const visor = document.getElementById('app-screen-visor');
-  if (visor && visor.classList.contains('activo')) { volverDeVisorApp(); return true; }
-  const act = document.querySelector('.app-screen.activo');
-  if (act && act.id !== 'app-screen-inicio') { aetIr('inicio'); window.scrollTo(0, 0); return true; }
-  return false;
+  else if (top === 'hoja') aetCerrar();
+  else if (top === 'sesion') aetSesSalir();
+  else if (top === 'visor') volverDeVisorApp();
+  else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
-function _atrasArmar() { if (!_atrasGuardia) { try { history.pushState({ aet: 'app' }, ''); _atrasGuardia = true; } catch (e) {} } }
+// Quita pasos de más (cuando algo se cerró con su propio botón ✕)
+function _atrasRecortar() {
+  const d = _atrasCapas().length;
+  if (_atrasN > d) { const n = _atrasN - d; _atrasN = d; _atrasIgnorar++; history.go(-n); }
+}
+// Tras un toque: agrega un paso por cada capa nueva (hay permiso porque viene de un toque)
+function _atrasTrasToque() {
+  if (_atrasIgnorar) return;
+  const d = _atrasCapas().length;
+  if (d > _atrasN) { while (_atrasN < d) { history.pushState({ aet: _atrasN + 1 }, ''); _atrasN++; } }
+  else _atrasRecortar();
+}
 function aetAtrasIniciar() {
   if (_atrasListo) return; _atrasListo = true;
-  try { history.replaceState({ aet: 'base' }, ''); } catch (e) {}
-  _atrasArmar();
+  try { history.replaceState({ aet: 0 }, ''); } catch (e) {}
   window.addEventListener('popstate', () => {
-    _atrasGuardia = false;
-    if (_atrasCerrarCapa()) { _atrasArmar(); return; }
-    // Ya en Inicio sin nada abierto: el siguiente «atrás» sale de la app
-    try { aetToast('Toca atrás otra vez para salir'); } catch (e) {}
+    if (_atrasIgnorar) { _atrasIgnorar--; return; }
+    _atrasN = Math.max(0, _atrasN - 1);
+    if (_atrasCapas().length) _atrasCerrarCapa();
+    setTimeout(_atrasRecortar, 0);
   });
-  // Cualquier toque vuelve a activar la protección (por si se abrió algo después del aviso de salir)
-  document.addEventListener('click', _atrasArmar, true);
+  // Después de cada toque (y otra vez un poco después, por lo que abre con retraso, p. ej. contenido Premium)
+  document.addEventListener('click', () => { setTimeout(_atrasTrasToque, 0); setTimeout(_atrasTrasToque, 900); setTimeout(_atrasTrasToque, 2500); }, true);
 }
 
 function cambiarPantallaApp(pantalla, btn) {
