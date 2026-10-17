@@ -7633,7 +7633,49 @@ function detectarModoApp() {
     const irParam = new URLSearchParams(location.search).get('ir');
     if (irParam) setTimeout(() => aetIrDestino(irParam), 700);
     if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.tipo === 'aet-ir') aetIrDestino(ev.data.ir); });
+    aetAtrasIniciar();
   }
+}
+
+/* ---------- Botón «atrás» del teléfono (app instalada) ----------
+   Primero cierra lo que esté abierto (ventana, hoja, carrito, sesión de entreno…), luego regresa a Inicio,
+   y solo desde Inicio sale de la app (tocando atrás dos veces). */
+let _atrasListo = false, _atrasGuardia = false;
+function _atrasCerrarCapa() {
+  if (document.getElementById('aetBloqueo')) return true;                       // cuenta suspendida: no se sale de la pantalla
+  if (document.getElementById('tourCapa')) { aetTourFin(false); return true; }
+  const ver = sel => document.querySelector(sel);
+  if (ver('#modal-checkout.visible')) { cerrarCheckout(); return true; }
+  if (ver('#carrito-panel.abierto')) { cerrarCarrito(); return true; }
+  if (ver('#muro-acceso.visible')) { cerrarMuro(); return true; }
+  const ms = Array.from(document.querySelectorAll('.modal-overlay.activo'));
+  if (ms.length) {
+    const m = ms[ms.length - 1];
+    if (m.id && m.id.indexOf('modalCalc') === 0) { const t = m.id.slice(9); cerrarCalculadora(t.charAt(0).toLowerCase() + t.slice(1)); }
+    else { m.classList.remove('activo'); document.body.style.overflow = document.querySelector('.modal-overlay.activo') ? 'hidden' : ''; }
+    return true;
+  }
+  if (ver('#appSheet.abierto')) { aetCerrar(); return true; }
+  if (ver('#appSesion.abierto')) { aetSesSalir(); return true; }
+  const visor = document.getElementById('app-screen-visor');
+  if (visor && visor.classList.contains('activo')) { volverDeVisorApp(); return true; }
+  const act = document.querySelector('.app-screen.activo');
+  if (act && act.id !== 'app-screen-inicio') { aetIr('inicio'); window.scrollTo(0, 0); return true; }
+  return false;
+}
+function _atrasArmar() { if (!_atrasGuardia) { try { history.pushState({ aet: 'app' }, ''); _atrasGuardia = true; } catch (e) {} } }
+function aetAtrasIniciar() {
+  if (_atrasListo) return; _atrasListo = true;
+  try { history.replaceState({ aet: 'base' }, ''); } catch (e) {}
+  _atrasArmar();
+  window.addEventListener('popstate', () => {
+    _atrasGuardia = false;
+    if (_atrasCerrarCapa()) { _atrasArmar(); return; }
+    // Ya en Inicio sin nada abierto: el siguiente «atrás» sale de la app
+    try { aetToast('Toca atrás otra vez para salir'); } catch (e) {}
+  });
+  // Cualquier toque vuelve a activar la protección (por si se abrió algo después del aviso de salir)
+  document.addEventListener('click', _atrasArmar, true);
 }
 
 function cambiarPantallaApp(pantalla, btn) {
