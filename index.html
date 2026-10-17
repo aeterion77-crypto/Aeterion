@@ -2793,7 +2793,7 @@
       <div class="app-card-desc">¿Dudas, un problema con tu pedido, tu Premium o la app? Escríbenos y te respondemos aquí mismo.</div>
     </button>
     <button class="app-card" onclick="aetTour()">
-      <div class="app-card-top"><span class="app-card-titulo">🧭 Recorrido por la app</span><span class="app-card-meta">2 minutos</span></div>
+      <div class="app-card-top"><span class="app-card-titulo">🧭 Recorrido por la app</span><span class="app-card-meta">1 minuto</span></div>
       <div class="app-card-desc">Te muestro cada sección y para qué sirve. Puedes repetirlo cuando quieras.</div>
     </button>
   </div>
@@ -9095,33 +9095,15 @@ function aetPerfilCardHtml() {
 /* ---------- Recorrido guiado ---------- */
 const _en = (txt) => () => [...document.querySelectorAll('#appDashboardCards .aet-panel')].find(x => x.textContent.indexOf(txt) >= 0) || null;
 const TOUR = [
-  { t: 'Bienvenido a Aeterion 👋', x: 'En unos 2 minutos te muestro cada parte de la app y para qué sirve. Puedes salir cuando quieras y repetirlo desde Cuenta → Recorrido por la app.' },
-  { p: 'inicio', s: '#appTuDia', t: 'Tu día en 4 anillos', x: 'Entrenos de la semana, calorías, proteína y agua de hoy. Se llenan solos conforme registras. Arriba a la derecha ves tu racha: días seguidos registrando algo.' },
-  { p: 'inicio', s: '#appDashboardCards .aet-fila', t: 'Registrar en un toque', x: '＋ Ejercicio, ＋ Comida y ＋ 💧 (un vaso de agua). Desde aquí anotas todo sin entrar a otras pantallas.' },
-  { p: 'inicio', s: _en('Hábitos de hoy'), t: '🌱 Hábitos de hoy', x: 'Marca lo que haces cada día. Los que tienen 🔸 se marcan solos (entrenar, llegar a tu meta de agua, registrar comidas). Créalos o edítalos en «Administrar →». Mis hábitos.' },
-  { p: 'inicio', s: '#appDashboardCards .app-frase', t: '✦ Frase de la semana', x: 'Cada lunes cambia la frase, igual para todos. Un empujón corto para la semana.' },
-  { p: 'entrenar', s: '#appEntrenarChips', t: '💪 Elige tu programa', x: 'GYM (hombre 5 o 3 días, mujer 5 días) o MMA por niveles. Toca uno para verlo y marcarlo como el tuyo; la app ajusta tu meta de entrenos a ese programa.' },
-  { p: 'entrenar', s: '#appEntrenarHero', t: 'Tu entreno de hoy', x: 'Con un programa elegido aparece el día que toca: ejercicios, series, repeticiones, peso sugerido y descansos con temporizador. Los programas guiados son parte de Premium.' },
-  { p: 'entrenar', s: '#appEntrenarLog', t: '📓 Mi registro', x: 'Anota ejercicios con series, repeticiones y kilos (aunque entrenes por tu cuenta). La app estima tu 1RM, guarda tu historial y te avisa de cada récord personal 🏆. «Marcar entreno de hoy» suma a tu racha.' },
-  { p: 'entrenar', s: '#app-screen-entrenar .app-card', t: 'Programas y ciencia', x: 'Aquí ves el detalle de cada programa GYM y MMA. Abajo, «Ciencia del Entrenamiento»: progresión, respiración, movilidad y más.' },
-  { p: 'nutricion', s: '#appNutriHoy', t: '🍽 Mi día', x: 'Calorías, proteína y agua del día contra tus metas, con el reparto de carbos, proteína y grasa. ＋ Agregar comida, ＋ vaso de agua, y «Metas ⚙» para ajustar tus números.' },
-  { p: 'nutricion', s: '#app-screen-nutricion .app-card', t: '🥗 Planes de nutrición', x: 'Plan General, SII (low FODMAP) y Diabetes: calculan tus macros según tu objetivo y condición y te dan la guía de alimentos. Son parte de Premium.' },
-  { p: 'nutricion', s: '#app-screen-nutricion [onclick*="alimentos"]', t: 'Catálogo de alimentos', x: 'Macros por porción de más de 100 alimentos y equivalencias para cambiar uno por otro sin descuadrar tu plan.' },
-  { p: 'perfil', s: '#appTuCuerpo', t: '🧍 Tu cuerpo', x: 'Peso, medidas y composición corporal en un solo lugar, con lo que cambió desde la última vez. Regístralos aquí; «Historial →» muestra todo mes a mes con tus metas.' },
-  { p: 'perfil', s: '#appProgLogros', t: '🏅 Logros', x: 'Hitos que se desbloquean solos: primer peso, primera composición, rachas y más. Sirven para ver tu constancia.' },
-  { p: 'perfil', s: '#appProgHabitos', t: '🌱 Tus hábitos', x: 'Cómo vas esta semana, tu mejor racha y tus días perfectos. En «Administrar →» creas, editas o corriges tus hábitos.' },
-  { p: 'perfil', s: '#app-screen-perfil [onclick*="dashboard"]', t: '📊 Dashboard', x: 'El Dashboard junta volumen, bloque, medidas y cargas, semanal y mensual. «Medidas Corporales» guarda peso, cintura, caderas y más, con tu meta.' },
-  { p: 'educacion', s: '#app-screen-educacion [onclick*="recetas"]', t: 'Recetas', x: 'Más de 40 recetas de cocina mexicana, ensaladas, snacks y postres, con ingredientes y pasos. Es parte de Premium.' },
-  { p: 'educacion', s: '#app-screen-educacion [onclick*="protocolos-avanzados"]', t: 'Guías con evidencia', x: 'Protocolos Avanzados, Bienestar Mental, Salud & Biohacking y Guías de educación: todo lo que se lee y aprende está en esta pestaña.' },
-  { s: '#appNavTienda', t: '🛍 Tienda', x: 'Creatina, magnesio y vitamina D de Aeterion. Compra con tarjeta y envío a todo México.' },
-  { p: 'cuenta', s: '#appCuentaCard', t: '👤 Mi cuenta y compras', x: 'Crea tu cuenta gratis para guardar tu progreso en la nube y verlo en todos tus dispositivos. Aquí activas Premium con tu código o pago, y sigues tus compras y envíos.' },
-  { p: 'cuenta', s: '#app-screen-cuenta [onclick="aetPerfilVer()"]', t: '👤 Mi perfil', x: 'Tus datos y una lista de lo que falta para dejar la app lista para ti. Desde aquí puedes editar tu objetivo, peso, clima y más.' },
-  { p: 'cuenta', s: '#app-screen-cuenta [onclick="recAbrir()"]', t: '🔔 Recordatorios', x: 'Tú eliges qué avisos quieres (entrenar, hábitos, resumen semanal) y a qué hora. Máximo uno al día y se pausan solos si dejas de usar la app.' },
-  { p: 'cuenta', s: '#app-screen-cuenta [onclick*="respaldo"]', t: '💾 Respaldo de datos', x: 'Exporta tu progreso para pasarlo a otro celular o recuperarlo. Con una cuenta se sincroniza solo, así que es tu seguro extra.' },
-  { p: 'cuenta', s: '#appAyudaCard', t: '💬 Ayuda y soporte', x: '¿Una duda o un problema con tu pedido, tu Premium o la app? Escríbenos aquí y te respondemos en el mismo chat.' },
-  { p: 'cuenta', s: '#app-screen-cuenta [onclick="aetTour()"]', t: '🧭 Recorrido por la app', x: 'Este mismo recorrido: repítelo cuando quieras desde aquí.' },
-  { s: '.app-bottomnav', t: 'La barra de abajo', x: 'Inicio, Entrenar, Nutrición, Educación, Tienda, Progreso y Cuenta: desde cualquier pantalla llegas a todo con un toque.' },
-  { t: 'Gratis y Premium', x: 'Gratis: registro de entrenos, comidas, agua, peso y hábitos; logros; recordatorios; guías y protocolos. Premium: programas guiados GYM y MMA, planes de nutrición, recetario y ciencia del entrenamiento. ¡Listo! Puedes repetir este recorrido o editar tu perfil desde Más.' },
+  { t: 'Bienvenido a Aeterion 👋', x: 'Te muestro en un minuto qué hay en cada sección. Puedes salir cuando quieras y repetirlo desde Cuenta.' },
+  { p: 'inicio', s: '.app-nav-btn[data-p="inicio"]', t: '🏠 Inicio', x: 'Lo de hoy: tus anillos (entrenos, calorías, proteína y agua), botones para registrar en un toque y tus hábitos del día para marcarlos.' },
+  { p: 'entrenar', s: '.app-nav-btn[data-p="entrenar"]', t: '💪 Entrenar', x: 'Elige tu programa de GYM o MMA y sigue el entreno del día. En «Mi registro» anotas tus series y kilos, aunque entrenes por tu cuenta.' },
+  { p: 'nutricion', s: '.app-nav-btn[data-p="nutricion"]', t: '🥗 Nutrición', x: 'Registra tus comidas y tu agua contra tus metas. Aquí están los planes de nutrición y el catálogo de alimentos.' },
+  { p: 'educacion', s: '.app-nav-btn[data-p="educacion"]', t: '📚 Educación', x: 'Recetas, protocolos avanzados, bienestar mental, salud y guías con evidencia.' },
+  { s: '#appNavTienda', t: '🛍 Tienda', x: 'Suplementos Aeterion con pago con tarjeta y envío a todo México.' },
+  { p: 'perfil', s: '.app-nav-btn[data-p="perfil"]', t: '📊 Progreso', x: 'Tu cuerpo (peso, medidas y composición), tus hábitos, tus logros y el Dashboard.' },
+  { p: 'cuenta', s: '.app-nav-btn[data-p="cuenta"]', t: '👤 Cuenta', x: 'Tu cuenta y Premium, tu perfil, recordatorios, respaldo de datos, ayuda y este recorrido.' },
+  { t: 'Gratis y Premium', x: 'Gratis: registrar entrenos, comidas, agua, peso y hábitos, logros, recordatorios y guías. Premium: programas guiados de GYM y MMA, planes de nutrición, recetas y ciencia del entrenamiento. ¡Listo!' },
 ];
 let _tour = null;
 function aetTourFijo(el) { for (let e = el; e && e !== document.body; e = e.parentElement) { if (getComputedStyle(e).position === 'fixed') return true; } return false; }
