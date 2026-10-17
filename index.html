@@ -6185,7 +6185,7 @@ let _aplicandoRemoto = false, _timerPush = null, _sincronizando = false, _huboRe
 // Datos del seguimiento diario (claves aet_*): si dos dispositivos cambiaron lo mismo, se FUSIONAN en vez de pisarse
 // Claves de ENTRENO que se acumulan (series, checks, medidas): se unen en vez de pisarse. El resto (perfil, bloque, día, dietas) gana la última edición.
 const SYNC_UNION = new Set(['gym_registro_series','gym_completados_h5','gym_completados_h3','gym_completados_m5','mma_completados','mma2_completados','mma3_completados','medidas_historial','mma_historial_semanas','mma_1rm']);
-function _fusionable(k) { return k.indexOf('aet_') === 0 || SYNC_UNION.has(k); }
+function _fusionable(k) { return k.indexOf('aet_') === 0 || SYNC_UNION.has(k) || /^gym_perfil_/.test(k); }
 function _unirProfundo(r, l) {
   if (Array.isArray(r) && Array.isArray(l)) return Array.from(new Set([...r, ...l]));
   if (r && l && typeof r === 'object' && typeof l === 'object') { const o = {}; new Set([...Object.keys(r), ...Object.keys(l)]).forEach(c => { o[c] = (c in r) ? ((c in l) ? _unirProfundo(r[c], l[c]) : r[c]) : l[c]; }); return o; }
@@ -6196,6 +6196,7 @@ function _fusionAet(k, a, b) {
   let L, R;
   try { L = JSON.parse(a); R = JSON.parse(b); } catch (e) { return b; }
   if (/^(gym_completados_|mma\d?_completados$)/.test(k)) return JSON.stringify(_unirProfundo(R, L));
+  if (/^gym_perfil_/.test(k)) return JSON.stringify(((L && L.t) || 0) >= ((R && R.t) || 0) ? L : R);   // el más reciente
   if (k === 'gym_registro_series') {
     const o = {};
     new Set([...Object.keys(R || {}), ...Object.keys(L || {})]).forEach(n => {
@@ -7404,6 +7405,7 @@ async function abrirCalculadora(tipo) {
   modal.classList.add('activo');
   document.body.style.overflow = 'hidden';
   if (tipo === 'entrenamiento') inicializarRutinaH5();
+  if (typeof AET_GYM_FORM !== 'undefined' && AET_GYM_FORM[tipo]) { try { aetGymFormLlenar(tipo); } catch (e) { console.error(e); } }
   if (tipo === 'h3') inicializarRutinaH3();
   if (tipo === 'm5') inicializarRutinaM5();
   if (tipo === 'mma1') inicializarMma1();
@@ -8271,6 +8273,10 @@ function aetFormPeso() {
 function aetGuardarPeso() {
   const p = AET.num(document.getElementById('aetPeso').value);
   if (p == null || p < 20 || p > 400) { aetToast('Peso no válido'); return; }
+  aetPesoRegistrar(p);
+  aetMarcar('m'); aetCerrar(); aetToast('✓ Peso guardado'); aetRefrescar();
+}
+function aetPesoRegistrar(p) {
   const hist = AET.leer('medidas_historial', []);
   const f = AET.hoy(), i = hist.findIndex(m => m.fecha === f);
   if (i >= 0) hist[i].peso = p;
@@ -8283,7 +8289,6 @@ function aetGuardarPeso() {
   hist.sort((a, b) => a.fecha.localeCompare(b.fecha));
   AET.guardar('medidas_historial', hist);
   try { medidasHistorial = hist; } catch (e) {}
-  aetMarcar('m'); aetCerrar(); aetToast('✓ Peso guardado'); aetRefrescar();
 }
 function aetRenderPeso() {
   const el = document.getElementById('appProgPeso'); if (!el) return '';
@@ -9558,10 +9563,19 @@ const AETGYM = (() => {
 
   /* ---------- 3b · puente con las pantallas ---------- */
   function tipoDePerfil(perfil) { return TIPOS.find(t => CT[t].P() === perfil) || null; }
+  // Sin historial: punto de partida con los kilos que diste en tu perfil físico (levantamiento a 5–8 reps → 1RM estimado, Epley)
+  const REF_EST = [[/^hip thrust con barra/i, 'hipthrust', 1, 'hip thrust'], [/^press inclinado con barra/i, 'banca', .8, 'banca'], [/^peso muerto rumano/i, 'pesomuerto', .7, 'peso muerto'], [/^sentadilla smith/i, 'sentadilla', .9, 'sentadilla']];
+  function estimado(nombre, tipo, r, st) {
+    const P = CT[tipo] && CT[tipo].P(), D = P && P.datos; if (!D) return null;
+    const ref = REF_EST.find(x => x[0].test(nombre)); if (!ref || !(D[ref[1]] > 0)) return null;
+    const rm1 = D[ref[1]] * (1 + 6.5 / 30) * ref[2], reps = Math.round(mid(r)), kg = Math.max(2.5, Math.round(rm1 / (1 + (reps + st.rirLo) / 30) / 2.5) * 2.5);
+    return { kg, reps, ref: ref[3], base: D[ref[1]] };
+  }
   function sugerencia(nombre, repsRango, perfil, bloque) {
     const tipo = tipoDePerfil(perfil) || TIPOS.find(t => CT[t].B() === bloque); if (!tipo) return null;
     const st = estado(tipo), M = meta(nombre), r = parseRango(repsRango);
     const d = decidir({ hist: histDe(nombre), repMin: r[0], repMax: r[1], rirLo: st.rirLo, niv: st.niv, desc: st.desc, paso: M.paso });
+    if (d.a === 'calibrar') { const e = estimado(nombre, tipo, r, st); if (e) return { tipo: 'calibrar', texto: 'Punto de partida estimado con tu ' + e.ref + ' (' + e.base + ' kg): unos ' + e.kg + ' kg para ' + e.reps + ' reps dejando ' + st.rirLo + ' en reserva. Ajusta en la primera serie si se siente muy fácil o muy pesado.' }; }
     if (d.a === 'calibrar') return { tipo: 'calibrar', texto: 'Sin historial de este ejercicio: haz 1–2 series de aproximación y una serie con un peso con el que hagas unas ' + Math.round(mid(r)) + ' reps dejando ' + st.rirLo + ' en reserva. Anota reps y RIR; te diré el peso de trabajo.' };
     const sg = senales(tipo);
     if (sg.accion === 'vigilar' && /subir|ligero|condicional/.test(d.a)) return { tipo: 'cautela', texto: 'Cumples para subir, pero hay una señal de fatiga: mantén ' + d.kg + ' kg esta semana y confirma la tendencia.' };
@@ -9569,7 +9583,9 @@ const AETGYM = (() => {
   }
   function carga(nombre, tipo, repsRango) { // sugerencia para precargar kg/reps en la sesión
     const st = estado(tipo), M = meta(nombre), r = parseRango(repsRango);
-    return decidir({ hist: histDe(nombre), repMin: r[0], repMax: r[1], rirLo: st.rirLo, niv: st.niv, desc: st.desc, paso: M.paso });
+    const d = decidir({ hist: histDe(nombre), repMin: r[0], repMax: r[1], rirLo: st.rirLo, niv: st.niv, desc: st.desc, paso: M.paso });
+    if (d.a === 'calibrar') { const e = estimado(nombre, tipo, r, st); if (e) { d.kg = e.kg; d.est = true; } }
+    return d;
   }
 
   /* ---------- 6 · VALIDACIÓN Y SEGURIDAD ---------- */
@@ -9630,6 +9646,50 @@ function aetMotorCerrar(tipo) { // botón "Completé esta semana del bloque" de 
     aetSheet('Cierre de semana', `<div class="ses-sug">${esc(r.nota)}</div><button class="aet-btn" style="margin-top:1rem" onclick="aetCerrar()">Entendido</button>`);
   } catch (e) { console.error(e); }
 }
+/* ---------- Perfil físico de GYM: se guarda lo que escribes y se comparte con Mi perfil y Progreso ---------- */
+const AET_GYM_FORM = { entrenamiento: ['gy', 'gym_perfil_h5', 'perfilGym', 'H'], h3: ['h3', 'gym_perfil_h3', 'perfilH3', 'H'], m5: ['m5', 'gym_perfil_m5', 'perfilM5', 'M'] };
+const GYM_CAMPOS = ['peso', 'estatura', 'edad', 'grasa', 'tiempo', 'banca', 'sentadilla', 'pesomuerto', 'hipthrust', 'sueno', 'estres', 'trabajo', 'alimentacion', 'proteina'];
+function aetGymFormLeer(pre) {
+  const d = {};
+  GYM_CAMPOS.forEach(c => { const e = document.getElementById(pre + '_' + c); if (e && e.value !== '') d[c] = e.tagName === 'SELECT' ? e.value : Number(e.value); });
+  return d;
+}
+function aetGymFormLlenar(tipo) {
+  const [pre, clave] = AET_GYM_FORM[tipo]; if (!document.getElementById(pre + '_peso')) return;
+  const p = AET.leer(clave, {}) || {};
+  let d = p.datos, todo = !!d;
+  if (!d) {   // primera vez: lo que la app ya sabe de ti
+    const pf = aetPerfil(), ps = AET.pesos(); d = {};
+    if (pf.edad) d.edad = pf.edad; if (pf.altura) d.estatura = pf.altura; if (ps.length) d.peso = ps[ps.length - 1].peso;
+    const ultC = (typeof aetComp === 'function' ? aetComp() : []).filter(x => x.grasa != null).slice(-1)[0]; if (ultC) d.grasa = ultC.grasa;
+  }
+  GYM_CAMPOS.forEach(c => { const e = document.getElementById(pre + '_' + c); if (e && d[c] != null && (todo || e.value === '')) e.value = d[c]; });
+}
+function aetGymPerfilCompletar(tipo, datos) {
+  const [, clave, varName, sexo] = AET_GYM_FORM[tipo];
+  let obj = null; try { obj = (0, eval)(varName); } catch (e) {}
+  if (!obj || typeof obj !== 'object') obj = AET.leer(clave, {}) || {};
+  obj.datos = datos; obj.t = Date.now();
+  localStorage.setItem(clave, JSON.stringify(obj));
+  // Mi perfil: edad, estatura y sexo (si no lo tenías)
+  const pf = aetPerfil(), cambio = {};
+  if (datos.edad >= 10 && datos.edad <= 100) cambio.edad = Math.round(datos.edad);
+  if (datos.estatura >= 100 && datos.estatura <= 250) cambio.altura = datos.estatura;
+  if (!pf.sexo) cambio.sexo = sexo;
+  if (Object.keys(cambio).length) aetPerfilGuardar(cambio);
+  // Progreso: el peso de hoy (si cambió) y la grasa corporal
+  if (datos.peso >= 20 && datos.peso <= 400) {
+    const ps = AET.pesos(), u = ps[ps.length - 1];
+    if (!u || u.peso !== datos.peso || u.fecha !== AET.hoy()) aetPesoRegistrar(datos.peso);
+  }
+  if (datos.grasa > 0 && datos.grasa < 70 && typeof aetComp === 'function') {
+    const h = aetComp(), i = h.findIndex(x => x.fecha === AET.hoy()), u = h[h.length - 1];
+    if (!u || u.grasa !== datos.grasa) {
+      if (i >= 0) h[i].grasa = datos.grasa; else h.push({ fecha: AET.hoy(), grasa: datos.grasa, musculo: null, agua: null, hueso: null });
+      AET.guardar('aet_composicion', h.slice(-400));
+    }
+  }
+}
 function aetMotorEnganchar() { // sustituye, ya con el módulo cargado, la lógica antigua del programa por el motor
   window.personalizarSeries = function () { return null; };           // las series ya vienen fijadas por el motor en la plantilla
   window.aplicaBloque = function () { return true; };
@@ -9651,7 +9711,11 @@ function aetMotorEnganchar() { // sustituye, ya con el módulo cargado, la lógi
   window.avanzarBloqueM5 = function () { aetMotorCerrar('m5'); };
   [['calcularPerfilGym', 'entrenamiento'], ['calcularPerfilH3', 'h3'], ['calcularPerfilM5', 'm5']].forEach(([fn, tipo]) => {
     const f = window[fn]; if (typeof f !== 'function' || f._motor) return;
-    const g = function () { const r = f.apply(this, arguments); try { AETGYM.aplicar(tipo); aetMotorRerender(tipo); aetRefrescar(); } catch (e) { console.error(e); } return r; };
+    const g = function () {
+      const [pre, clave] = AET_GYM_FORM[tipo], datos = aetGymFormLeer(pre), antes = localStorage.getItem(clave);
+      const r = f.apply(this, arguments);
+      try { if (localStorage.getItem(clave) !== antes) aetGymPerfilCompletar(tipo, datos); } catch (e) { console.error(e); }
+      try { AETGYM.aplicar(tipo); aetMotorRerender(tipo); aetRefrescar(); } catch (e) { console.error(e); } return r; };
     g._motor = 1; window[fn] = g;
   });
   AETGYM.TIPOS.forEach(t => { try { AETGYM.aplicar(t); } catch (e) { console.error('motor', t, e); } });
@@ -9839,7 +9903,7 @@ function aetSesIniciar(tipo, key) {
       const n = Math.max(1, parseRangoSeries(ej.series)[0]);   // series: las fija el motor según nivel, objetivo y volumen semanal
       const h = registroSeries[ej.nombre], ult = h && h.length ? (h[h.length - 1].sets || []) : [], rmin = parseRangoSeries(String(ej.reps).replace(/\/.*$/, ''))[0];
       let dec = null; try { dec = AETGYM.carga(ej.nombre, tipo, ej.reps); } catch (x) {}
-      const cal = !dec || dec.a === 'calibrar';
+      const cal = !dec || (dec.a === 'calibrar' && !dec.est);
       return { idx, n: ej.nombre, m: ej.musculo, ser: ej.series, reps: ej.reps, des: ej.descanso, rpe: ej.rpe, nota: ej.nota, cal, tec: true, dolor: false,
         sets: Array.from({ length: n }, (_, i) => { const u = ult[i] || ult[ult.length - 1]; const kg = cal ? '' : (dec.kg || (u && u.peso) || ''), r = cal ? (isFinite(rmin) ? rmin : '') : (dec.reps || (u ? u.reps : (isFinite(rmin) ? rmin : ''))); return { r, kg, rir: '', ok: false }; }) };
     }) };
