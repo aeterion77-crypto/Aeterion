@@ -163,6 +163,17 @@
   .ped .ped-res { color:var(--gris); font-size:13px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .ped:not(.abierto) .ped-cuerpo { display:none; }
   .ped.abierto .ped-res { display:none; }
+  /* Números del negocio */
+  .er { width:100%; border-collapse:collapse; font-size:14px; }
+  .er td { padding:6px 0; border-bottom:1px solid var(--linea); }
+  .er td:last-child { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .er tr.menos td:last-child { color:#ff8a7d; } .er tr.total td { font-weight:800; font-size:16px; border-bottom:0; padding-top:10px; }
+  .er tr.total.neg td:last-child { color:#ff8a7d; } .er tr.total.pos td:last-child { color:var(--verde,#2ecc71); }
+  .er .sub { color:var(--gris); font-size:12px; }
+  .np { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:13px; margin-top:8px; }
+  .np div span { display:block; color:var(--gris); font-size:11.5px; }
+  .my-fila { display:grid; grid-template-columns:1fr 84px 70px; gap:8px; align-items:end; padding:8px 0; border-bottom:1px solid var(--linea); }
+  .my-fila .nom { font-weight:700; font-size:14px; } .my-fila .peq { margin-top:2px; }
 </style>
 </head>
 <body>
@@ -415,6 +426,40 @@
         <div id="gBuscarRes" style="margin-top:10px"></div></div>
       <div class="card" id="listaLotes"><div class="vacio">Cargando…</div></div>
     </section>
+    <section id="tNegocio" class="oculto">
+      <div class="filtros" id="ngPeriodo"></div>
+      <div id="ngCuerpo"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tMayoreo" class="oculto">
+      <div class="card" style="margin-bottom:14px"><b>Cotizar o registrar una venta a gimnasio</b>
+        <div class="peq" style="margin:4px 0 0">Los precios salen de tu precio a gimnasio (cámbialo en Productos o aquí mismo para esta venta).</div>
+        <div class="campo" style="margin-top:10px"><label>Gimnasio</label><input id="myGym" list="myGyms" maxlength="80" placeholder="Nombre del gimnasio"><datalist id="myGyms"></datalist></div>
+        <div id="myItems" style="margin-top:6px"></div>
+        <div id="myTot" style="margin-top:10px"></div>
+        <div class="campo" style="margin-top:8px"><label>Nota (opcional)</label><input id="myNota" maxlength="300" placeholder="Ej. entrego el viernes, paga en 2 partes"></div>
+        <label class="peq" style="display:block;margin-top:8px"><input type="checkbox" id="myPagado" style="width:auto;min-height:0;margin-right:6px">Ya me pagó</label>
+        <div class="acciones" style="margin-top:10px"><button id="myRegistrar">Registrar venta</button><button class="sec" id="myCopiar">Copiar cotización</button><button class="sec" id="myLimpiar">Limpiar</button></div>
+        <div class="peq">Al registrar la venta se descuentan las piezas del inventario (si llevas conteo de ese producto). «Copiar cotización» solo copia el texto para mandarlo por WhatsApp; no registra nada.</div>
+      </div>
+      <div class="card" id="myLista"><div class="vacio">Cargando…</div></div>
+    </section>
+
+    <section id="tGastos" class="oculto">
+      <div class="card" style="margin-bottom:14px"><b>Registrar un gasto</b>
+        <div class="peq" style="margin:4px 0 8px">Publicidad, empaque, envíos que pagaste aparte, herramientas, transporte… Se restan de tu ganancia en Números. No registres aquí lo que le compras al proveedor: eso ya se cuenta como costo de cada pieza vendida.</div>
+        <div class="rejilla c4">
+          <div class="campo"><label>Fecha</label><input id="gsFecha" type="date"></div>
+          <div class="campo"><label>Concepto</label><input id="gsConcepto" maxlength="120" placeholder="Ej. anuncios Instagram"></div>
+          <div class="campo"><label>Categoría</label><select id="gsCat"></select></div>
+          <div class="campo"><label>Monto ($)</label><input id="gsMonto" type="number" min="1" step="0.01" placeholder="350"></div>
+        </div>
+        <div class="fila" style="margin-top:12px"><button id="gsGuardar">Registrar gasto</button></div>
+      </div>
+      <div class="filtros" id="gsPeriodo"></div>
+      <div class="card" id="gsLista"><div class="vacio">Cargando…</div></div>
+    </section>
+
     <section id="tInventario" class="oculto">
       <div class="card" style="margin-bottom:14px">
         <b>Registrar movimiento</b>
@@ -559,7 +604,7 @@ const BOTONES = [['pagado', 'Pagado'], ['preparando', 'Preparando'], ['enviado',
 function cpDe(dir) { const m = /CP\s*(\d{5})/i.exec(dir || ''); return m ? m[1] : ''; }
 function paquete(productos) {
   // Misma lógica de cotización: una sola caja con las medidas de cada producto
-  const DIM = { creatin: [4, 18, 25, .46], magnes: [6, 6, 13.5, .15], vitamin: [3.5, 3.5, 12.5, .18] };
+  const DIM = { creatin: [4, 18, 25, .472], magnes: [6, 6, 13.5, .105], vitamin: [3.5, 3.5, 12.5, .13] };
   let L = 0, H = 0, W = 0, kg = 0;
   String(productos || '').split('\n').forEach((ln) => {
     const k = Object.keys(DIM).find((x) => ln.toLowerCase().includes(x)); if (!k) return;
@@ -836,6 +881,171 @@ $('blqBtn').onclick = async () => {
     else aviso({ usuario_no_encontrado: 'No hay ninguna cuenta con ese correo.', es_admin: 'No puedes bloquear a un administrador.' }[r.error] || 'No se pudo: ' + r.error);
   } catch (e) { falloTab(e); }
 };
+
+/* ---- Números del negocio · Venta a gimnasio · Gastos ---- */
+let datosNeg = null, ngPer = lsGet('aet_ng_per') || 'mes';
+const NG_PER = [['mes', 'Este mes'], ['mesant', 'Mes pasado'], ['30', 'Últimos 30 días'], ['anio', 'Este año']];
+const GS_CAT = { publicidad: 'Publicidad', envios: 'Envíos', empaque: 'Empaque', comisiones: 'Comisiones', herramientas: 'Herramientas y apps', transporte: 'Transporte', proveedor: 'Proveedor (otro)', otro: 'Otro' };
+const pesos2 = (n) => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+function hoyMx() { try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date()); } catch (e) { return new Date().toISOString().slice(0, 10); } }
+function rangoNeg() {
+  const h = hoyMx(), [y, m] = h.split('-').map(Number);
+  const f = (yy, mm, dd) => yy + '-' + String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+  if (ngPer === 'mesant') { const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return [f(py, pm, 1), f(py, pm, new Date(Date.UTC(py, pm, 0)).getUTCDate())]; }
+  if (ngPer === '30') { const d = new Date(h + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 29); return [d.toISOString().slice(0, 10), h]; }
+  if (ngPer === 'anio') return [f(y, 1, 1), h];
+  return [f(y, m, 1), h];
+}
+async function cargarNegocio() {
+  const [d, h] = rangoNeg();
+  datosNeg = await rpc('panel_negocio', { p_desde: d, p_hasta: h });
+  pintarNegocio(); pintarMayoreo(); pintarGastos();
+}
+function perPills(id) { $(id).innerHTML = NG_PER.map(([k, t]) => `<button class="pill${ngPer === k ? ' on' : ''}" data-ng="${k}">${t}</button>`).join(''); }
+function cuentaNegocio(D) {
+  const P = D.productos || [], T = D.tienda || {}, G = D.gimnasios || {};
+  const costoTienda = P.reduce((s, p) => s + (p.uds_tienda || 0) * Number(p.costo || 0), 0);
+  const ventasTienda = Number(T.subtotal || 0) - Number(T.descuento || 0);
+  const ventasGim = Number(G.total || 0), costoGim = Number(G.costo || 0);
+  const envioNeto = Number(T.envio_cobrado || 0) - Number(T.envio_pagado || 0);
+  const comision = Number(T.comision || 0), gastos = Number((D.gastos || {}).total || 0);
+  const neta = ventasTienda + ventasGim - costoTienda - costoGim - comision + envioNeto - gastos;
+  const ventas = ventasTienda + ventasGim;
+  return { costoTienda, ventasTienda, ventasGim, costoGim, envioNeto, comision, gastos, neta, ventas, sinCosto: P.filter((p) => p.costo == null).map((p) => p.nombre) };
+}
+function pintarNegocio() {
+  if (!$('ngCuerpo')) return;
+  perPills('ngPeriodo');
+  const D = datosNeg; if (!D) return;
+  const c = cuentaNegocio(D), P = D.productos || [], T = D.tienda || {}, G = D.gimnasios || {};
+  const pct = c.ventas > 0 ? Math.round(c.neta / c.ventas * 100) : 0;
+  const sinEnvio = (T.pedidos || 0) - (T.pedidos_con_costo_envio || 0);
+  // Inventario y reabasto
+  const inv = P.map((p) => { const dia = Number(p.por_dia || 0), st = p.stock; const dias = st == null ? null : dia > 0 ? Math.floor(st / dia) : null; const pedir = st == null ? null : Math.max(0, Math.ceil(dia * 30 - st)); return { p, dia, st, dias, pedir }; });
+  const valCosto = P.reduce((s, p) => s + (p.stock || 0) * Number(p.costo || 0), 0), valVenta = P.reduce((s, p) => s + (p.stock || 0) * Number(p.precio || 0), 0);
+  const pedirCosto = inv.reduce((s, x) => s + (x.pedir || 0) * Number(x.p.costo || 0), 0);
+  $('ngCuerpo').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><small>Ventas</small><b>${money(c.ventas)}</b><i class="igual">tienda ${money(c.ventasTienda)} · gimnasios ${money(c.ventasGim)}</i></div>
+      <div class="kpi" style="border-color:${c.neta >= 0 ? 'rgba(46,204,113,.45)' : 'rgba(231,76,60,.5)'}"><small>Ganancia neta</small><b style="color:${c.neta >= 0 ? 'var(--verde,#2ecc71)' : '#ff8a7d'}">${money(c.neta)}</b><i class="igual">${pct} % de lo que vendiste</i></div>
+      <div class="kpi"><small>Pedidos de la tienda</small><b>${T.pedidos || 0}</b><i class="igual">${T.pedidos ? 'ticket promedio ' + money((c.ventasTienda) / T.pedidos) : '—'}</i></div>
+      <div class="kpi" data-ir-my style="cursor:pointer"><small>Por cobrar a gimnasios</small><b style="color:${G.por_cobrar > 0 ? '#f1c40f' : 'inherit'}">${money(G.por_cobrar || 0)}</b><i class="igual">${G.por_cobrar > 0 ? 'toca para ver →' : 'todo cobrado'}</i></div>
+    </div>
+    <div class="bloque"><h3>Cómo se forma tu ganancia</h3>
+      <table class="er">
+        <tr><td>Ventas en la tienda <div class="sub">productos, ya con descuentos de cupón</div></td><td>${pesos2(c.ventasTienda)}</td></tr>
+        <tr><td>Ventas a gimnasios</td><td>${pesos2(c.ventasGim)}</td></tr>
+        <tr class="menos"><td>Costo de lo que vendiste <div class="sub">lo que te costó cada pieza con tu proveedor</div></td><td>− ${pesos2(c.costoTienda + c.costoGim)}</td></tr>
+        <tr class="menos"><td>Comisión por pago con tarjeta <div class="sub">estimada: 3.6 % + $3 + IVA por pedido</div></td><td>− ${pesos2(c.comision)}</td></tr>
+        <tr class="${c.envioNeto < 0 ? 'menos' : ''}"><td>Envíos (cobrado − pagado a paquetería) <div class="sub">cobraste ${pesos2(T.envio_cobrado)} · pagaste ${pesos2(T.envio_pagado)}${sinEnvio > 0 ? ' · ' + sinEnvio + ' pedido(s) sin costo de guía registrado' : ''}</div></td><td>${c.envioNeto < 0 ? '− ' + pesos2(-c.envioNeto) : pesos2(c.envioNeto)}</td></tr>
+        <tr class="menos"><td>Gastos <div class="sub">publicidad, empaque, etc. (sub-pestaña Gastos)</div></td><td>− ${pesos2(c.gastos)}</td></tr>
+        <tr class="total ${c.neta >= 0 ? 'pos' : 'neg'}"><td>Ganancia neta</td><td>${pesos2(c.neta)}</td></tr>
+      </table>
+      ${c.sinCosto.length ? `<div class="peq" style="margin-top:8px;color:#f1c40f">Falta el costo de: ${c.sinCosto.map(esc).join(', ')} (ponlo en Productos).</div>` : ''}
+      ${sinEnvio > 0 ? '<div class="peq" style="margin-top:6px">El costo de envío se registra solo cuando creas la guía desde el panel («Crear guía automática»).</div>' : ''}
+    </div>
+    <div class="bloque"><h3>Por producto</h3>${P.map((p) => {
+      const mT = p.costo != null ? Number(p.precio) - Number(p.costo) : null, mG = p.costo != null && p.precio_gimnasio ? Number(p.precio_gimnasio) - Number(p.costo) : null;
+      const gan = (p.costo != null ? p.uds_tienda * mT : 0) + Number(p.ingreso_gim || 0) - Number(p.costo_gim || 0);
+      return `<div class="fila-item"><div class="cab"><div class="nom">${esc(p.nombre)}</div><div class="monto">${money(gan)}</div></div>
+        <div class="np">
+          <div><span>Costo proveedor</span>${p.costo != null ? money(p.costo) : '—'}</div>
+          <div><span>Vendidas en el periodo</span>${p.uds_tienda} tienda · ${p.uds_gim} gimnasios</div>
+          <div><span>Precio tienda · ganas</span>${money(p.precio)} · ${mT != null ? money(mT) + ' (' + Math.round(mT / p.precio * 100) + ' %)' : '—'}</div>
+          <div><span>Precio gimnasio · ganas</span>${p.precio_gimnasio ? money(p.precio_gimnasio) + ' · ' + (mG != null ? money(mG) + ' (' + Math.round(mG / p.precio_gimnasio * 100) + ' %)' : '—') : '—'}</div>
+        </div></div>`;
+    }).join('')}<div class="peq" style="margin-top:6px">La cifra de la derecha es lo que te dejó cada producto en el periodo (precio − costo), antes de comisiones, envíos y gastos.</div></div>
+    <div class="bloque"><h3>Inventario y cuándo resurtir</h3>
+      ${inv.map((x) => `<div class="fila-item"><div class="cab"><div class="nom">${esc(x.p.nombre)}</div><div class="peq" style="text-align:right">${x.st == null ? 'sin conteo' : x.st + ' pzas'}</div></div>
+        <div class="peq" style="margin-top:3px">${x.dia > 0 ? 'Vendes ~' + (Math.round(x.dia * 7 * 10) / 10) + ' por semana' : 'Sin ventas en 30 días'}${x.dias != null ? ' · te alcanza para ~' + x.dias + ' días' : ''}${x.pedir ? ' · <b style="color:#f1c40f">pide ' + x.pedir + ' pzas (' + money(x.pedir * Number(x.p.costo || 0)) + ')</b> para cubrir 30 días' : x.st != null && x.dia > 0 ? ' · ✓ cubierto' : ''}</div></div>`).join('')}
+      <div class="np" style="margin-top:10px"><div><span>Tu inventario vale (a costo)</span>${money(valCosto)}</div><div><span>Si lo vendes en la tienda</span>${money(valVenta)}</div>${pedirCosto ? `<div><span>Pedido sugerido al proveedor</span>${money(pedirCosto)}</div>` : ''}</div>
+      ${inv.some((x) => x.st == null) ? '<div class="peq" style="margin-top:6px">Para ver cuánto te alcanza, haz un «Conteo» en Inventario.</div>' : ''}
+    </div>`;
+}
+function pintarMayoreo() {
+  if (!$('myItems') || !datosNeg) return;
+  const P = datosNeg.productos || [], G = datosNeg.gimnasios || {};
+  $('myGyms').innerHTML = (G.nombres || []).map((n) => `<option value="${esc(n)}">`).join('');
+  if (!$('myItems').dataset.listo) {
+    $('myItems').innerHTML = P.map((p) => `<div class="my-fila" data-myp="${esc(p.id)}"><div><div class="nom">${esc(p.nombre)}</div><div class="peq">${p.stock == null ? 'sin conteo' : p.stock + ' en inventario'} · costo ${p.costo != null ? money(p.costo) : '—'}</div></div>
+      <div class="campo"><label>Precio c/u</label><input class="my-pr" type="number" min="0" step="1" value="${esc(p.precio_gimnasio || p.precio)}"></div>
+      <div class="campo"><label>Piezas</label><input class="my-q" type="number" min="0" step="1" placeholder="0"></div></div>`).join('');
+    $('myItems').dataset.listo = '1';
+  }
+  calcMayoreo();
+  const V = G.ventas || [];
+  $('myLista').innerHTML = `<b>Ventas a gimnasios</b>${G.por_cobrar > 0 ? ` <span class="tag a">por cobrar ${money(G.por_cobrar)}</span>` : ''}` + (V.length ? V.map((v) => {
+    const gan = Number(v.total) - Number(v.costo);
+    return `<div class="fila-item" data-vg="${esc(v.id)}"><div class="cab"><div style="min-width:0"><div class="nom">${esc(v.gimnasio)}</div><div class="peq">${esc(fechaDia(v.fecha))} · ${(v.items || []).map((i) => esc(i.nombre.replace(/^Aeterion /, '')) + ' ×' + i.qty).join(', ')}</div>${v.nota ? `<div class="peq">${esc(v.nota)}</div>` : ''}</div><div style="text-align:right"><div class="monto">${money(v.total)}</div><div class="peq">ganas ${money(gan)}</div></div></div>
+      <div class="acciones" style="margin-top:6px">${v.pagado ? '<span class="tag v">Cobrada</span><button class="sec mini" data-vg-pag="0">Marcar pendiente</button>' : '<span class="tag a">Pendiente de cobro</span><button class="mini" data-vg-pag="1">Ya me pagó</button>'}<button class="sec mini" data-vg-copiar>Copiar</button><button class="mal mini" data-vg-anular>Anular</button></div></div>`;
+  }).join('') : '<div class="vacio">Aún no registras ventas a gimnasios en este periodo.</div>');
+}
+function lineasMayoreo() {
+  const P = (datosNeg && datosNeg.productos) || [];
+  return [...document.querySelectorAll('#myItems [data-myp]')].map((f) => { const p = P.find((x) => x.id === f.dataset.myp) || {}; return { id: f.dataset.myp, nombre: p.nombre || f.dataset.myp, costo: Number(p.costo || 0), precio: Number(f.querySelector('.my-pr').value || 0), qty: Math.floor(Number(f.querySelector('.my-q').value || 0)) }; }).filter((l) => l.qty > 0);
+}
+function calcMayoreo() {
+  const L = lineasMayoreo(), tot = L.reduce((s, l) => s + l.qty * l.precio, 0), cos = L.reduce((s, l) => s + l.qty * l.costo, 0), pz = L.reduce((s, l) => s + l.qty, 0);
+  $('myTot').innerHTML = L.length ? `<div class="np"><div><span>Total a cobrar</span><b style="font-size:18px">${money(tot)}</b></div><div><span>Te cuesta</span>${money(cos)}</div><div><span>Ganas</span><b style="color:var(--verde,#2ecc71)">${money(tot - cos)}</b></div><div><span>Margen · piezas</span>${tot > 0 ? Math.round((tot - cos) / tot * 100) : 0} % · ${pz}</div></div>` : '<div class="peq">Escribe cuántas piezas lleva de cada producto.</div>';
+}
+function textoCotizacion(gym, L, fecha) {
+  const tot = L.reduce((s, l) => s + l.qty * l.precio, 0);
+  return ['Cotización Aeterion' + (gym ? ' para ' + gym : ''), ...L.map((l) => '• ' + l.nombre.replace(/^Aeterion /, '') + ' ×' + l.qty + ' — ' + money(l.precio) + ' c/u = ' + money(l.qty * l.precio)), 'Total: ' + money(tot) + ' MXN', fecha ? 'Fecha: ' + fecha : ''].filter(Boolean).join('\n');
+}
+function pintarGastos() {
+  if (!$('gsLista') || !datosNeg) return;
+  perPills('gsPeriodo');
+  if (!$('gsCat').options.length) $('gsCat').innerHTML = Object.entries(GS_CAT).map(([k, t]) => `<option value="${k}">${t}</option>`).join('');
+  if (!$('gsFecha').value) $('gsFecha').value = hoyMx();
+  const Gs = datosNeg.gastos || {}, L = Gs.lista || [], cat = Gs.por_categoria || {};
+  const max = Math.max(1, ...Object.values(cat).map(Number));
+  $('gsLista').innerHTML = `<div class="cab" style="display:flex;justify-content:space-between"><b>Gastos del periodo</b><b>${money(Gs.total || 0)}</b></div>`
+    + (Object.keys(cat).length ? '<div style="margin:8px 0 12px">' + Object.entries(cat).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="hbar"><div class="t"><span>${esc(GS_CAT[k] || k)}</span><span>${money(v)}</span></div><div class="p"><div style="width:${Math.round(v / max * 100)}%"></div></div></div>`).join('') + '</div>' : '')
+    + (L.length ? L.map((g) => `<div class="fila-item" data-gs="${esc(g.id)}"><div class="cab"><div><div class="nom">${esc(g.concepto)}</div><div class="peq">${esc(fechaDia(g.fecha))} · ${esc(GS_CAT[g.categoria] || g.categoria)}</div></div><div style="text-align:right"><div class="monto">${money(g.monto)}</div><button class="sec mini" data-gs-anular style="margin-top:4px">Anular</button></div></div></div>`).join('') : '<div class="vacio">No hay gastos en este periodo.</div>');
+}
+['ngPeriodo', 'gsPeriodo'].forEach((id) => $(id).addEventListener('click', (e) => { const b = e.target.closest('[data-ng]'); if (!b) return; ngPer = b.dataset.ng; lsSet('aet_ng_per', ngPer); cargarNegocio().catch(falloTab); }));
+$('ngCuerpo').addEventListener('click', (e) => { if (e.target.closest('[data-ir-my]')) abrirTab('mayoreo'); });
+$('myItems').addEventListener('input', calcMayoreo);
+$('myLimpiar').onclick = () => { document.querySelectorAll('#myItems .my-q').forEach((i) => { i.value = ''; }); $('myItems').dataset.listo = ''; $('myGym').value = ''; $('myNota').value = ''; $('myPagado').checked = false; pintarMayoreo(); };
+$('myCopiar').onclick = async () => { const L = lineasMayoreo(); if (!L.length) { aviso('Escribe cuántas piezas lleva.'); return; } await copiar(textoCotizacion($('myGym').value.trim(), L, fechaDia(hoyMx()))); aviso('Cotización copiada. Pégala en WhatsApp.', true); };
+$('myRegistrar').onclick = async () => {
+  const gym = $('myGym').value.trim(), L = lineasMayoreo();
+  if (gym.length < 2) { aviso('Escribe el nombre del gimnasio.'); return; }
+  if (!L.length) { aviso('Escribe cuántas piezas lleva.'); return; }
+  const tot = L.reduce((s, l) => s + l.qty * l.precio, 0);
+  if (!confirm('¿Registrar venta a ' + gym + ' por ' + money(tot) + '?\nSe descuentan las piezas del inventario.')) return;
+  $('myRegistrar').disabled = true;
+  try {
+    const r = await rpc('panel_venta_gim_registrar', { p_gimnasio: gym, p_items: L.map((l) => ({ id: l.id, qty: l.qty, precio: l.precio })), p_pagado: $('myPagado').checked, p_nota: $('myNota').value.trim() || null, p_fecha: null });
+    if (r.ok) { aviso('Venta registrada: ' + money(r.total) + ' · ganas ' + money(r.total - r.costo) + '.', true); $('myLimpiar').click(); await cargarNegocio(); }
+    else aviso({ stock_insuficiente: 'No hay suficientes piezas de ' + (r.producto || 'un producto') + ' (quedan ' + r.stock + '). Registra la entrada en Inventario o ajusta las piezas.', gimnasio_invalido: 'Escribe el nombre del gimnasio.', sin_productos: 'Escribe cuántas piezas lleva.' }[r.error] || 'No se pudo registrar: ' + r.error);
+  } catch (e) { falloTab(e); }
+  $('myRegistrar').disabled = false;
+};
+$('myLista').addEventListener('click', async (e) => {
+  const f = e.target.closest('[data-vg]'); if (!f) return; const id = Number(f.dataset.vg), v = ((datosNeg.gimnasios || {}).ventas || []).find((x) => x.id === id); if (!v) return;
+  try {
+    if (e.target.closest('[data-vg-copiar]')) { await copiar(textoCotizacion(v.gimnasio, (v.items || []).map((i) => ({ nombre: i.nombre, qty: i.qty, precio: Number(i.precio) })), fechaDia(v.fecha))); aviso('Copiado.', true); return; }
+    if (e.target.closest('[data-vg-pag]')) { await rpc('panel_venta_gim_estado', { p_id: id, p_pagado: e.target.closest('[data-vg-pag]').dataset.vgPag === '1', p_anular: false }); await cargarNegocio(); return; }
+    if (e.target.closest('[data-vg-anular]')) { if (!confirm('¿Anular la venta a ' + v.gimnasio + ' por ' + money(v.total) + '?\nLas piezas regresan al inventario.')) return; await rpc('panel_venta_gim_estado', { p_id: id, p_pagado: null, p_anular: true }); aviso('Venta anulada.', true); await cargarNegocio(); }
+  } catch (err) { falloTab(err); }
+});
+$('gsGuardar').onclick = async () => {
+  const monto = Number($('gsMonto').value), c = $('gsConcepto').value.trim();
+  if (c.length < 2) { aviso('Escribe el concepto del gasto.'); return; }
+  if (!(monto > 0)) { aviso('Escribe el monto.'); return; }
+  $('gsGuardar').disabled = true;
+  try {
+    const r = await rpc('panel_gasto_guardar', { p_fecha: $('gsFecha').value || null, p_concepto: c, p_categoria: $('gsCat').value, p_monto: monto });
+    if (r.ok) { aviso('Gasto registrado.', true); $('gsConcepto').value = ''; $('gsMonto').value = ''; await cargarNegocio(); } else aviso('No se pudo registrar: ' + r.error);
+  } catch (e) { falloTab(e); }
+  $('gsGuardar').disabled = false;
+};
+$('gsLista').addEventListener('click', async (e) => {
+  const f = e.target.closest('[data-gs]'); if (!f || !e.target.closest('[data-gs-anular]')) return;
+  if (!confirm('¿Anular este gasto?')) return;
+  try { await rpc('panel_gasto_anular', { p_id: Number(f.dataset.gs) }); aviso('Gasto anulado.', true); await cargarNegocio(); } catch (err) { falloTab(err); }
+});
 
 /* ---- Historial ---- */
 let datosHist = [], histFin = false;
@@ -1120,12 +1330,12 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
+const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
 // 6 secciones, cada una con sus sub-pestañas
 const GRUPOS = {
   inicio: ['Inicio', [['inicio', 'Hoy'], ['resumen', 'Ventas y métricas'], ['uso', 'Uso de la app']]],
   ventas: ['Ventas', [['pedidos', 'Pedidos'], ['clientes', 'Clientes'], ['cupones', 'Cupones'], ['exportar', 'Exportar']]],
-  tienda: ['Tienda', [['productos', 'Productos'], ['inventario', 'Inventario'], ['tiendaAj', 'Aviso y pausa']]],
+  tienda: ['Tienda', [['productos', 'Productos'], ['inventario', 'Inventario'], ['negocio', 'Números'], ['mayoreo', 'Venta a gimnasio'], ['gastos', 'Gastos'], ['tiendaAj', 'Aviso y pausa']]],
   premium: ['Premium', [['premium', 'Dar o quitar'], ['gimnasios', 'Códigos de gimnasios']]],
   soporte: ['Soporte', [['soporte', 'Conversaciones'], ['bloqueos', 'Bloqueados']]],
   ajustes: ['Ajustes', [['ajustes', 'Textos de la app'], ['frases', 'Frases'], ['seguridad', 'Seguridad'], ['historial', 'Historial'], ['sesion', 'Avisos y sesión']]],
@@ -1225,7 +1435,7 @@ $('listaAccesos').addEventListener('click', (ev) => { const b = ev.target.closes
    RESUMEN · PRODUCTOS · CLIENTES · CUPONES
 ============================================================ */
 const money = (n) => '$' + Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
-const fechaDia = (s) => s ? new Date(s).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const fechaDia = (s) => s ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(s)) ? s + 'T12:00:00' : s).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 let diasRes = 30, datosRes = null, datosProd = null, datosCli = null, datosCup = null, datosGym = null, datosInv = null, datosFr = null, filtroCli = 'todos';
 function falloTab(e, silencioso) {
   if (e && e.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
@@ -1236,6 +1446,7 @@ async function cargarTab(t, silencioso) {
   try {
     if (t === 'soporte' || t === 'bloqueos') { await cargarSoporte(silencioso); }
     else if (t === 'inicio') { cargarPendientes(); }
+    else if (t === 'negocio' || t === 'mayoreo' || t === 'gastos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tMayoreo,#tGastos')) return; await cargarNegocio(); }
     else if (t === 'tiendaAj') { datosAj = await rpc('panel_ajustes'); pintarAjustes(); }
     else if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
     else if (t === 'productos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#cuerpoProductos')) return; datosProd = await rpc('panel_productos'); pintarProductos(); }
@@ -1378,6 +1589,12 @@ function pintarProductos() {
         <div class="campo"><label>Avisar si quedan ≤</label><input class="f-min" type="number" min="0" step="1" value="${esc(p.stock_minimo)}"></div>
         <div class="campo chk"><input class="f-activo" type="checkbox" id="pa_${esc(p.id)}" ${p.activo ? 'checked' : ''}><label for="pa_${esc(p.id)}" style="margin:0">A la venta</label></div>
       </div>
+      <div class="rejilla c4" style="margin-top:8px">
+        <div class="campo"><label>Costo del proveedor ($ c/u)</label><input class="f-costo" type="number" min="0" step="0.01" placeholder="—" value="${p.costo == null ? '' : esc(p.costo)}"></div>
+        <div class="campo"><label>Precio a gimnasios ($ c/u)</label><input class="f-pgim" type="number" min="1" step="1" placeholder="—" value="${p.precio_gimnasio == null ? '' : esc(p.precio_gimnasio)}"></div>
+        <div class="campo"><label>Peso (g) para envíos</label><input class="f-peso" type="number" min="1" step="1" placeholder="—" value="${p.peso_g == null ? '' : esc(p.peso_g)}"></div>
+        <div class="campo"><label>Ganas por pieza</label><div class="peq" style="padding-top:10px">${p.costo != null ? 'Tienda: <b>' + money(p.precio - p.costo) + '</b> (' + Math.round((p.precio - p.costo) / p.precio * 100) + ' %)' + (p.precio_gimnasio ? '<br>Gimnasio: <b>' + money(p.precio_gimnasio - p.costo) + '</b> (' + Math.round((p.precio_gimnasio - p.costo) / p.precio_gimnasio * 100) + ' %)' : '') : 'Pon tu costo'}</div></div>
+      </div>
       <div class="fila" style="margin-top:12px"><button data-prod-guardar>Guardar</button>${p.stock != null && p.stock <= p.stock_minimo ? '<span class="tag r">Stock bajo</span>' : ''}${!p.activo ? '<span class="tag x">Oculto en la tienda</span>' : ''}</div>
     </div>`).join('') : '<div class="vacio">Sin productos.</div>';
 }
@@ -1391,8 +1608,12 @@ $('cuerpoProductos').addEventListener('click', async (e) => {
   if (prev && Number(prev.precio) !== precio && !confirm('Cambiar el precio de ' + prev.nombre + ' de ' + money(prev.precio) + ' a ' + money(precio) + '. Se aplica ya en la tienda. ¿Continuar?')) return;
   b.disabled = true;
   try {
+    const num = (c) => { const v = card.querySelector(c).value.trim(); return v === '' ? null : Number(v); };
+    const costo = num('.f-costo'), pgim = num('.f-pgim'), peso = num('.f-peso');
+    if ((costo != null && !(costo >= 0)) || (pgim != null && !(pgim >= 1)) || (peso != null && !(peso >= 1 && peso === Math.floor(peso)))) { aviso('Revisa costo, precio a gimnasio y peso (el peso en gramos, entero).'); b.disabled = false; return; }
     const r = await rpc('panel_producto_guardar', { p_id: id, p_precio: precio, p_stock: sv === '' ? null : Number(sv), p_stock_minimo: mn, p_activo: card.querySelector('.f-activo').checked });
-    if (r.ok) { aviso('Producto actualizado.', true); await cargarTab('productos', false); } else aviso('No se pudo guardar: ' + r.error);
+    const r2 = r.ok ? await rpc('panel_producto_negocio_guardar', { p_id: id, p_costo: costo, p_precio_gimnasio: pgim, p_peso_g: peso }) : { ok: false };
+    if (r.ok && r2.ok) { aviso('Producto actualizado.', true); await cargarTab('productos', false); } else aviso('No se pudo guardar: ' + (r.error || r2.error));
   } catch (err) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
   b.disabled = false;
 });
