@@ -10194,7 +10194,7 @@ function aetInstalarQR() {
     pinta(`<h3>Instala Aeterion en tu iPhone</h3><p class="s">Toma 10 segundos:</p>
       <ol><li>Toca el botón <b>Compartir</b> (cuadrito con flecha hacia arriba, abajo en Safari).</li><li>Baja y elige <b>Agregar a pantalla de inicio</b>.</li><li>Toca <b>Agregar</b>. Listo.</li></ol>`);
   } else {
-    pinta(`<h3>Instala Aeterion</h3><p class="s">Tu entrenamiento, nutrición y progreso en una app. Gratis, sin tienda de apps y sin ocupar casi espacio.</p><button class="b" data-i>Instalar app</button>`);
+    pinta(`<h3>Instala Aeterion</h3><p class="s">Tu entrenamiento, nutrición y progreso en una app. Se instala sin tienda de apps y casi no ocupa espacio.</p><button class="b" data-i>Instalar app</button>`);
     w.querySelector('[data-i]').onclick = () => {
       const pedir = () => { const ev = window.mmaDeferredInstallPrompt; if (!ev) return false; ev.prompt(); ev.userChoice.then((r) => { window.mmaDeferredInstallPrompt = null; if (r && r.outcome === 'accepted') listo(); }).catch(() => {}); return true; };
       if (pedir()) return;
