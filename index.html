@@ -1599,6 +1599,8 @@
       font-size: 13px;
       color: var(--texto);
     }
+    .muro-beneficio.aet-promo-linea { color: #e8cf86; background: rgba(201,168,76,.10); border: 1px solid rgba(201,168,76,.35); border-radius: 10px; padding: .55rem .7rem .55rem 1.6rem; }
+    .aet-promo-card { border-color: rgba(201,168,76,.6) !important; background: linear-gradient(135deg, rgba(201,168,76,.16), rgba(201,168,76,.03)) !important; }
     .muro-beneficio::before {
       content: '✓';
       color: var(--oro);
@@ -2772,6 +2774,7 @@
   <div class="app-screen" id="app-screen-cuenta">
     <h2 class="app-titulo">Cuenta</h2>
     <p class="app-subtitulo">Tu cuenta, tu perfil, tus avisos, tus datos y ayuda</p>
+    <button class="app-card continuar aet-promo-card" id="appPromoCard" onclick="abrirCuenta()" style="display:none"></button>
     <button class="app-card continuar" id="appCuentaCard" onclick="abrirCuenta()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi cuenta y compras</span><span class="app-card-meta" id="appCuentaMeta">Entrar</span></div>
       <div class="app-card-desc">Tu Premium, tus compras y el seguimiento de tus envíos.</div>
@@ -5134,6 +5137,7 @@
         <div class="muro-beneficio"><b>Gratis:</b> guías, protocolos, salud, educación, bienestar y catálogo de alimentos</div>
         <div class="muro-beneficio"><b>Premium:</b> dietas (Sano, SII, Diabetes), gym, MMA, ciencia del entrenamiento y recetario</div>
         <div class="muro-beneficio">Premium por $59 MXN al mes, o 30 días gratis con el código de tu producto Aeterion</div>
+        <div class="muro-beneficio aet-promo-linea" id="muroPromo" style="display:none"></div>
       </div>
 
       <div class="campo">
@@ -5602,7 +5606,77 @@ async function refrescarEstado() {
   }
   actualizarUIAcceso();
   try { aetAyudaBadge(); } catch (e) {}
+  try { aetPromoUI(); } catch (e) {}
   return r;
+}
+
+/* ---------- Promoción de lanzamiento: prueba Premium para cuentas nuevas ----------
+   El servidor la da sola (estado_acceso) a quien nunca ha tenido Premium; no se suma a pagos ni códigos. */
+let _promoPub = null;
+async function aetPromoPublica() {
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/promo_publica', { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: '{}' });
+    _promoPub = r.ok ? await r.json() : null;
+  } catch (e) { _promoPub = null; }
+  aetPromoPintar();
+}
+function aetPromoPintar() {
+  const p = _promoPub, on = !!(p && p.activa) && !sesionActiva;
+  const txt = on ? String(p.texto || '').replace(/\{dias\}/g, p.dias) : '';
+  const fin = on && p.fin ? ' Termina el ' + _fechaLarga(p.fin) + '.' : '';
+  const m = _$('muroPromo');
+  if (m) { m.style.display = on ? '' : 'none'; m.innerHTML = on ? '<b>🎁 ' + _e(p.titulo || 'Promoción') + ':</b> ' + _e(txt) + _e(fin) : ''; }
+  const c = _$('appPromoCard');
+  if (c) {
+    c.style.display = on ? '' : 'none';
+    c.innerHTML = on ? `<div class="app-card-top"><span class="app-card-titulo">🎁 ${_e(p.titulo || 'Promoción')}</span><span class="app-card-meta">Crear cuenta</span></div><div class="app-card-desc">${_e(txt)}${_e(fin)}</div>` : '';
+  }
+}
+function _promoHoja(tipo, restan, vence) {
+  const vieja = _$('aetPromoHoja'); if (vieja) vieja.remove();
+  if (!_$('aetPromoCss')) {
+    const st = document.createElement('style'); st.id = 'aetPromoCss';
+    st.textContent = `#aetPromoHoja{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.7)}
+    #aetPromoHoja .p{background:#121212;color:#f2f2f2;border:1px solid rgba(201,168,76,.4);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:26px 22px calc(22px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center;animation:aetSube .3s ease}
+    @keyframes aetSube{from{transform:translateY(40px);opacity:0}}
+    #aetPromoHoja .e{font-size:40px;line-height:1;margin-bottom:8px}
+    #aetPromoHoja h3{margin:0 0 8px;font-size:21px;color:#c9a84c}
+    #aetPromoHoja p{color:#bdb6a8;font-size:14.5px;margin:0 0 18px;line-height:1.5}
+    #aetPromoHoja .b{display:block;width:100%;padding:15px;border:0;border-radius:14px;background:#c9a84c;color:#111;font-weight:700;font-size:16px;cursor:pointer}
+    #aetPromoHoja .b2{background:transparent;color:#aaa;font-weight:500;margin-top:6px}`;
+    document.head.appendChild(st);
+  }
+  const fecha = vence ? _fechaLarga(vence) : '';
+  const enApp = document.body.classList.contains('modo-app');
+  const T = {
+    bienvenida: ['🎁', `Tienes ${restan} días de Premium`, `${_e((estadoAcceso && estadoAcceso.promo_titulo) || 'Promoción de lanzamiento')}. Prueba todo: rutinas que ajustan tus cargas, dietas, MMA y recetario. Tu prueba termina el ${_e(fecha)}.`, enApp ? 'Empezar a entrenar' : 'Ver mi cuenta', 'Explorar después'],
+    pocos: ['⏳', `Te ${restan === 1 ? 'queda 1 día' : 'quedan ' + restan + ' días'} de prueba`, `Tu Premium de prueba termina el ${_e(fecha)}. Actívalo por $59 al mes para seguir con tu plan; tu progreso se queda guardado.`, 'Activar Premium · $59', 'Ahora no'],
+    termino: ['💪', 'Tu prueba Premium terminó', 'Gracias por probar Aeterion. Lo gratuito sigue disponible; activa Premium por $59 al mes para volver a tus rutinas, dietas y recetario.', 'Activar Premium · $59', 'Ahora no'],
+  }[tipo];
+  const w = document.createElement('div'); w.id = 'aetPromoHoja';
+  w.innerHTML = `<div class="p" role="dialog" aria-modal="true"><div class="e">${T[0]}</div><h3>${T[1]}</h3><p>${T[2]}</p><button class="b" data-si>${T[3]}</button><button class="b b2" data-no>${T[4]}</button></div>`;
+  const cerrar = () => w.remove();
+  w.querySelector('[data-no]').onclick = cerrar;
+  w.addEventListener('click', ev => { if (ev.target === w) cerrar(); });
+  w.querySelector('[data-si]').onclick = () => {
+    cerrar();
+    if (tipo === 'bienvenida') { if (enApp && typeof aetIr === 'function') aetIr('entrenar'); else abrirCuenta(); }
+    else pagarPremiumUI();
+  };
+  document.body.appendChild(w);
+}
+function aetPromoUI() {
+  aetPromoPintar();
+  const e = estadoAcceso;
+  if (!sesionActiva || _modoDev || !e || !usuarioActual || aetBloqueoLocal()) return;
+  if ((typeof _tour !== 'undefined' && _tour != null) || (_$('muro-acceso') && _$('muro-acceso').classList.contains('visible')) || _$('aetQR')) { clearTimeout(aetPromoUI._t); aetPromoUI._t = setTimeout(aetPromoUI, 4000); return; }
+  const k = 'aet_promo_' + usuarioActual.user_id, s = _leerJSON(k) || {};
+  const hoy = new Date().toLocaleDateString('en-CA');
+  if (e.en_prueba && e.prueba_vence) {
+    const restan = Math.max(1, Math.ceil((Date.parse(e.prueba_vence) - Date.now()) / 864e5));
+    if (!s.bienvenida) { s.bienvenida = 1; s.aviso = hoy; _escribir(k, s); _promoHoja('bienvenida', restan, e.prueba_vence); return; }
+    if (restan <= 3 && s.aviso !== hoy) { s.aviso = hoy; _escribir(k, s); _promoHoja('pocos', restan, e.prueba_vence); }
+  } else if (e.prueba_termino && !s.termino) { s.termino = 1; _escribir(k, s); _promoHoja('termino'); }
 }
 
 function _fechaLarga(iso) {
@@ -5616,7 +5690,7 @@ function actualizarUIAcceso() {
   _txt('appCuentaMeta', sesionActiva ? 'Mi cuenta' : 'Entrar');
   // Banner
   _txt('banner-estado', sesionActiva
-    ? (tienePremiumLocal() ? 'Premium activo hasta el ' + _fechaLarga(estadoAcceso.vence_en) : 'Cuenta gratuita · Premium no activo')
+    ? (tienePremiumLocal() ? (estadoAcceso.en_prueba ? 'Prueba Premium hasta el ' : 'Premium activo hasta el ') + _fechaLarga(estadoAcceso.vence_en) : 'Cuenta gratuita · Premium no activo')
     : '');
   // Candados: solo en lo que es Premium; si ya hay Premium, se quitan
   document.querySelectorAll('.guia-card').forEach(card => {
@@ -5628,6 +5702,7 @@ function actualizarUIAcceso() {
     lock.style.display = (esPremium && !tienePremiumLocal()) ? '' : 'none';
   });
   renderCuenta();
+  try { aetPromoPintar(); } catch (e) {}
 }
 
 /* ---------- Inicio ---------- */
@@ -5672,6 +5747,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   actualizarUIAcceso();
+  aetPromoPublica();
 
   if (sesionActiva && !_modoDev) {
     refrescarEstado().then(() => { _despuesDeEstado(q.get('pago') === 'ok'); setTimeout(() => { try { aetNombreDesdeNube(true); } catch (e) {} }, 2500); });
@@ -5925,11 +6001,18 @@ function renderCuenta() {
   _txt('cta_sync', typeof estadoSyncTexto === 'function' ? estadoSyncTexto() : '');
   const premium = tienePremiumLocal();
   const e = _$('cta_estado');
-  e.textContent = premium ? 'PREMIUM ACTIVO' : 'CUENTA GRATUITA';
+  const prueba = premium && estadoAcceso && estadoAcceso.en_prueba;
+  e.textContent = prueba ? 'PRUEBA PREMIUM' : premium ? 'PREMIUM ACTIVO' : 'CUENTA GRATUITA';
+  const nota = _$('cta_nota_pago');
+  if (nota) nota.textContent = prueba
+    ? 'Un pago = 30 días de Premium, desde el día que pagas. Tus días de prueba no se suman: al pagar o canjear un código, la prueba termina y empieza tu Premium. Sin renovación automática.'
+    : 'Un pago = 30 días de Premium. Sin renovación automática: tú decides cuándo volver a pagar. Si ya tienes días, se suman.';
   if (!sesionActiva) { _txt('cta_detalle', ''); return; }
   if (premium) {
     const d = Math.max(0, Math.ceil((new Date(estadoAcceso.vence_en).getTime() - Date.now()) / 86400000));
-    _txt('cta_detalle', 'Vigente hasta el ' + _fechaLarga(estadoAcceso.vence_en) + ' (' + d + (d === 1 ? ' día' : ' días') + '). Si canjeas o pagas antes, los días se suman.');
+    _txt('cta_detalle', prueba
+      ? (estadoAcceso.promo_titulo || 'Promoción de lanzamiento') + ': te ' + (d === 1 ? 'queda 1 día' : 'quedan ' + d + ' días') + ' de prueba (hasta el ' + _fechaLarga(estadoAcceso.vence_en) + '). Si pagas o canjeas un código, tu Premium empieza ese día; los días de prueba no se suman.'
+      : 'Vigente hasta el ' + _fechaLarga(estadoAcceso.vence_en) + ' (' + d + (d === 1 ? ' día' : ' días') + '). Si canjeas o pagas antes, los días se suman.');
   } else {
     _txt('cta_detalle', estadoAcceso && estadoAcceso.vence_en
       ? 'Tu Premium venció el ' + _fechaLarga(estadoAcceso.vence_en) + '. Lo gratuito sigue disponible.'
@@ -8718,6 +8801,7 @@ async function recPrueba() {
 function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
   if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
+  if (d === 'premium') { aetIr('cuenta'); setTimeout(() => abrirCuenta(), 300); return; }
   if (['inicio', 'entrenar', 'nutricion', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
 }
 

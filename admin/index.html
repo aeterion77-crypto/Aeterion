@@ -125,6 +125,8 @@
 
   /* Formularios del panel */
   .rejilla { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .rejilla > * { min-width:0; } .rejilla input:not([type=checkbox]) { min-width:0; max-width:100%; }
+  @media (max-width:520px) { .rejilla.fechas { grid-template-columns:1fr; } }
   @media (min-width:700px) { .rejilla.c4 { grid-template-columns:repeat(4,1fr); } }
   .campo label { display:block; font-size:12px; color:var(--gris); margin-bottom:4px; }
   .campo.chk { display:flex; align-items:center; gap:8px; padding-top:20px; } .campo.chk input { width:auto; min-height:0; }
@@ -246,6 +248,45 @@
       </div>
       <input type="search" id="buscarAcc" placeholder="Buscar correo…" style="margin-bottom:12px">
       <div class="card" id="listaAccesos"></div>
+    </section>
+
+    <section id="tPromo" class="oculto">
+      <div class="card" style="margin-bottom:14px">
+        <div class="cab"><b>Promoción de lanzamiento</b><span id="prEstado"></span></div>
+        <div class="peq" style="margin:6px 0 10px">Da días de Premium gratis a cada cuenta que <b>nunca</b> ha tenido Premium (ni pago, ni código, ni días tuyos). Si alguien paga o canjea un código durante la prueba, la prueba se termina ese día y empieza su Premium: <b>los días no se suman</b>. Al pausarla, las pruebas que ya empezaron siguen hasta su fecha.</div>
+        <div class="fila"><button id="prActivar">Activar promoción</button><button class="mal" id="prPausar">Pausar promoción</button></div>
+      </div>
+      <div class="kpis" id="prKpis"></div>
+      <div class="card" style="margin-bottom:14px">
+        <b>Configuración</b>
+        <div class="rejilla fechas" style="margin-top:10px">
+          <div class="campo"><label>Días de prueba</label><input type="number" id="prDias" min="1" max="90" step="1"></div>
+          <div class="campo"><label>Empieza (opcional)</label><input type="datetime-local" id="prInicio"></div>
+          <div class="campo"><label>Termina (opcional)</label><input type="datetime-local" id="prFin"></div>
+          <div class="campo"><label>&nbsp;</label><button class="sec" id="prSinFin" type="button">Sin fecha de fin</button></div>
+        </div>
+        <div class="campo" style="margin-top:10px"><label>Título que ve la gente</label><input id="prTitulo" maxlength="80"></div>
+        <div class="campo" style="margin-top:8px"><label>Texto (usa {dias} para el número de días)</label><textarea id="prTexto" maxlength="300" rows="2"></textarea></div>
+        <div class="peq" id="prVista" style="margin-top:8px"></div>
+        <div class="acciones" style="margin-top:10px"><button id="prGuardar">Guardar configuración</button></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <b>Avisos antes de que termine la prueba</b>
+        <div class="peq" style="margin:4px 0 8px">Se mandan solos entre 10 am y 9 pm de la hora de cada persona. Puedes usar {restan} (días que le quedan) y {fecha} (día que termina).</div>
+        <div class="rejilla c4">
+          <div class="campo chk"><input type="checkbox" id="prAv1"><label for="prAv1" style="margin:0">Aviso previo</label></div>
+          <div class="campo"><label>¿Cuántos días antes?</label><input type="number" id="prDiasAntes" min="2" max="10" step="1"></div>
+          <div class="campo chk"><input type="checkbox" id="prAv2"><label for="prAv2" style="margin:0">Aviso el último día</label></div>
+          <div class="campo chk"><input type="checkbox" id="prPush"><label for="prPush" style="margin:0">Mandar notificación</label></div>
+          <div class="campo chk"><input type="checkbox" id="prCorreo"><label for="prCorreo" style="margin:0">Mandar correo</label></div>
+        </div>
+        <div class="campo" style="margin-top:10px"><label>Aviso previo · título</label><input id="prA1t" maxlength="80"></div>
+        <div class="campo" style="margin-top:6px"><label>Aviso previo · mensaje</label><textarea id="prA1c" maxlength="300" rows="2"></textarea></div>
+        <div class="campo" style="margin-top:10px"><label>Último día · título</label><input id="prA2t" maxlength="80"></div>
+        <div class="campo" style="margin-top:6px"><label>Último día · mensaje</label><textarea id="prA2c" maxlength="300" rows="2"></textarea></div>
+        <div class="acciones" style="margin-top:10px"><button id="prGuardarAv">Guardar avisos</button></div>
+      </div>
+      <div class="card"><b>Pruebas recientes</b><div id="prLista" style="margin-top:8px"></div></div>
     </section>
 
     <section id="tFrases" class="oculto">
@@ -712,7 +753,7 @@ function pintarAccesos() {
   const f = accesos.filter((a) => !q || String(a.email).toLowerCase().includes(q));
   $('listaAccesos').innerHTML = f.length ? f.map((a) => {
     const est = a.revocado_en ? '<span class="tag x">Quitado</span>' : a.vigente ? '<span class="tag v">Activo</span>' : '<span class="tag x">Vencido</span>';
-    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : a.origen === 'codigo' ? 'Código' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div><div class="acciones">${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}<button class="sec mini" data-dar="${esc(a.email)}">Dar días</button></div></div>`;
+    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : a.origen === 'codigo' ? 'Código' : a.origen === 'promo' ? 'Prueba de lanzamiento' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div><div class="acciones">${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}<button class="sec mini" data-dar="${esc(a.email)}">Dar días</button></div></div>`;
   }).join('') : '<div class="vacio">Sin accesos.</div>';
 }
 
@@ -1336,13 +1377,13 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', stripe: 'tStripe', historial: 'tHistorial', seguridad: 'tSeguridad' };
+const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', stripe: 'tStripe', promo: 'tPromo', historial: 'tHistorial', seguridad: 'tSeguridad' };
 // 6 secciones, cada una con sus sub-pestañas
 const GRUPOS = {
   inicio: ['Inicio', [['inicio', 'Hoy'], ['resumen', 'Ventas y métricas'], ['uso', 'Uso de la app']]],
   ventas: ['Ventas', [['pedidos', 'Pedidos'], ['stripe', 'Stripe'], ['clientes', 'Clientes'], ['cupones', 'Cupones'], ['exportar', 'Exportar']]],
   tienda: ['Tienda', [['productos', 'Productos'], ['inventario', 'Inventario'], ['negocio', 'Números'], ['mayoreo', 'Venta a gimnasio'], ['gastos', 'Gastos'], ['tiendaAj', 'Aviso y pausa']]],
-  premium: ['Premium', [['premium', 'Dar o quitar'], ['gimnasios', 'Códigos de gimnasios']]],
+  premium: ['Premium', [['premium', 'Dar o quitar'], ['promo', 'Promoción'], ['gimnasios', 'Códigos de gimnasios']]],
   soporte: ['Soporte', [['soporte', 'Conversaciones'], ['bloqueos', 'Bloqueados']]],
   ajustes: ['Ajustes', [['ajustes', 'Textos de la app'], ['frases', 'Frases'], ['seguridad', 'Seguridad'], ['historial', 'Historial'], ['sesion', 'Avisos y sesión']]],
 };
@@ -1453,6 +1494,7 @@ async function cargarTab(t, silencioso) {
     if (t === 'soporte' || t === 'bloqueos') { await cargarSoporte(silencioso); }
     else if (t === 'inicio') { cargarPendientes(); }
     else if (t === 'stripe') { await cargarStripe(silencioso); }
+    else if (t === 'promo') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tPromo')) return; datosPr = await rpc('panel_promo'); pintarPromo(); }
     else if (t === 'negocio' || t === 'mayoreo' || t === 'gastos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tMayoreo,#tGastos')) return; await cargarNegocio(); }
     else if (t === 'tiendaAj') { datosAj = await rpc('panel_ajustes'); pintarAjustes(); }
     else if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
@@ -1516,6 +1558,67 @@ function pintarStripe() {
     ${(D.errores || []).length ? `<div class="peq" style="color:#ff8a7d">Algunos datos no se pudieron leer: ${esc(D.errores.join(' · '))}</div>` : ''}`;
 }
 $('stRecargar').addEventListener('click', () => cargarStripe(false));
+
+/* ---- Promoción de lanzamiento ---- */
+let datosPr = null;
+const aLocalDT = (iso) => { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; const z = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`; };
+const deLocalDT = (v) => (v ? new Date(v).toISOString() : null);
+const PR_EST = { activa: ['v', 'En prueba'], pago: ['o', 'Pagó'], codigo: ['a', 'Canjeó código'], termino: ['x', 'Terminó sin pagar'], cortada: ['x', 'Cortada'] };
+function prEstadoTag(c, vig) {
+  if (vig) return '<span class="tag v">Activa ahora</span>';
+  if (!c.activa) return '<span class="tag x">Pausada</span>';
+  if (c.inicio && new Date(c.inicio) > new Date()) return '<span class="tag a">Programada · empieza ' + esc(fechaCorta(c.inicio)) + '</span>';
+  if (c.fin && new Date(c.fin) <= new Date()) return '<span class="tag r">Terminó el ' + esc(fechaCorta(c.fin)) + '</span>';
+  return '<span class="tag x">Inactiva</span>';
+}
+function pintarPromo() {
+  const D = datosPr; if (!D) return;
+  const c = D.cfg || {}, S = D.stats || {};
+  $('prEstado').innerHTML = prEstadoTag(c, D.vigente);
+  $('prActivar').classList.toggle('oculto', !!c.activa); $('prPausar').classList.toggle('oculto', !c.activa);
+  $('prDias').value = c.dias ?? 15; $('prInicio').value = aLocalDT(c.inicio); $('prFin').value = aLocalDT(c.fin);
+  $('prTitulo').value = c.titulo || ''; $('prTexto').value = c.texto || '';
+  $('prAv1').checked = c.aviso_previo !== false; $('prDiasAntes').value = c.dias_antes ?? 3; $('prAv2').checked = c.aviso_final !== false;
+  $('prPush').checked = c.push !== false; $('prCorreo').checked = c.correo !== false;
+  $('prA1t').value = c.aviso1_titulo || ''; $('prA1c').value = c.aviso1_cuerpo || ''; $('prA2t').value = c.aviso2_titulo || ''; $('prA2c').value = c.aviso2_cuerpo || '';
+  prVista();
+  const decididas = Number(S.terminadas || 0), pagaron = Number(S.pagaron || 0);
+  const conv = decididas > 0 ? Math.round(pagaron / decididas * 100) : null;
+  $('prKpis').innerHTML = `
+    <div class="kpi"><small>Pruebas iniciadas</small><b>${S.iniciadas || 0}</b><i class="igual">hoy ${S.hoy || 0} · 7 días ${S.ultimos7 || 0}</i></div>
+    <div class="kpi"><small>En prueba ahora</small><b>${S.activas || 0}</b><i class="igual">avisos enviados: ${S.aviso1 || 0} previos · ${S.aviso2 || 0} último día</i></div>
+    <div class="kpi"><small>Pagaron</small><b>${pagaron}</b><i class="igual">${S.pagaron_durante || 0} durante la prueba · ${S.canjearon || 0} canjearon código</i></div>
+    <div class="kpi" style="border-color:rgba(201,168,76,.5)"><small>Conversión</small><b>${conv == null ? '—' : conv + ' %'}</b><i class="igual">${conv == null ? 'aún no termina ninguna prueba' : 'de las pruebas que ya terminaron, cuántas pagaron'}</i></div>`;
+  const L = D.lista || [];
+  $('prLista').innerHTML = L.length ? L.map((x) => { const [k, t] = PR_EST[x.estado] || ['x', x.estado]; return `<div class="cab" style="padding:8px 0;border-top:1px solid var(--linea)"><div><b>${esc(x.email)}</b><div class="peq">empezó ${esc(fechaCorta(x.inicio))} · ${x.estado === 'activa' ? 'termina' : 'terminaba'} ${esc(fechaCorta(x.hasta))}</div></div><span class="tag ${k}">${t}</span></div>`; }).join('') : '<div class="vacio">Todavía nadie ha empezado una prueba.</div>';
+}
+function prVista() {
+  const d = Number($('prDias').value) || 15, t = $('prTexto').value.replace(/\{dias\}/g, d);
+  $('prVista').innerHTML = 'Así se ve: <b>🎁 ' + esc($('prTitulo').value || '') + ':</b> ' + esc(t) + ($('prFin').value ? ' Termina el ' + esc(new Date($('prFin').value).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })) + '.' : '');
+}
+['prDias', 'prTexto', 'prTitulo', 'prFin'].forEach((id) => $(id).addEventListener('input', prVista));
+const ERR_PR = { dias: 'Los días deben ser de 1 a 90.', dias_antes: 'El aviso previo debe ser de 2 a 10 días antes.', fecha: 'Fecha no válida.', rango: 'La fecha de fin debe ser después de la de inicio.', texto: 'Hay un texto vacío o demasiado largo.', formato: 'Formato no válido.' };
+async function guardarPromo(cambios, ok, detalle) {
+  try {
+    const r = await rpc('panel_promo_guardar', { p: cambios });
+    if (r.ok) { aviso(ok, true); bitacora('Promoción de lanzamiento', detalle || ok); datosPr = await rpc('panel_promo'); pintarPromo(); }
+    else aviso(ERR_PR[r.error] || 'No se pudo guardar.');
+  } catch (e) { falloTab(e, false); }
+}
+$('prActivar').onclick = () => guardarPromo({ activa: true }, 'Promoción activada.');
+$('prPausar').onclick = () => { if (!confirm('¿Pausar la promoción? Las cuentas nuevas ya no recibirán días gratis. Quien ya está en prueba la conserva hasta su fecha.')) return; guardarPromo({ activa: false }, 'Promoción pausada.'); };
+$('prSinFin').onclick = () => { $('prFin').value = ''; prVista(); };
+$('prGuardar').onclick = () => {
+  const dias = Number($('prDias').value);
+  if (!(dias >= 1 && dias <= 90)) { aviso(ERR_PR.dias); return; }
+  guardarPromo({ dias, inicio: deLocalDT($('prInicio').value), fin: deLocalDT($('prFin').value), titulo: $('prTitulo').value, texto: $('prTexto').value }, 'Configuración guardada.', dias + ' días' + ($('prFin').value ? ' · termina ' + $('prFin').value.replace('T', ' ') : ' · sin fecha de fin'));
+};
+$('prGuardarAv').onclick = () => {
+  const da = Number($('prDiasAntes').value);
+  if (!(da >= 2 && da <= 10)) { aviso(ERR_PR.dias_antes); return; }
+  guardarPromo({ aviso_previo: $('prAv1').checked, dias_antes: da, aviso_final: $('prAv2').checked, push: $('prPush').checked, correo: $('prCorreo').checked,
+    aviso1_titulo: $('prA1t').value, aviso1_cuerpo: $('prA1c').value, aviso2_titulo: $('prA2t').value, aviso2_cuerpo: $('prA2c').value }, 'Avisos guardados.');
+};
 
 /* ---- Frases de la semana ---- */
 const FR_INICIO = new Date(2026, 9, 12); // lunes 12 oct 2026 = semana 1 (igual que la app)
