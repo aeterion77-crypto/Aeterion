@@ -5,7 +5,7 @@
      el navegador habla directo con el servidor. Safari/iPhone exige respuestas parciales (206) reales
      para reproducir video, y las descargas no deben servirse desde una copia vieja.
    - Archivos pequeños (íconos, manifest) usan la copia guardada y se actualizan en segundo plano. */
-const CACHE = 'aeterion-v57';
+const CACHE = 'aeterion-v58';
 const ARCHIVOS_BASE = ['./index.html', './manifest.json'];
 const NO_INTERCEPTAR = /\.(mp4|m4v|mov|webm|mp3|m4a|wav|ogg|xlsx|xls|docx|doc|pdf|zip)$/i;
 

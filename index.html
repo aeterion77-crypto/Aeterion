@@ -10154,6 +10154,58 @@ if (esIOS && !(window.navigator.standalone === true)) {
   });
 }
 
+/* ---------- Instalar desde QR: aeterionlabs.tech/?instalar ----------
+   Ningún navegador deja instalar sin un toque del usuario, así que el QR
+   abre esta ventana con un solo botón (Android/PC) o los pasos (iPhone). */
+function aetInstalarQR() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('instalar')) return;
+  try { q.delete('instalar'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
+  const ua = navigator.userAgent || '';
+  const instalada = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (instalada) return;
+  const enApp = /Instagram|FBAN|FBAV|FB_IAB|Line\/|TikTok|musical_ly|BytedanceWebview|WhatsApp|Snapchat/i.test(ua);
+  const android = /Android/i.test(ua);
+  const url = 'https://aeterionlabs.tech/?instalar=1';
+  const st = document.createElement('style');
+  st.textContent = `#aetQR{position:fixed;inset:0;z-index:100000;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.72);font-family:inherit}
+  #aetQR .p{background:#121212;color:#f2f2f2;border:1px solid rgba(201,168,76,.35);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:24px 22px calc(22px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
+  #aetQR img{width:72px;height:72px;border-radius:18px;margin-bottom:10px}
+  #aetQR h3{margin:0 0 6px;font-size:21px;color:#c9a84c}
+  #aetQR .s{color:#aaa;font-size:14px;margin:0 0 18px;line-height:1.45}
+  #aetQR .b{display:block;width:100%;padding:15px;border:0;border-radius:14px;background:#c9a84c;color:#111;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;box-sizing:border-box}
+  #aetQR .b2{background:transparent;color:#aaa;font-weight:500;margin-top:8px}
+  #aetQR ol{text-align:left;margin:0 0 16px;padding-left:22px;line-height:1.7;font-size:15px}
+  #aetQR ol b{color:#c9a84c}`;
+  document.head.appendChild(st);
+  const w = document.createElement('div'); w.id = 'aetQR';
+  const cerrar = () => w.remove();
+  const pinta = (html) => { w.innerHTML = `<div class="p"><img src="icons/icon-192.png" alt="">${html}<button class="b b2" data-x>Ahora no</button></div>`; w.querySelector('[data-x]').onclick = cerrar; };
+  const pasosManual = () => pinta(`<h3>Instala Aeterion</h3><p class="s">Tu navegador no muestra el botón automático. Hazlo así:</p>
+    <ol><li>Toca el menú <b>⋮</b> (arriba a la derecha).</li><li>Elige <b>Instalar app</b> o <b>Agregar a pantalla de inicio</b>.</li><li>Confirma. Listo, ya la tienes como app.</li></ol>
+    <p class="s">¿Ya la instalaste antes? Ábrela desde tu pantalla de inicio.</p>`);
+  const listo = () => pinta(`<h3>¡Listo!</h3><p class="s">Aeterion ya está en tu pantalla de inicio. Ábrela desde ahí.</p>`);
+  if (enApp) {
+    pinta(`<h3>Ábrelo en tu navegador</h3><p class="s">Desde ${/Instagram/i.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB/i.test(ua) ? 'Facebook' : /TikTok|musical_ly|Bytedance/i.test(ua) ? 'TikTok' : 'esta app'} no se puede instalar. Ábrelo en ${android ? 'Chrome' : 'Safari'} para instalar Aeterion.</p>
+      ${android ? `<a class="b" href="intent://aeterionlabs.tech/?instalar=1#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end">Abrir en Chrome</a>`
+        : `<ol><li>Toca <b>⋯</b> o el ícono de compartir.</li><li>Elige <b>Abrir en Safari</b> (o "Abrir en navegador").</li></ol><button class="b" data-c>Copiar enlace</button>`}`);
+    const c = w.querySelector('[data-c]'); if (c) c.onclick = () => { try { navigator.clipboard.writeText(url); c.textContent = 'Enlace copiado ✓'; } catch (e) {} };
+  } else if (esIOS) {
+    pinta(`<h3>Instala Aeterion en tu iPhone</h3><p class="s">Toma 10 segundos:</p>
+      <ol><li>Toca el botón <b>Compartir</b> (cuadrito con flecha hacia arriba, abajo en Safari).</li><li>Baja y elige <b>Agregar a pantalla de inicio</b>.</li><li>Toca <b>Agregar</b>. Listo.</li></ol>`);
+  } else {
+    pinta(`<h3>Instala Aeterion</h3><p class="s">Tu entrenamiento, nutrición y progreso en una app. Gratis, sin tienda de apps y sin ocupar casi espacio.</p><button class="b" data-i>Instalar app</button>`);
+    w.querySelector('[data-i]').onclick = () => {
+      const pedir = () => { const ev = window.mmaDeferredInstallPrompt; if (!ev) return false; ev.prompt(); ev.userChoice.then((r) => { window.mmaDeferredInstallPrompt = null; if (r && r.outcome === 'accepted') listo(); }).catch(() => {}); return true; };
+      if (pedir()) return;
+      const b = w.querySelector('[data-i]'); b.textContent = 'Preparando…'; b.disabled = true;
+      let n = 0; const t = setInterval(() => { if (pedir()) clearInterval(t); else if (++n > 12) { clearInterval(t); pasosManual(); } }, 250);
+    };
+  }
+  window.addEventListener('appinstalled', listo);
+  document.body.appendChild(w);
+}
+window.addEventListener('DOMContentLoaded', aetInstalarQR);
 window.addEventListener('DOMContentLoaded', detectarModoApp);
 </script>
 
