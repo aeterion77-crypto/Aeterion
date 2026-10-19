@@ -287,6 +287,12 @@
 
     <section id="tUso" class="oculto"><div id="cuerpoUso"><div class="vacio">Cargando…</div></div></section>
 
+    <section id="tStripe" class="oculto">
+      <div class="peq" style="margin-bottom:10px">Datos en vivo de tu cuenta de Stripe (solo lectura). Al abrir esta pestaña, los reembolsos que hiciste en Stripe se aplican solos a tus pedidos y Premium.</div>
+      <div id="stCuerpo"><div class="vacio">Cargando…</div></div>
+      <div class="acciones" style="margin-top:10px"><button class="sec" id="stRecargar">Actualizar</button><a class="sec" href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;padding:0 14px;border:1px solid var(--linea);border-radius:10px;color:inherit">Abrir Stripe ↗</a></div>
+    </section>
+
     <section id="tExportar" class="oculto">
       <div class="card" style="margin-bottom:14px">
         <b>Exportar a Excel (CSV)</b>
@@ -1302,7 +1308,7 @@ async function cargar(silencioso) {
     vista(true);
     if (nuevos && silencioso) aviso('Llegó un pedido nuevo', true);
     cargarPendientes();
-    if (!['pedidos', 'premium', 'inicio', 'sesion', 'exportar'].includes(tabActiva)) cargarTab(tabActiva, true);
+    if (!['pedidos', 'premium', 'inicio', 'sesion', 'exportar', 'stripe'].includes(tabActiva)) cargarTab(tabActiva, true);
   } catch (e) {
     if (e.status === 401) { sesion = null; guardar(); vista(false); aviso('La sesión venció. Entra de nuevo.'); }
     else if (e.status === 403 || /autorizado/.test(e.message)) puerta();
@@ -1330,11 +1336,11 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', historial: 'tHistorial', seguridad: 'tSeguridad' };
+const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', stripe: 'tStripe', historial: 'tHistorial', seguridad: 'tSeguridad' };
 // 6 secciones, cada una con sus sub-pestañas
 const GRUPOS = {
   inicio: ['Inicio', [['inicio', 'Hoy'], ['resumen', 'Ventas y métricas'], ['uso', 'Uso de la app']]],
-  ventas: ['Ventas', [['pedidos', 'Pedidos'], ['clientes', 'Clientes'], ['cupones', 'Cupones'], ['exportar', 'Exportar']]],
+  ventas: ['Ventas', [['pedidos', 'Pedidos'], ['stripe', 'Stripe'], ['clientes', 'Clientes'], ['cupones', 'Cupones'], ['exportar', 'Exportar']]],
   tienda: ['Tienda', [['productos', 'Productos'], ['inventario', 'Inventario'], ['negocio', 'Números'], ['mayoreo', 'Venta a gimnasio'], ['gastos', 'Gastos'], ['tiendaAj', 'Aviso y pausa']]],
   premium: ['Premium', [['premium', 'Dar o quitar'], ['gimnasios', 'Códigos de gimnasios']]],
   soporte: ['Soporte', [['soporte', 'Conversaciones'], ['bloqueos', 'Bloqueados']]],
@@ -1446,6 +1452,7 @@ async function cargarTab(t, silencioso) {
   try {
     if (t === 'soporte' || t === 'bloqueos') { await cargarSoporte(silencioso); }
     else if (t === 'inicio') { cargarPendientes(); }
+    else if (t === 'stripe') { await cargarStripe(silencioso); }
     else if (t === 'negocio' || t === 'mayoreo' || t === 'gastos') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tMayoreo,#tGastos')) return; await cargarNegocio(); }
     else if (t === 'tiendaAj') { datosAj = await rpc('panel_ajustes'); pintarAjustes(); }
     else if (t === 'resumen') { datosRes = await rpc('panel_metricas', { p_dias: diasRes }); pintarResumen(); }
@@ -1461,6 +1468,54 @@ async function cargarTab(t, silencioso) {
     else if (t === 'gimnasios') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tGimnasios')) return; const [gl, gr] = await Promise.all([rpc('panel_lotes'), rpc('panel_gimnasios_resumen')]); datosGym = gl; datosGymRes = gr; pintarGymResumen(); pintarGimnasios(); if (cgGym) cargarGym(); }
   } catch (e) { falloTab(e, silencioso); }
 }
+
+/* ---- Stripe (solo lectura + sincroniza reembolsos) ---- */
+let datosSt = null, stCargando = false;
+const ST_EST = { pagado: ['v', 'Pagado'], reembolsado: ['r', 'Reembolsado'], reembolso_parcial: ['o', 'Reembolso parcial'], disputa: ['r', 'Disputa'], pendiente: ['a', 'Pendiente'], fallido: ['x', 'Fallido'] };
+const ST_PAY = { paid: 'Depositado', pending: 'En camino', in_transit: 'En camino', canceled: 'Cancelado', failed: 'Falló' };
+async function cargarStripe(silencioso) {
+  if (stCargando) return; stCargando = true;
+  if (!datosSt) $('stCuerpo').innerHTML = '<div class="vacio">Consultando Stripe…</div>';
+  try {
+    const r = await conToken(() => fetch(SUPABASE_URL + '/functions/v1/stripe-panel', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: '{}' }));
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { if (d.error === 'no_autorizado') return puerta(); $('stCuerpo').innerHTML = '<div class="vacio">No se pudo leer Stripe' + (d.error === 'sin_llave' ? ': falta la llave secreta en el servidor.' : '.') + '</div>'; return; }
+    datosSt = d; pintarStripe();
+    if (d.sincronizados && d.sincronizados.length) {
+      aviso(d.sincronizados.length + ' reembolso(s) de Stripe aplicados', true);
+      bitacora('Sincronizó reembolsos de Stripe', d.sincronizados.map((x) => '$' + x.monto).join(', '));
+      cargar(true);
+    }
+  } catch (e) { if (!silencioso) aviso('No se pudo consultar Stripe.'); }
+  finally { stCargando = false; }
+}
+function pintarStripe() {
+  const D = datosSt; if (!D) return;
+  const M = D.movimientos || [], dt = (iso) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+  const hace30 = Date.now() - 30 * 864e5, mes = M.filter((m) => new Date(m.fecha) >= hace30 && m.estado !== 'fallido');
+  const cobrado = mes.reduce((a, m) => a + m.monto, 0), reemb = mes.reduce((a, m) => a + m.reembolsado, 0), com = mes.reduce((a, m) => a + (m.comision || 0), 0);
+  const abiertas = (D.disputas || []).filter((x) => /needs_response|warning_needs_response|under_review/.test(x.estado));
+  const S = D.saldo;
+  $('stCuerpo').innerHTML = `
+    ${D.modo === 'prueba' ? '<div class="card" style="border-color:#f1c40f;margin-bottom:10px">Estás viendo el <b>modo de prueba</b> de Stripe.</div>' : ''}
+    ${abiertas.length ? `<div class="card" style="border-color:rgba(231,76,60,.6);margin-bottom:10px"><b style="color:#ff8a7d">⚠️ ${abiertas.length} disputa(s) abierta(s)</b><div class="peq">Un cliente desconoció un cargo. Responde en Stripe con la guía y el recibo antes de ${abiertas[0].vence ? dt(abiertas[0].vence) : 'la fecha límite'}, o pierdes el dinero.</div></div>` : ''}
+    <div class="kpis">
+      <div class="kpi"><small>Disponible en Stripe</small><b>${S ? pesos2(S.disponible) : '—'}</b><i class="igual">listo para depositarse</i></div>
+      <div class="kpi"><small>Por liberar</small><b>${S ? pesos2(S.pendiente) : '—'}</b><i class="igual">pagos recientes en espera</i></div>
+      <div class="kpi"><small>Cobrado (30 días)</small><b>${pesos2(cobrado - reemb)}</b><i class="igual">${reemb > 0 ? 'ya sin ' + pesos2(reemb) + ' reembolsados' : mes.length + ' pago(s)'}</i></div>
+      <div class="kpi"><small>Comisiones reales (30 días)</small><b>${pesos2(com)}</b><i class="igual">lo que cobró Stripe${reemb > 0 ? ' · no se devuelven al reembolsar' : ''}</i></div>
+    </div>
+    <div class="bloque"><h3>Pagos recientes</h3>
+      ${M.length ? M.map((m) => { const [c, t] = ST_EST[m.estado] || ['x', m.estado]; return `<div style="padding:9px 0;border-top:1px solid var(--linea)">
+        <div class="cab"><div><b>${pesos2(m.monto)}</b> <span class="tag ${c}">${t}</span>${m.reembolsado > 0 && m.estado !== 'reembolsado' ? `<span class="peq">−${pesos2(m.reembolsado)}</span>` : ''}</div><div class="peq">${dt(m.fecha)}</div></div>
+        <div class="peq">${esc(m.tipo === 'pedido' ? 'Tienda' + (m.pedido ? ' · pedido #' + m.pedido : '') : m.tipo === 'premium' ? 'Premium' : 'Otro')} · ${esc(m.nombre || m.email || 'sin nombre')}${m.tarjeta ? ' · ' + esc(m.tarjeta) : ''}${m.neto != null && m.estado === 'pagado' ? ' · te quedan ' + pesos2(m.neto) : ''}</div></div>`; }).join('') : '<div class="vacio">Sin pagos todavía.</div>'}
+    </div>
+    <div class="bloque"><h3>Depósitos a tu banco</h3>
+      ${(D.depositos || []).length ? D.depositos.map((p) => `<div class="cab" style="padding:7px 0;border-top:1px solid var(--linea)"><div><b>${pesos2(p.monto)}</b> <span class="tag ${p.estado === 'paid' ? 'v' : p.estado === 'failed' ? 'r' : 'a'}">${ST_PAY[p.estado] || esc(p.estado)}</span></div><div class="peq">${p.estado === 'paid' ? 'llegó' : 'llega'} ${dt(p.llega)}</div></div>`).join('') : '<div class="vacio">Aún no hay depósitos.</div>'}
+    </div>
+    ${(D.errores || []).length ? `<div class="peq" style="color:#ff8a7d">Algunos datos no se pudieron leer: ${esc(D.errores.join(' · '))}</div>` : ''}`;
+}
+$('stRecargar').addEventListener('click', () => cargarStripe(false));
 
 /* ---- Frases de la semana ---- */
 const FR_INICIO = new Date(2026, 9, 12); // lunes 12 oct 2026 = semana 1 (igual que la app)
