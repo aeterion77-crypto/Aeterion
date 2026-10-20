@@ -266,7 +266,7 @@
           <div class="campo"><label>&nbsp;</label><button class="sec" id="prSinFin" type="button">Sin fecha de fin</button></div>
         </div>
         <div class="campo" style="margin-top:10px"><label>Título que ve la gente</label><input id="prTitulo" maxlength="80"></div>
-        <div class="campo" style="margin-top:8px"><label>Texto (usa {dias} para el número de días)</label><textarea id="prTexto" maxlength="300" rows="2"></textarea></div>
+        <div class="campo" style="margin-top:8px"><label>Texto (usa {dias} para el número de días; la etiqueta «Por tiempo limitado» se pone sola)</label><textarea id="prTexto" maxlength="300" rows="2"></textarea></div>
         <div class="peq" id="prVista" style="margin-top:8px"></div>
         <div class="acciones" style="margin-top:10px"><button id="prGuardar">Guardar configuración</button></div>
       </div>
@@ -1594,7 +1594,7 @@ function pintarPromo() {
 }
 function prVista() {
   const d = Number($('prDias').value) || 15, t = $('prTexto').value.replace(/\{dias\}/g, d);
-  $('prVista').innerHTML = 'Así se ve: <b>🎁 ' + esc($('prTitulo').value || '') + ':</b> ' + esc(t) + ($('prFin').value ? ' Termina el ' + esc(new Date($('prFin').value).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })) + '.' : '');
+  $('prVista').innerHTML = 'Así se ve: <span class="tag o">⏳ POR TIEMPO LIMITADO</span> <b>🎁 ' + esc($('prTitulo').value || '') + ':</b> ' + esc(t.replace(/\s*por tiempo limitado\.?\s*$/i, '')) + ($('prFin').value ? ' Termina el ' + esc(new Date($('prFin').value).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })) + '.' : '');
 }
 ['prDias', 'prTexto', 'prTitulo', 'prFin'].forEach((id) => $(id).addEventListener('input', prVista));
 const ERR_PR = { dias: 'Los días deben ser de 1 a 90.', dias_antes: 'El aviso previo debe ser de 2 a 10 días antes.', fecha: 'Fecha no válida.', rango: 'La fecha de fin debe ser después de la de inicio.', texto: 'Hay un texto vacío o demasiado largo.', formato: 'Formato no válido.' };

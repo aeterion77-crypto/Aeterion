@@ -1593,20 +1593,27 @@
       text-align: left;
     }
     .muro-beneficio {
-      display: flex;
-      align-items: center;
-      gap: .7rem;
+      display: block;
+      position: relative;
+      padding-left: 1.4rem;
+      text-align: left;
       font-size: 13px;
       color: var(--texto);
     }
-    .muro-beneficio.aet-promo-linea { color: #e8cf86; background: rgba(201,168,76,.10); border: 1px solid rgba(201,168,76,.35); border-radius: 10px; padding: .55rem .7rem .55rem 1.6rem; }
+    .muro-beneficio.aet-promo-linea { display: block; text-align: center; color: #e8cf86; background: rgba(201,168,76,.10); border: 1px solid rgba(201,168,76,.45); border-radius: 12px; padding: .8rem .9rem; margin-top: .4rem; }
+    .muro-beneficio.aet-promo-linea::before { display: none; }
+    .aet-limitado { display: inline-block; background: #c9a84c; color: #141109; font-weight: 800; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; border-radius: 30px; padding: 4px 11px; margin-bottom: .45rem; animation: aetLatido 2.4s ease-in-out infinite; }
+    @keyframes aetLatido { 0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,.55); } 50% { box-shadow: 0 0 0 6px rgba(201,168,76,0); } }
+    .aet-promo-tit { display: block; font-weight: 700; font-size: 14px; color: #f3dc95; margin-bottom: .2rem; }
+    .aet-promo-txt { display: block; font-size: 13px; color: #e5dcc4; line-height: 1.45; }
+    .aet-promo-fin { display: block; font-size: 12px; color: #c9a84c; margin-top: .3rem; font-weight: 600; }
     .aet-promo-card { border-color: rgba(201,168,76,.6) !important; background: linear-gradient(135deg, rgba(201,168,76,.16), rgba(201,168,76,.03)) !important; }
     .muro-beneficio::before {
       content: '✓';
       color: var(--oro);
       font-weight: 700;
       font-size: 11px;
-      flex-shrink: 0;
+      position: absolute; left: 0; top: .15em;
     }
 
     .muro-error { color: #e57373; font-size: 12px; margin-top: .7rem; min-height: 1em; }
@@ -5622,14 +5629,17 @@ async function aetPromoPublica() {
 }
 function aetPromoPintar() {
   const p = _promoPub, on = !!(p && p.activa) && !sesionActiva;
-  const txt = on ? String(p.texto || '').replace(/\{dias\}/g, p.dias) : '';
-  const fin = on && p.fin ? ' Termina el ' + _fechaLarga(p.fin) + '.' : '';
+  const txt = on ? String(p.texto || '').replace(/\{dias\}/g, p.dias).replace(/\s*por tiempo limitado\.?\s*$/i, '') : '';
+  const fin = on && p.fin ? 'Termina el ' + _fechaLarga(p.fin) : '';
   const m = _$('muroPromo');
-  if (m) { m.style.display = on ? '' : 'none'; m.innerHTML = on ? '<b>🎁 ' + _e(p.titulo || 'Promoción') + ':</b> ' + _e(txt) + _e(fin) : ''; }
+  if (m) {
+    m.style.display = on ? '' : 'none';
+    m.innerHTML = on ? `<span class="aet-limitado">⏳ Por tiempo limitado</span><span class="aet-promo-tit">🎁 ${_e(p.titulo || 'Promoción')}</span><span class="aet-promo-txt">${_e(txt)}</span>${fin ? `<span class="aet-promo-fin">${_e(fin)}</span>` : ''}` : '';
+  }
   const c = _$('appPromoCard');
   if (c) {
     c.style.display = on ? '' : 'none';
-    c.innerHTML = on ? `<div class="app-card-top"><span class="app-card-titulo">🎁 ${_e(p.titulo || 'Promoción')}</span><span class="app-card-meta">Crear cuenta</span></div><div class="app-card-desc">${_e(txt)}${_e(fin)}</div>` : '';
+    c.innerHTML = on ? `<span class="aet-limitado">⏳ Por tiempo limitado</span><div class="app-card-top"><span class="app-card-titulo">🎁 ${_e(p.titulo || 'Promoción')}</span><span class="app-card-meta">Crear cuenta</span></div><div class="app-card-desc">${_e(txt)}${fin ? ' · ' + _e(fin) : ''}</div>` : '';
   }
 }
 function _promoHoja(tipo, restan, vence) {
@@ -5649,7 +5659,7 @@ function _promoHoja(tipo, restan, vence) {
   const fecha = vence ? _fechaLarga(vence) : '';
   const enApp = document.body.classList.contains('modo-app');
   const T = {
-    bienvenida: ['🎁', `Tienes ${restan} días de Premium`, `${_e((estadoAcceso && estadoAcceso.promo_titulo) || 'Promoción de lanzamiento')}. Prueba todo: rutinas que ajustan tus cargas, dietas, MMA y recetario. Tu prueba termina el ${_e(fecha)}.`, enApp ? 'Empezar a entrenar' : 'Ver mi cuenta', 'Explorar después'],
+    bienvenida: ['🎁', `Tienes ${restan} días de Premium`, `<span class="aet-limitado">⏳ Por tiempo limitado</span><br>${_e((estadoAcceso && estadoAcceso.promo_titulo) || 'Promoción de lanzamiento')}. Prueba todo: rutinas que ajustan tus cargas, dietas, MMA y recetario. Tu prueba termina el ${_e(fecha)}.`, enApp ? 'Empezar a entrenar' : 'Ver mi cuenta', 'Explorar después'],
     pocos: ['⏳', `Te ${restan === 1 ? 'queda 1 día' : 'quedan ' + restan + ' días'} de prueba`, `Tu Premium de prueba termina el ${_e(fecha)}. Actívalo por $59 al mes para seguir con tu plan; tu progreso se queda guardado.`, 'Activar Premium · $59', 'Ahora no'],
     termino: ['💪', 'Tu prueba Premium terminó', 'Gracias por probar Aeterion. Lo gratuito sigue disponible; activa Premium por $59 al mes para volver a tus rutinas, dietas y recetario.', 'Activar Premium · $59', 'Ahora no'],
   }[tipo];
