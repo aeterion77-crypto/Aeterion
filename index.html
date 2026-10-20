@@ -2751,6 +2751,9 @@
     </button>
   </div>
 
+  <!-- MENTE (salud mental: módulo propio, avance separado) -->
+  <div class="app-screen" id="app-screen-mente"><div id="menteApp"></div></div>
+
   <!-- EDUCACIÓN -->
   <div class="app-screen" id="app-screen-educacion">
     <h2 class="app-titulo">Educación</h2>
@@ -2762,10 +2765,6 @@
     <button class="app-card" onclick="abrirContenidoApp('protocolos-avanzados', 'Protocolos Avanzados')">
       <div class="app-card-top"><span class="app-card-titulo">Protocolos Avanzados</span><span class="app-card-meta">7 protocolos</span></div>
       <div class="app-card-desc">Reparación intestinal, testosterona, longevidad, células madre y más.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('tab-bienestar', 'Bienestar Mental')">
-      <div class="app-card-top"><span class="app-card-titulo">Bienestar Mental</span><span class="app-card-meta">Cuaderno</span></div>
-      <div class="app-card-desc">70+ actividades con evidencia (TCC, DBT, mindfulness) y retos de 21 días.</div>
     </button>
     <button class="app-card" onclick="abrirContenidoApp('salud', 'Salud &amp; Biohacking')">
       <div class="app-card-top"><span class="app-card-titulo">Salud &amp; Biohacking</span><span class="app-card-meta">6 temas</span></div>
@@ -2827,6 +2826,7 @@
     <button class="app-nav-btn activo" data-p="inicio" onclick="cambiarPantallaApp('inicio', this)"><span class="icono">🏠</span><span>Inicio</span></button>
     <button class="app-nav-btn" data-p="entrenar" onclick="cambiarPantallaApp('entrenar', this)"><span class="icono">💪</span><span>Entrenar</span></button>
     <button class="app-nav-btn" data-p="nutricion" onclick="cambiarPantallaApp('nutricion', this)"><span class="icono">🥗</span><span>Nutrición</span></button>
+    <button class="app-nav-btn" data-p="mente" onclick="cambiarPantallaApp('mente', this)"><span class="icono">🧠</span><span>Mente</span></button>
     <button class="app-nav-btn" data-p="educacion" onclick="cambiarPantallaApp('educacion', this)"><span class="icono">📚</span><span>Educación</span></button>
     <button class="app-nav-btn" data-p="tienda" id="appNavTienda" onclick="abrirContenidoApp('productos', 'Tienda')"><span class="icono">🛍</span><span>Tienda</span></button>
     <button class="app-nav-btn" data-p="perfil" onclick="cambiarPantallaApp('perfil', this)"><span class="icono">📊</span><span>Progreso</span></button>
@@ -3920,8 +3920,8 @@
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <h4>Cuaderno de Bienestar Mental</h4>
         <p>70+ actividades prácticas con evidencia científica (TCC, DBT, mindfulness). Herramientas de regulación emocional, diarios reflexivos y retos de 21 días.</p>
-        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🧠 Psicología</span><span>📄 Word completo</span></div>
-        <button onclick="descargarArchivo('Mi_Camino_Bienestar.docx', 'Mi_Camino_Bienestar.docx')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Word</button>
+        <div class="guia-meta" style="margin-bottom:.8rem;"><span>🧠 Psicología</span><span>📱 Dentro de la app</span></div>
+        <a href="./?modo=app&amp;ir=mente" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem; text-decoration:none;">🧠 Abrir Mente en la app</a>
       </div>
     </div>
 <div class="guias-panel" id="tab-salud">
@@ -6270,7 +6270,7 @@ const SYNC_CLAVES = new Set([
   'mma_completados','mma2_completados','mma3_completados','mma_1rm','mma_historial_semanas',
   'dieta_sano','dieta_sii','dieta_diabetes',
   'gym_dia_h5','gym_dia_h3','gym_dia_m5','mma_semana','mma2_semana','mma3_semana',
-  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos','aet_inicio'
+  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos','aet_inicio','aet_mente'
 ]);
 const SYNC_KEY = 'aeterion_sync';
 let _sync = { owner: null, ver: {}, sucias: {} };
@@ -6291,6 +6291,7 @@ function _fusionAet(k, a, b) {
   try { L = JSON.parse(a); R = JSON.parse(b); } catch (e) { return b; }
   if (/^(gym_completados_|mma\d?_completados$)/.test(k)) return JSON.stringify(_unirProfundo(R, L));
   if (/^gym_perfil_/.test(k)) return JSON.stringify(((L && L.t) || 0) >= ((R && R.t) || 0) ? L : R);   // el más reciente
+  if (k === 'aet_mente' && window.menteFusion) return JSON.stringify(window.menteFusion(R, L));
   if (k === 'gym_registro_series') {
     const o = {};
     new Set([...Object.keys(R || {}), ...Object.keys(L || {})]).forEach(n => {
@@ -7373,6 +7374,7 @@ const RESPALDO_VALIDADORES = {
   aet_programa: v => _esObj(v), aet_perfil_agua: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
   aet_inicio: v => _esObj(v) && (v.estado === 'hecho' || v.estado === 'saltado'),
+  aet_mente: v => _esObj(v) && ['checkins', 'practicas', 'retos', 'diario', 'evals', 'fichas'].every(c => v[c] == null || _esObj(v[c])),
   aet_habitos: v => _esObj(v) && Array.isArray(v.lista) && v.lista.length <= 200 && _esObj(v.reg) &&
     v.lista.every(h => _esObj(h) && /^[a-z0-9]{1,24}$/.test(h.id) && typeof h.n === 'string' && h.n.length <= 60 && typeof h.i === 'string' && h.i.length <= 8 && (h.t === 'c' || h.t === 'n') && /^\d{4}-\d{2}-\d{2}$/.test(h.creado)),
 };
@@ -7732,6 +7734,7 @@ function _atrasCapas() {
   const id = act ? act.id.replace('app-screen-', '') : 'inicio';
   if (id === 'visor') { if (typeof appVisorOrigen !== 'undefined' && appVisorOrigen !== 'tienda') L.push('pantalla'); L.push('visor'); }
   else if (id === 'habitos') { if (aetHabOrigen === 'perfil') L.push('pantalla'); L.push('habitos'); }
+  else if (id === 'mente' && window.menteSub && menteSub()) { L.push('pantalla'); L.push('mente'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
   if (document.querySelector('#appSheet.abierto')) L.push('hoja');
@@ -7758,6 +7761,7 @@ function _atrasCerrarCapa() {
   else if (top === 'sesion') aetSesSalir();
   else if (top === 'visor') volverDeVisorApp();
   else if (top === 'habitos') { aetIr(aetHabOrigen); window.scrollTo(0, 0); }
+  else if (top === 'mente') menteVolver();
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
 // Quita pasos de más (cuando algo se cerró con su propio botón ✕)
@@ -7803,6 +7807,7 @@ function cambiarPantallaApp(pantalla, btn) {
   if (pantalla === 'nutricion') aetRenderNutri();
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
   if (pantalla === 'habitos') aetRenderHabitos();
+  if (pantalla === 'mente' && window.menteRender) menteRender();
   window.scrollTo(0, 0);
 }
 
@@ -8812,7 +8817,7 @@ function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
   if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
   if (d === 'premium') { aetIr('cuenta'); setTimeout(() => abrirCuenta(), 300); return; }
-  if (['inicio', 'entrenar', 'nutricion', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
+  if (['inicio', 'entrenar', 'nutricion', 'mente', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
 }
 
 /* ============================================================
@@ -9228,7 +9233,8 @@ const TOUR = [
   { p: 'inicio', s: '.app-nav-btn[data-p="inicio"]', t: '🏠 Inicio', x: 'Lo de hoy: tus anillos (entrenos, calorías, proteína y agua), botones para registrar en un toque y tus hábitos del día para marcarlos.' },
   { p: 'entrenar', s: '.app-nav-btn[data-p="entrenar"]', t: '💪 Entrenar', x: 'Elige tu programa de GYM o MMA y sigue el entreno del día. En «Mi registro» anotas tus series y kilos, aunque entrenes por tu cuenta.' },
   { p: 'nutricion', s: '.app-nav-btn[data-p="nutricion"]', t: '🥗 Nutrición', x: 'Registra tus comidas y tu agua contra tus metas. Aquí están los planes de nutrición y el catálogo de alimentos.' },
-  { p: 'educacion', s: '.app-nav-btn[data-p="educacion"]', t: '📚 Educación', x: 'Recetas, protocolos avanzados, bienestar mental, salud y guías con evidencia.' },
+  { p: 'mente', s: '.app-nav-btn[data-p="mente"]', t: '🧠 Mente', x: 'Tu salud mental, con su propio avance: registra cómo te sientes, haz retos de 21 y 30 días, respira, escribe y conócete mejor.' },
+  { p: 'educacion', s: '.app-nav-btn[data-p="educacion"]', t: '📚 Educación', x: 'Recetas, protocolos avanzados, salud y guías con evidencia.' },
   { s: '#appNavTienda', t: '🛍 Tienda', x: 'Suplementos Aeterion con pago con tarjeta y envío a todo México.' },
   { p: 'perfil', s: '.app-nav-btn[data-p="perfil"]', t: '📊 Progreso', x: 'Tu cuerpo (peso, medidas y composición), tus hábitos, tus logros y el Dashboard.' },
   { p: 'cuenta', s: '.app-nav-btn[data-p="cuenta"]', t: '👤 Cuenta', x: 'Tu cuenta y Premium, tu perfil, recordatorios, respaldo de datos, ayuda y este recorrido.' },
@@ -10445,5 +10451,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 <script>
 // El Service Worker ya se registra arriba en el <head>, lo antes posible.
 </script>
+<script src="mente.js?v=1" defer></script>
 </body>
 </html>
