@@ -2647,7 +2647,9 @@
   #aetBanner.aviso{background:#5a3b00;color:#ffe3a3}
   #aetBanner.promo{background:#0f3d2b;color:#b8f5d6}
   #aetBanner button{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:.3rem .5rem}
-  </style>
+  .coach-entrada{display:none!important}
+body.coach-on .coach-entrada{display:block!important}
+</style>
 </head>
 
 <body>
@@ -2751,6 +2753,9 @@
     </button>
   </div>
 
+  <!-- COACHES (entrenadores verificados; solo visible si el servidor lo habilita) -->
+  <div class="app-screen" id="app-screen-coach"><div id="coachApp"></div></div>
+
   <!-- MENTE (salud mental: módulo propio, avance separado) -->
   <div class="app-screen" id="app-screen-mente"><div id="menteApp"></div></div>
 
@@ -2788,6 +2793,10 @@
     <button class="app-card continuar" onclick="aetPerfilVer()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi perfil</span><span class="app-card-meta" id="appPerfilMeta">Completar</span></div>
       <div class="app-card-desc">Tus datos, metas y lo que falta para dejar la app lista para ti. Puedes cambiarlo cuando quieras.</div>
+    </button>
+    <button class="app-card coach-entrada" onclick="aetIr('coach')">
+      <div class="app-card-top"><span class="app-card-titulo">🏋️ Coaches</span><span class="app-card-meta" id="appCoachMeta">Verificados</span></div>
+      <div class="app-card-desc">Encuentra un entrenador verificado o, si eres entrenador, únete y administra a tus clientes.</div>
     </button>
     <button class="app-card" onclick="recAbrir()">
       <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
@@ -5614,6 +5623,7 @@ async function refrescarEstado() {
   actualizarUIAcceso();
   try { aetAyudaBadge(); } catch (e) {}
   try { aetPromoUI(); } catch (e) {}
+  try { if (window.coachEstado && sesionActiva) coachEstado(); } catch (e) {}
   return r;
 }
 
@@ -7735,6 +7745,7 @@ function _atrasCapas() {
   if (id === 'visor') { if (typeof appVisorOrigen !== 'undefined' && appVisorOrigen !== 'tienda') L.push('pantalla'); L.push('visor'); }
   else if (id === 'habitos') { if (aetHabOrigen === 'perfil') L.push('pantalla'); L.push('habitos'); }
   else if (id === 'mente' && window.menteSub && menteSub()) { L.push('pantalla'); L.push('mente'); }
+  else if (id === 'coach' && window.coachSub && coachSub()) { L.push('pantalla'); L.push('coach'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
   if (document.querySelector('#appSheet.abierto')) L.push('hoja');
@@ -7762,6 +7773,7 @@ function _atrasCerrarCapa() {
   else if (top === 'visor') volverDeVisorApp();
   else if (top === 'habitos') { aetIr(aetHabOrigen); window.scrollTo(0, 0); }
   else if (top === 'mente') menteVolver();
+  else if (top === 'coach') coachVolver();
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
 // Quita pasos de más (cuando algo se cerró con su propio botón ✕)
@@ -7808,6 +7820,7 @@ function cambiarPantallaApp(pantalla, btn) {
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
   if (pantalla === 'habitos') aetRenderHabitos();
   if (pantalla === 'mente' && window.menteRender) menteRender();
+  if (pantalla === 'coach' && window.coachRender) coachRender();
   window.scrollTo(0, 0);
 }
 
@@ -8817,6 +8830,7 @@ function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
   if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
   if (d === 'premium') { aetIr('cuenta'); setTimeout(() => abrirCuenta(), 300); return; }
+  if (d === 'coach') { if (window.coachEstado) coachEstado().then(e => { if (e && e.disponible) aetIr('coach'); }); return; }
   if (['inicio', 'entrenar', 'nutricion', 'mente', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
 }
 
@@ -10452,5 +10466,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 // El Service Worker ya se registra arriba en el <head>, lo antes posible.
 </script>
 <script src="mente.js?v=1" defer></script>
+<script src="coach.js?v=1" defer></script>
 </body>
 </html>
