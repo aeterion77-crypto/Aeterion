@@ -74,11 +74,11 @@ function check(nombre, cond, extra) {
   e = await rpc(U.coach, 'coach_documento_agregar', ['certificacion', 'Entrenador personal certificado', 'NSCA', U.coach + '/nsca.pdf', '2027-03-01']);
   check('dos documentos', e.coach.documentos.length === 2);
   check('falta pago', (await err(U.coach, 'coach_enviar_revision')) === 'falta_pago');
-  // El servidor registra el pago de inscripción
-  check('usuario no registra pagos', /permission denied/.test(await err(U.coach, 'coach_membresia_registrar', [U.coach, 'inscripcion', 249, 'x', new Date().toISOString()]) || ''));
+  // El servidor registra el pago del primer mes
+  check('usuario no registra pagos', /permission denied/.test(await err(U.coach, 'coach_membresia_registrar', [U.coach, 'primer_mes', 349, 'x', new Date().toISOString()]) || ''));
   const fin = new Date(Date.now() + 30 * 864e5).toISOString();
-  await su(`select public.coach_membresia_registrar($1,'inscripcion',249,'cs_test_1',$2)`, [U.coach, fin]);
-  const dup = (await su(`select public.coach_membresia_registrar($1,'inscripcion',249,'cs_test_1',$2) r`, [U.coach, fin])).rows[0].r;
+  await su(`select public.coach_membresia_registrar($1,'primer_mes',349,'cs_test_1',$2)`, [U.coach, fin]);
+  const dup = (await su(`select public.coach_membresia_registrar($1,'primer_mes',349,'cs_test_1',$2) r`, [U.coach, fin])).rows[0].r;
   check('pago duplicado ignorado', dup.duplicado === true);
   e = await rpc(U.coach, 'coach_enviar_revision');
   check('en revisión', e.coach.estado === 'revision');
@@ -223,7 +223,7 @@ function check(nombre, cond, extra) {
   await su(`update coaches set membresia_hasta = now() - interval '8 days' where user_id=$1`, [U.coach]);
   const rm = (await su(`select public.coach_revisar_membresias() r`)).rows[0].r;
   check('suspende por no pago', rm.suspendidos === 1);
-  await su(`select public.coach_membresia_registrar($1,'mensual',149,'in_2',now() + interval '30 days')`, [U.coach]);
+  await su(`select public.coach_membresia_registrar($1,'mensual',349,'in_2',now() + interval '30 days')`, [U.coach]);
   check('pago reactiva', (await rpc(U.coach, 'coach_estado')).coach.estado === 'activo');
 
   // 11. Nivel baja precios al nuevo tope; rfc bloqueado ya activo

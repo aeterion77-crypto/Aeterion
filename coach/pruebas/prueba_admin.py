@@ -25,7 +25,7 @@ rpc(A, 'admin_coach_config', {'p_clave': 'testers', 'p_valor': [C]})
 rpc(C, 'coach_guardar', {'p': {'nombre_publico': 'Coach Daniela Ruiz', 'bio': 'Fuerza con técnica.', 'especialidades': ['Fuerza'], 'modalidades': ['presencial'], 'zona': 'Coyoacán', 'precio_sesion': 300, 'rfc': 'RUDA900101AB1', 'acepto_terminos': True}})
 rpc(C, 'coach_documento_agregar', {'p_tipo': 'identificacion', 'p_nombre': 'INE', 'p_emisor': 'INE', 'p_archivo': C + '/ine.pdf', 'p_vence': None})
 rpc(C, 'coach_documento_agregar', {'p_tipo': 'certificacion', 'p_nombre': 'Entrenador personal certificado', 'p_emisor': 'NSCA', 'p_archivo': C + '/nsca.pdf', 'p_vence': '2027-03-01'})
-sql("select public.coach_membresia_registrar($1,'inscripcion',249,'cs_1',now() + interval '30 days')", [C])
+sql("select public.coach_membresia_registrar($1,'primer_mes',349,'cs_1',now() + interval '30 days')", [C])
 rpc(C, 'coach_enviar_revision')
 
 firmados = []

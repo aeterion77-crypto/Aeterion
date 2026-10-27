@@ -15,8 +15,8 @@ create table public.coach_config (
 insert into public.coach_config (clave, valor) values
   ('activo', 'false'),                                   -- interruptor general
   ('testers', '[]'),                                     -- uuid que pueden usarlo con el interruptor apagado
-  ('cobro_requerido', 'true'),                           -- exige pagar $249 antes de revisión y membresía vigente
-  ('precios', '{"inscripcion":249,"mensual":149}'),
+  ('cobro_requerido', 'true'),                           -- exige pagar el primer mes ($349) antes de revisión y membresía vigente
+  ('precios', '{"mensual":349,"curso_base_incluido":true}'),
   ('topes', '{"1":{"sesion":350,"mensual":900},"2":{"sesion":600,"mensual":1500},"3":{"sesion":1000,"mensual":2500}}'),
   ('comisiones', '{"premium_nueva":0.30,"premium_renovacion":0.15,"producto":0.10,"meses_renovacion":12}'),
   ('reglas', '{"dias_validacion":15,"minimo_pago":300,"horas_cancelacion":24,"faltas_max":3,"faltas_dias":90,"horas_reporte":48,"dias_gracia":7}');
@@ -64,7 +64,7 @@ create table public.coaches (
   codigo text unique,
   acepto_terminos_en timestamptz,
   curso_aprobado_en timestamptz,
-  inscripcion_pagada_en timestamptz,
+  primer_pago_en timestamptz,
   membresia_hasta timestamptz,
   stripe_account_id text,
   cobros_habilitados boolean not null default false,
@@ -144,7 +144,7 @@ create index coach_sesiones_cliente on public.coach_sesiones (cliente_id, inicio
 create table public.coach_membresia_pagos (
   id bigserial primary key,
   coach_id uuid not null references public.coaches (user_id) on delete cascade,
-  tipo text not null check (tipo in ('inscripcion','mensual')),
+  tipo text not null check (tipo in ('primer_mes','mensual')),
   monto numeric(10,2) not null,
   periodo_fin timestamptz not null,
   referencia text unique not null,
@@ -374,7 +374,7 @@ begin
   if not exists (select 1 from public.coach_documentos where coach_id = v and tipo = 'identificacion' and estado <> 'rechazado')
      or not exists (select 1 from public.coach_documentos where coach_id = v and tipo in ('certificacion','licenciatura') and estado <> 'rechazado')
   then raise exception 'faltan_documentos'; end if;
-  if coalesce((public._coach_cfg('cobro_requerido'))::text, 'true') = 'true' and c.inscripcion_pagada_en is null then raise exception 'falta_pago'; end if;
+  if coalesce((public._coach_cfg('cobro_requerido'))::text, 'true') = 'true' and c.primer_pago_en is null then raise exception 'falta_pago'; end if;
   update public.coaches set estado = 'revision', enviado_en = now(), actualizado_en = now() where user_id = v;
   return public.coach_estado();
 end $$;
@@ -723,7 +723,7 @@ begin
   values (p_coach, p_tipo, p_monto, p_periodo_fin, p_referencia) on conflict (referencia) do nothing;
   if not found then return jsonb_build_object('duplicado', true); end if;
   update public.coaches set membresia_hasta = greatest(coalesce(membresia_hasta, p_periodo_fin), p_periodo_fin),
-    inscripcion_pagada_en = case when p_tipo = 'inscripcion' then coalesce(inscripcion_pagada_en, now()) else inscripcion_pagada_en end,
+    primer_pago_en = case when p_tipo = 'primer_mes' then coalesce(primer_pago_en, now()) else primer_pago_en end,
     estado = case when estado = 'suspendido' and motivo = 'pago' then 'activo' else estado end,
     actualizado_en = now()
    where user_id = p_coach returning * into c;

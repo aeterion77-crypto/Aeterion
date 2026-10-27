@@ -32,7 +32,7 @@ const ERR = {
   faltan_datos: 'Completa nombre, RFC, modalidad y precio por sesión.',
   faltan_terminos: 'Acepta los términos para coaches.',
   faltan_documentos: 'Sube tu identificación y al menos una certificación o título.',
-  falta_pago: 'Paga tu inscripción para enviar la solicitud.',
+  falta_pago: 'Paga tu primer mes para enviar la solicitud.',
   archivo_invalido: 'No se pudo guardar el archivo.',
   demasiados_documentos: 'Ya tienes el máximo de documentos.',
   ya_tienes_coach: 'Ya tienes un coach. Termina ese vínculo antes de pedir otro.',
@@ -111,8 +111,8 @@ VISTAS.inicio = async () => {
   } else {
     const p = EST.precios || {};
     h += `<div class="co-sec">¿Eres entrenador?</div><div class="co-card"><b>Únete a Aeterion Coach</b>
-      <p>Perfil verificado en el directorio, cobro de sesiones en la app sin comisión, curso y material, motor de rutinas, Premium personal y comisiones por recomendar.</p>
-      <p class="co-peq">${money(p.inscripcion)} de inscripción con el primer mes, luego ${money(p.mensual)} al mes.</p>
+      <p>Perfil verificado en el directorio, panel de clientes, cobro de sesiones en la app sin comisión, curso base incluido, Premium personal y comisiones por recomendar productos.</p>
+      <p class="co-peq">${money(p.mensual)} al mes, sin cuota de entrada. Cancelas cuando quieras. No garantizamos clientes ni ingresos.</p>
       <button class="co-btn co-sec-btn" data-c="solicitud">Quiero ser coach</button></div>`;
   }
   return h;
@@ -197,7 +197,7 @@ VISTAS.solicitud = async () => {
     rechazado: ['Tu solicitud no fue aprobada', c.motivo || ''], suspendido: ['Tu cuenta de coach está suspendida', c.motivo === 'pago' ? 'Renueva tu membresía para reactivarla.' : (c.motivo || '')],
     borrador: c.motivo ? ['Te pedimos un cambio', c.motivo] : null }[c.estado];
   if (aviso) h += `<div class="co-card co-aviso-card"><b>${esc(aviso[0])}</b>${aviso[1] ? `<p>${esc(aviso[1])}</p>` : ''}</div>`;
-  if (c.estado === 'nuevo') h += `<div class="co-card"><b>Cómo funciona</b><ol class="co-pasos"><li>Llena tu perfil y sube tu identificación y certificados.</li><li>Paga tu inscripción de ${money(p.inscripcion)} (incluye tu primer mes). Si no te aprobamos, te la devolvemos completa.</li><li>Revisamos tus documentos y activamos tu perfil, tu código y tu Premium.</li></ol></div>`;
+  if (c.estado === 'nuevo') h += `<div class="co-card"><b>Cómo funciona</b><ol class="co-pasos"><li>Llena tu perfil y sube tu identificación y certificados.</li><li>Paga tu primer mes de ${money(p.mensual)}. Si no te aprobamos, te lo devolvemos completo.</li><li>Revisamos tus documentos y activamos tu perfil, tu código y tu Premium.</li></ol></div>`;
   const dis = editable ? '' : 'disabled';
   h += `<div class="co-form">
     <label class="co-lab">Nombre público</label><input class="co-in" id="cfNombre" maxlength="60" value="${esc(c.nombre_publico || '')}" ${dis} placeholder="Ej. Coach Daniela Ruiz">
@@ -228,7 +228,7 @@ VISTAS.solicitud = async () => {
       <button class="co-btn co-sec-btn" data-c="doc-subir">Subir</button></div>`;
   }
   if (c.estado === 'borrador') {
-    if (EST.cobro_requerido && !c.inscripcion_pagada_en) h += `<button class="co-btn co-btn-grande" data-c="pagar" data-x="inscripcion">Pagar inscripción · ${money(p.inscripcion)}</button>`;
+    if (EST.cobro_requerido && !c.primer_pago_en) h += `<button class="co-btn co-btn-grande" data-c="pagar" data-x="primer_mes">Pagar primer mes · ${money(p.mensual)}</button>`;
     h += '<button class="co-btn co-btn-grande co-sec-btn" data-c="enviar-revision">Enviar a revisión</button>';
   }
   return h;

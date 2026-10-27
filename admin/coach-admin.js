@@ -30,7 +30,7 @@ function pintar() {
   const raiz = $('coachAdm'); const R = D.resumen || {}, C = D.config || {};
   const activo = C.activo === true, testers = Array.isArray(C.testers) ? C.testers : [];
   let h = `<div class="card" style="margin-bottom:14px"><div class="cab"><b>Red de coaches</b><span class="badge ${activo ? 'verde' : 'gris'}">${activo ? 'Visible para todos' : testers.length ? 'Solo testers (' + testers.length + ')' : 'Apagado'}</span></div>
-    <div class="peq" style="margin:6px 0 10px">Apagado, nadie ve la sección Coaches en la app salvo los testers y los admins. ${C.cobro_requerido === false ? '<b>Cobro desactivado:</b> los coaches entran sin pagar (solo para piloto).' : 'Se exige la inscripción pagada y la membresía al día.'}</div>
+    <div class="peq" style="margin:6px 0 10px">Apagado, nadie ve la sección Coaches en la app salvo los testers y los admins. ${C.cobro_requerido === false ? '<b>Cobro desactivado:</b> los coaches entran sin pagar (solo para piloto).' : 'Se exige el primer mes pagado y la membresía al día.'}</div>
     <div class="fila"><button data-ca="flag" data-v="${activo ? '0' : '1'}" class="${activo ? 'mal' : ''}">${activo ? 'Apagar para todos' : 'Encender para todos'}</button>
       <button class="sec" data-ca="cobro" data-v="${C.cobro_requerido === false ? '1' : '0'}">${C.cobro_requerido === false ? 'Exigir pago' : 'Piloto sin cobro'}</button>
       <button class="sec" data-ca="liq">${vistaLiq ? 'Ocultar comisiones' : 'Comisiones por pagar'}</button></div>
@@ -52,7 +52,7 @@ function detalle(c) {
   let h = `<div class="gestion" style="padding-bottom:12px">
     <dl class="datos"><dt>RFC</dt><dd>${esc(c.rfc || '—')}</dd><dt>Teléfono</dt><dd>${esc(c.telefono || '—')}</dd><dt>Modalidad</dt><dd>${esc((c.modalidades || []).join(', '))}</dd>
     <dt>Zona / gym</dt><dd>${esc([c.zona, c.gimnasio].filter(Boolean).join(' · ') || '—')}</dd><dt>Precios</dt><dd>${money(c.precio_sesion)} sesión · ${money(c.precio_mensual)} mes</dd>
-    <dt>Experiencia</dt><dd>${c.experiencia_anios ?? '—'} años</dd><dt>Membresía</dt><dd>${c.membresia_hasta ? 'hasta ' + fechaDia(c.membresia_hasta) : 'sin pagar'}${c.inscripcion_pagada_en ? ' · inscripción pagada' : ''}</dd>
+    <dt>Experiencia</dt><dd>${c.experiencia_anios ?? '—'} años</dd><dt>Membresía</dt><dd>${c.membresia_hasta ? 'hasta ' + fechaDia(c.membresia_hasta) : 'sin pagar'}${c.primer_pago_en ? ' · primer mes pagado' : ''}</dd>
     <dt>Clientes</dt><dd>${c.clientes} · faltas 90 d: ${c.faltas} · calif. ${c.calificacion && c.calificacion.resenas ? c.calificacion.promedio + ' (' + c.calificacion.resenas + ')' : '—'}</dd>
     <dt>Curso</dt><dd>${c.curso_aprobado_en ? 'aprobado ' + fechaDia(c.curso_aprobado_en) : 'pendiente'}</dd>${c.motivo ? `<dt>Motivo</dt><dd>${esc(c.motivo)}</dd>` : ''}</dl>
     ${c.bio ? `<div class="peq" style="margin:6px 0">${esc(c.bio)}</div>` : ''}
