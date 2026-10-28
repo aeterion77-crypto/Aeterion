@@ -47,6 +47,14 @@ const ERR = {
   coach_bloqueado: 'Tu cuenta de coach está suspendida.',
   coach_no_vigente: 'Tu membresía de coach no está activa.',
   demasiadas_pendientes: 'Este cliente ya tiene 10 sesiones por pagar.',
+  programa_invalido: 'Revisa el programa: cada día necesita nombre y de 1 a 15 ejercicios con series (1–10) y repeticiones.',
+  programa_no_encontrado: 'Ese programa ya no existe.',
+  demasiadas_plantillas: 'Ya tienes 30 plantillas. Borra alguna para guardar otra.',
+  sin_permiso: 'Ya no tienes acceso a este cliente.',
+  mensaje_vacio: 'Escribe algo primero.',
+  demasiados_mensajes: 'Enviaste muchos mensajes en poco tiempo. Espera un rato.',
+  demasiadas_notas: 'Este cliente ya tiene demasiadas notas.',
+  sin_coach: 'No tienes coach en este momento.',
 };
 function msgError(r) {
   const m = r && r.data && (r.data.message || r.data.msg || r.data.error);
@@ -67,23 +75,39 @@ const raiz = () => $('coachApp');
 
 async function refrescar() {
   try { EST = await llamar('coach_estado'); } catch (e) { EST = EST || { disponible: false }; }
-  try { document.body.classList.toggle('coach-on', !!(EST && EST.disponible)); } catch (e) {}
+  try {
+    document.body.classList.toggle('coach-on', !!(EST && EST.disponible));
+    const activo = !!(EST && EST.coach && EST.coach.estado === 'activo');
+    const t = document.querySelector('.coach-entrada .app-card-titulo'), d = document.querySelector('.coach-entrada .app-card-desc'), m = document.getElementById('appCoachMeta');
+    if (t) t.textContent = activo ? '🏋️ Aeterion Coach' : '🏋️ Coaches';
+    if (d) d.textContent = activo ? 'Tu espacio de trabajo: clientes, programas, agenda, academia y ganancias.' : 'Encuentra un entrenador verificado o, si eres entrenador, únete y administra a tus clientes.';
+    if (m) m.textContent = activo ? 'Mi espacio' : 'Verificados';
+  } catch (e) {}
   return EST;
 }
 function ir(v, extra) { pila.push(vista); vista = Object.assign({ v }, extra || {}); pintar(); window.scrollTo(0, 0); }
 function volver() { vista = pila.pop() || { v: 'inicio' }; pintar(); }
 const cab = (t, sub) => `<div class="co-cab">${pila.length ? '<button class="co-atras" data-c="volver" aria-label="Volver">‹</button>' : ''}<div><h2>${t}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
 
+let _seq = 0;
 async function pintar() {
   const r = raiz(); if (!r) return;
+  const yo = ++_seq;   // si llega otro dibujo después, este no escribe (evita que una carga lenta tape la pantalla nueva)
   if (!EST) { r.innerHTML = '<div class="co-cargando">Cargando…</div>'; await refrescar(); }
+  if (yo !== _seq) return;
   if (!EST.disponible) { r.innerHTML = cab('Coaches') + '<div class="co-card"><b>Muy pronto</b><p>Aquí podrás encontrar entrenadores verificados por Aeterion.</p></div>'; return; }
   try {
     const f = VISTAS[vista.v] || VISTAS.inicio;
+    const enCoach = vista.v.indexOf('c-') === 0;
+    document.body.classList.toggle('modo-coach', enCoach);
     const html = await f(vista);
-    if (html != null) r.innerHTML = html;
+    if (yo !== _seq) return;
+    if (html != null) r.innerHTML = enCoach && window.__coachMarco ? window.__coachMarco(html, vista) : html;
+    if (window.__coachTrasPintar) window.__coachTrasPintar(vista);
   } catch (e) {
-    r.innerHTML = cab('Coaches') + `<div class="co-card co-error"><b>No se pudo cargar</b><p>${esc(e.message)}</p><button class="co-btn" data-c="reintentar">Reintentar</button></div>`;
+    if (yo !== _seq) return;
+    const err = `<div class="co-card co-error"><b>No se pudo cargar</b><p>${esc(e.message)}</p><button class="co-btn" data-c="reintentar">Reintentar</button></div>`;
+    r.innerHTML = vista.v.indexOf('c-') === 0 && window.__coachMarco ? window.__coachMarco(err, vista) : cab('Coaches') + err;
   }
 }
 
@@ -101,6 +125,13 @@ VISTAS.inicio = async () => {
   } else {
     h += `<div class="co-card co-dest"><b>Encuentra a tu coach</b><p>Elige un entrenador con certificados revisados. Pagas tus sesiones aquí y tú decides qué datos ve.</p><button class="co-btn co-btn-grande" data-c="directorio">Ver coaches</button></div>`;
   }
+  if (mc && mc.estado === 'activo') {
+    let pr = await llamar('programa_mio').catch(() => null); if (!pr || !Array.isArray(pr.dias)) pr = null;
+    const nl = await llamar('mensajes_no_leidos').catch(() => 0);
+    h += `<div class="co-fila co-accesos"><button class="co-tile" data-c="mi-coach" data-x="programa"><span>📋</span><b>${pr ? 'Mi programa' : 'Sin programa aún'}</b>${pr ? `<i>${esc(pr.nombre)}</i>` : ''}</button>
+      <button class="co-tile" data-c="mi-coach" data-x="mensajes"><span>💬</span><b>Mensajes</b>${nl ? `<i class="co-punto">${nl} nuevo${nl === 1 ? '' : 's'}</i>` : ''}</button></div>`;
+  }
+  if (!mc) h += `<div class="co-card"><b>¿Tu coach te dio un código?</b><div class="co-fila"><input class="co-in" id="coCodigoInv" maxlength="20" placeholder="Ej. DANI123" style="text-transform:uppercase;flex:1"><button class="co-btn" data-c="usar-invitacion">Entrar</button></div></div>`;
   const ses = await llamar('sesiones_mias').catch(() => []);
   const mias = ses.filter((s) => s.rol === 'cliente' && ['por_pagar', 'pagada'].includes(s.estado));
   if (mias.length) h += '<div class="co-sec">Tus próximas sesiones</div>' + mias.map(tarjetaSesion).join('');
@@ -150,9 +181,10 @@ VISTAS.perfil = async (v) => {
   if (c.credenciales.length) h += '<div class="co-sec">Credenciales verificadas</div>' + c.credenciales.map((d) => `<div class="co-cred"><b>${esc(d.nombre)}</b><span>${esc(d.emisor || TIPOS_DOC[d.tipo])}${d.vence ? ' · vigente hasta ' + fechaCorta(d.vence) : ''}</span></div>`).join('');
   h += '<p class="co-legal">La acreditación Aeterion es interna; no es un título oficial.</p>';
   if (c.resenas_recientes && c.resenas_recientes.length) h += '<div class="co-sec">Reseñas de sesiones pagadas</div>' + c.resenas_recientes.map((r) => `<div class="co-card"><div class="co-top"><b>${esc(r.cliente)}</b><span>${'★'.repeat(r.estrellas)}</span></div><p>${esc(r.comentario)}</p></div>`).join('');
-  const puede = !mc;
+  const propio = EST.coach && EST.coach.user_id === c.id;
+  const puede = !mc && !propio;
   h += `<div class="co-pie"><div><span>Desde</span><b>${c.precio_sesion ? money(c.precio_sesion) : '—'}<small>/sesión</small></b>${c.precio_mensual ? `<span>${money(c.precio_mensual)} al mes en línea</span>` : ''}</div>
-    <button class="co-btn" data-c="${puede ? 'solicitar' : 'mi-coach'}" data-x="${esc(c.id)}" data-n="${esc(c.nombre)}" data-m="${esc(c.modalidades.join(','))}">${puede ? 'Solicitar a ' + esc(nombreCorto(c.nombre)) : 'Ya tienes coach'}</button></div>`;
+    <button class="co-btn" data-c="${propio ? 'volver' : puede ? 'solicitar' : 'mi-coach'}" data-x="${esc(c.id)}" data-n="${esc(c.nombre)}" data-m="${esc(c.modalidades.join(','))}">${propio ? 'Así te ven tus clientes' : puede ? 'Solicitar a ' + esc(nombreCorto(c.nombre)) : 'Ya tienes coach'}</button></div>`;
   return h;
 };
 
@@ -168,6 +200,20 @@ VISTAS.solicitar = async (v) => {
   return h;
 };
 
+VISTAS.invitacion = async (v) => {
+  const c = await llamar('coach_por_codigo', { p_codigo: v.codigo });
+  const perm = v.perm || { entrenos: true, medidas: true, comidas: false, mente: false };
+  const mods = c.modalidades.length ? c.modalidades : ['presencial'];
+  const mod = v.mod || mods[0];
+  let h = cab('Te invitó tu coach');
+  h += `<div class="co-perfil">${avatar(c.nombre, true)}<h3>${esc(c.nombre)}</h3><span class="co-badge">${nivelTxt(c.nivel).toUpperCase()}</span>${estrellas(c.calificacion, true)}</div>`;
+  if (c.credenciales.length) h += '<div class="co-card">' + c.credenciales.map((d) => `<div class="co-cred"><b>${esc(d.nombre)}</b><span>${esc(d.emisor || '')}</span></div>`).join('') + '<p class="co-legal">Documentos revisados por Aeterion. La acreditación Aeterion es interna; no es un título oficial.</p></div>';
+  if (mods.length > 1) h += `<div class="co-lab">¿Cómo vas a entrenar?</div><div class="co-seg">${mods.map((m) => `<button class="${m === mod ? 'on' : ''}" data-c="inv-mod" data-x="${m}">${m === 'linea' ? 'En línea' : 'Presencial'}</button>`).join('')}</div>`;
+  h += '<div class="co-lab">Tú decides qué ve</div><div class="co-card co-perms">' + PERM.map(([k, t, s]) => switchPerm(k, t, s, perm[k], 'inv-perm')).join('') + '</div>';
+  h += `<button class="co-btn co-btn-grande" data-c="aceptar-invitacion">Entrenar con ${esc(nombreCorto(c.nombre))}</button><p class="co-peq" style="text-align:center">Puedes cambiar lo que compartes o terminar cuando quieras.</p>`;
+  return h;
+};
+
 VISTAS['mi-coach'] = async () => {
   await refrescar();
   const mc = EST.mi_coach;
@@ -175,6 +221,20 @@ VISTAS['mi-coach'] = async () => {
   const ses = (await llamar('sesiones_mias')).filter((s) => s.rol === 'cliente');
   let h = cab('Tu coach');
   h += `<div class="co-card" data-c="perfil" data-x="${esc(mc.coach_id)}"><div class="co-persona">${avatar(mc.nombre)}<div><b>${esc(mc.nombre)}</b><p>${mc.estado === 'activo' ? 'Vínculo activo' : 'Esperando que acepte tu solicitud'} · ${mc.modalidad === 'linea' ? 'En línea' : 'Presencial'}</p></div></div></div>`;
+  if (mc.estado === 'activo') {
+    let [pr, msgs] = await Promise.all([llamar('programa_mio').catch(() => null), llamar('mensajes_listar', { p_vinculo: mc.vinculo }).catch(() => [])]);
+    if (!pr || !Array.isArray(pr.dias) || !pr.dias.length) pr = null;
+    if (!Array.isArray(msgs)) msgs = [];
+    h += '<div class="co-sec" id="coSecPrograma">Tu programa</div>';
+    if (pr) {
+      const d = Math.min(Number(vista.dia) || 0, pr.dias.length - 1);
+      h += `<div class="co-card"><div class="co-top"><b>${esc(pr.nombre)}</b><span>${pr.dias.length} ${pr.dias.length === 1 ? 'día' : 'días'}</span></div>${pr.nota ? `<p class="co-peq">${esc(pr.nota)}</p>` : ''}
+        <div class="co-chips co-scroll">${pr.dias.map((x, i) => `<button class="co-chip ${i === d ? 'on' : ''}" data-c="prog-dia" data-x="${i}">${esc(x.nombre)}</button>`).join('')}</div>
+        ${pr.dias[d].ejercicios.map((e) => `<div class="co-ej"><div><b>${esc(e.n)}</b><span>${e.s} × ${esc(e.r)}${e.rir != null ? ` · deja ${e.rir} en reserva` : ''}${e.kg ? ` · ${e.kg} kg` : ''}</span>${e.nota ? `<span class="co-aviso">${esc(e.nota)}</span>` : ''}</div><button class="co-btn co-sec-btn co-mini" data-c="registrar-ej" data-x="${esc(e.n)}">Registrar</button></div>`).join('')}
+        <p class="co-peq">Tus registros le llegan a tu coach si compartes «Entrenos y cargas».</p></div>`;
+    } else h += '<p class="co-peq">Tu coach todavía no te asigna un programa. Mientras, puedes seguir con los programas de la app.</p>';
+    h += '<div class="co-sec" id="coSecMensajes">Mensajes</div>' + chat(msgs, mc.vinculo);
+  }
   h += '<div class="co-sec">Qué compartes</div><div class="co-card co-perms">' + PERM.map(([k, t, s]) => switchPerm(k, t, s, mc.permisos[k], 'perm-cambiar')).join('') + '</div>';
   const prox = ses.filter((s) => ['por_pagar', 'pagada'].includes(s.estado));
   const pas = ses.filter((s) => !['por_pagar', 'pagada'].includes(s.estado));
@@ -234,77 +294,15 @@ VISTAS.solicitud = async () => {
   return h;
 };
 
-/* -------- Coach: panel -------- */
-VISTAS.panel = async () => {
-  await refrescar();
-  const c = EST.coach;
-  if (!c || c.estado !== 'activo') { vista = { v: 'solicitud' }; return VISTAS.solicitud(); }
-  const [clientes, ses] = await Promise.all([llamar('coach_mis_clientes'), llamar('sesiones_mias')]);
-  const pend = clientes.filter((x) => x.estado === 'pendiente'), act = clientes.filter((x) => x.estado === 'activo');
-  const mias = ses.filter((s) => s.rol === 'coach');
-  const prox = mias.filter((s) => ['por_pagar', 'pagada'].includes(s.estado) && new Date(s.inicio) > new Date());
-  const porCerrar = mias.filter((s) => s.estado === 'pagada' && new Date(s.inicio) <= new Date());
-  const dias = c.membresia_hasta ? Math.ceil((new Date(c.membresia_hasta) - Date.now()) / 864e5) : null;
-  let h = cab('Mi panel de coach', `${nivelTxt(c.nivel)} · código <b>${esc(c.codigo || '—')}</b>`);
-  h += `<div class="co-stats"><div><b>${act.length}</b><span>Clientes</span></div><div><b>${prox.length}</b><span>Próximas</span></div><div><b>${c.faltas}</b><span>Faltas (90 d)</span></div></div>`;
-  if (dias != null && dias <= 7) h += `<div class="co-card co-aviso-card"><b>${dias > 0 ? `Tu membresía vence en ${dias} ${dias === 1 ? 'día' : 'días'}` : 'Tu membresía venció'}</b><p>Renueva para seguir visible y cobrando.</p><button class="co-btn" data-c="pagar" data-x="mensual">Pagar ${money((EST.precios || {}).mensual)}</button></div>`;
-  if (!c.cobros_habilitados) h += `<div class="co-card co-aviso-card"><b>Activa tus cobros</b><p>Conecta tu cuenta para recibir el pago de tus sesiones directo en tu banco. Stripe te pedirá tu identificación y tu CLABE.</p><button class="co-btn" data-c="cobros">Conectar cuenta de cobro</button></div>`;
-  if (pend.length) h += '<div class="co-sec">Quieren entrenar contigo</div>' + pend.map((x) => `<div class="co-card"><div class="co-persona">${avatar(x.nombre)}<div><b>${esc(x.nombre)}</b><p>${x.modalidad === 'linea' ? 'En línea' : 'Presencial'} · comparte ${resumenPermisos(x.permisos)}</p></div></div>
-     <div class="co-fila"><button class="co-btn" data-c="responder" data-x="${x.vinculo}" data-n="1">Aceptar</button><button class="co-btn co-sec-btn" data-c="responder" data-x="${x.vinculo}" data-n="0">Rechazar</button></div></div>`).join('');
-  if (porCerrar.length) h += '<div class="co-sec">Marca cómo fue</div>' + porCerrar.map((s) => `<div class="co-card"><div class="co-top"><b>${esc(s.con)}</b><span>${fecha(s.inicio)}</span></div>
-     <div class="co-fila"><button class="co-btn" data-c="cerrar" data-x="${s.id}" data-n="dada">Se dio</button><button class="co-btn co-sec-btn" data-c="cerrar" data-x="${s.id}" data-n="no_show_cliente">No llegó</button></div></div>`).join('');
-  h += '<div class="co-sec">Clientes</div>' + (act.length ? act.map((x) => `<div class="co-card co-item" data-c="cliente" data-x="${esc(x.cliente_id)}" data-v="${x.vinculo}" data-n="${esc(x.nombre)}">
-      <div class="co-persona">${avatar(x.nombre)}<div><b>${esc(x.nombre)}</b><p>${x.sesiones_dadas} ${x.sesiones_dadas === 1 ? 'sesión' : 'sesiones'} · ${x.proxima ? 'próxima ' + fecha(x.proxima) : 'sin sesión agendada'}</p></div></div></div>`).join('') : '<p class="co-peq">Cuando alguien te elija en el directorio aparecerá aquí. Comparte tu código para que te encuentren.</p>');
-  if (prox.length) h += '<div class="co-sec">Próximas sesiones</div>' + prox.map(tarjetaSesion).join('');
-  h += `<div class="co-grid"><button class="co-tile" data-c="comisiones"><span>💸</span><b>Comisiones</b></button><button class="co-tile" data-c="solicitud"><span>🪪</span><b>Mi perfil</b></button><button class="co-tile" data-c="perfil" data-x="${esc(c.user_id)}"><span>👁️</span><b>Cómo me ven</b></button></div>`;
-  return h;
-};
-
-VISTAS.cliente = async (v) => {
-  const d = await llamar('coach_cliente_datos', { p_cliente: v.id });
-  const ses = (await llamar('sesiones_mias')).filter((s) => s.rol === 'coach' && s.con === v.nombre);
-  const p = d.permisos || {}, D = d.datos || {};
-  const parse = (k, def) => { try { return JSON.parse(D[k]); } catch (e) { return def; } };
-  let h = cab(esc(v.nombre), 'Solo ves lo que tu cliente autorizó');
-  h += `<div class="co-chips">${PERM.map(([k, t]) => `<span class="co-tag ${p[k] ? '' : 'off'}">${p[k] ? '✓' : '✕'} ${t}</span>`).join('')}</div>`;
-  if (p.medidas) {
-    const med = parse('medidas_historial', []); const u = med[med.length - 1], pr = med[0];
-    h += `<div class="co-card"><b>Peso y medidas</b>${u ? `<p>Último registro: ${esc(u.fecha)}${u.peso ? ` · <b>${u.peso} kg</b>` : ''}${pr && pr !== u && pr.peso && u.peso ? ` (${(u.peso - pr.peso > 0 ? '+' : '') + (u.peso - pr.peso).toFixed(1)} kg desde ${esc(pr.fecha)})` : ''}</p>` : '<p class="co-peq">Sin registros.</p>'}</div>`;
-  }
-  if (p.entrenos) {
-    const log = parse('aet_log_entreno', []).slice(-8).reverse();
-    h += `<div class="co-card"><b>Entrenos recientes</b>${log.length ? log.map((l) => `<p class="co-kv"><span>${esc(l.fecha)} · ${esc(l.ej)}</span><em>${(l.series || []).map((s) => `${s.r}×${s.kg}`).join(' ')}</em></p>`).join('') : '<p class="co-peq">Sin entrenos registrados a mano.</p>'}
-      ${D.aet_programa ? `<p class="co-peq">Programa en la app: ${esc(String(parse('aet_programa', '') || '').slice(0, 40))}</p>` : ''}</div>`;
-  }
-  if (p.comidas) h += `<div class="co-card"><b>Comidas, agua y hábitos</b><p class="co-peq">${['aet_dia', 'aet_habitos', 'aet_perfil_agua'].filter((k) => D[k]).length ? 'Tiene registros recientes en Nutrición y hábitos.' : 'Sin registros.'}</p></div>`;
-  if (p.mente) {
-    const m = parse('aet_mente', {}) || {}; const ci = Object.entries(m.checkins || {}).sort().slice(-7);
-    h += `<div class="co-card"><b>Ánimo (últimos registros)</b>${ci.length ? `<p>${ci.map(([f, x]) => `${f.slice(5)}: ${x.animo || '—'}/5`).join(' · ')}</p>` : '<p class="co-peq">Sin registros.</p>'}<p class="co-peq">Si notas señales de riesgo, sugiere ayuda profesional. No es tu papel diagnosticar.</p></div>`;
-  }
-  const t = EST.coach || {};
-  h += `<div class="co-sec">Proponer una sesión</div><div class="co-card"><div class="co-doble"><div><label class="co-lab">Fecha y hora</label><input class="co-in" id="csInicio" type="datetime-local"></div>
-      <div><label class="co-lab">Minutos</label><input class="co-in" id="csMin" type="number" value="60" min="15" max="240"></div></div>
-    <label class="co-lab">Precio</label><input class="co-in" id="csPrecio" type="number" value="${t.precio_sesion || ''}" max="${t.tope_sesion || ''}">
-    <label class="co-lab">Nota <span class="co-peq">(opcional)</span></label><input class="co-in" id="csNota" maxlength="200" placeholder="Ej. Pierna y técnica de sentadilla">
-    <p class="co-peq">Tu cliente la paga en la app para confirmarla.</p>
-    <button class="co-btn co-btn-grande" data-c="crear-sesion" data-x="${v.vinculo}">Enviar propuesta</button></div>`;
-  if (ses.length) h += '<div class="co-sec">Sesiones con este cliente</div>' + ses.slice(0, 10).map(tarjetaSesion).join('');
-  h += `<button class="co-btn co-peligro" data-c="terminar" data-x="${v.vinculo}">Terminar vínculo</button>`;
-  return h;
-};
-
-VISTAS.comisiones = async () => {
-  const k = await llamar('coach_mis_comisiones');
-  let h = cab('Comisiones', `Comparte tu código <b>${esc(k.codigo || '')}</b>`);
-  h += `<div class="co-stats"><div><b>${money(k.pendiente)}</b><span>En validación</span></div><div><b>${money(Number(k.validada) + Number(k.por_cobrar))}</b><span>Por cobrar</span></div><div><b>${money(k.pagada)}</b><span>Cobrado</span></div></div>
-    <div class="co-card"><b>Cómo ganas</b><p>30% de la primera compra de Premium de tu cliente y 15% de sus renovaciones por 12 meses. 10% de cada producto Aeterion.</p>
-    <p class="co-peq">Cada venta se valida 15 días después (si no hubo devolución). Pagamos el día 10 de cada mes cuando juntas ${money(k.minimo)} o más; necesitamos tu factura.</p></div>
-    <div class="co-card"><b>${k.referidos} ${k.referidos === 1 ? 'persona usa' : 'personas usan'} tu código</b><button class="co-btn co-sec-btn" data-c="copiar" data-x="${esc(k.codigo || '')}">Copiar mi código</button></div>`;
-  h += '<div class="co-sec">Movimientos</div>' + (k.movimientos.length ? k.movimientos.map((m) => `<div class="co-kv co-mov"><span>${{ premium_nueva: 'Premium nuevo', premium_renovacion: 'Renovación Premium', producto: 'Producto' }[m.tipo]} · ${fechaCorta(m.fecha)}</span><em class="${Number(m.monto) < 0 ? 'neg' : ''}">${money(m.monto)}</em><small>${{ pendiente: 'en validación', validada: 'por cobrar', pagada: 'pagada', cancelada: 'cancelada' }[m.estado]}</small></div>`).join('') : '<p class="co-peq">Aún no hay ventas con tu código.</p>');
-  return h;
-};
+/* -------- Coach: el panel vive en coach-espacio.js (modo «Aeterion Coach») -------- */
+VISTAS.panel = async () => { vista = { v: 'c-hoy' }; pila = []; return VISTAS['c-hoy'] ? VISTAS['c-hoy'](vista) : ''; };
 
 /* ---------------- Piezas ---------------- */
+function chat(msgs, vinculo) {
+  const lista = msgs.length ? msgs.map((m) => `<div class="co-msg ${m.mio ? 'mio' : ''}"><p>${esc(m.texto)}</p><span>${fecha(m.fecha)}</span></div>`).join('') : '<p class="co-peq" style="text-align:center">Aún no hay mensajes.</p>';
+  return `<div class="co-card co-chat"><div class="co-msgs" id="coMsgs">${lista}</div>
+    <div class="co-fila co-escribir"><textarea class="co-in" id="coMsgIn" rows="1" maxlength="1000" placeholder="Escribe…"></textarea><button class="co-btn" data-c="msg-enviar" data-x="${vinculo}" aria-label="Enviar">Enviar</button></div></div>`;
+}
 function avatar(n, grande) { const ini = String(n || '?').replace(/^coach\s+/i, '').split(/\s+/).map((x) => x[0]).join('').slice(0, 2).toUpperCase(); return `<div class="co-av${grande ? ' grande' : ''}">${esc(ini)}</div>`; }
 function nivelTxt(n) { return ({ 1: 'Coach Aeterion', 2: 'Coach Aeterion Avanzado', 3: 'Coach Aeterion Pro' })[n] || 'Coach Aeterion'; }
 function estrellas(c, grande) { if (!c || !Number(c.resenas)) return grande ? '<span class="co-peq">Aún sin reseñas</span>' : ''; return `<span class="co-estrellas">★ ${Number(c.promedio).toFixed(1)} <small>(${c.resenas})</small></span>`; }
@@ -367,11 +365,11 @@ async function alClic(ev) {
     case 'reintentar': EST = null; return pintar();
     case 'directorio': return ir('directorio', { f: {} });
     case 'perfil': return ir('perfil', { id: x });
-    case 'mi-coach': return ir('mi-coach');
-    case 'panel': return ir('panel');
+    case 'mi-coach': return ir('mi-coach', { ancla: x || null });
+    case 'panel': pila = []; vista = { v: 'c-hoy' }; window.scrollTo(0, 0); return pintar();
     case 'solicitud': return ir('solicitud');
-    case 'comisiones': return ir('comisiones');
-    case 'cliente': return ir('cliente', { id: x, vinculo: Number(el.dataset.v), nombre: el.dataset.n });
+    case 'comisiones': pila = []; vista = { v: 'c-ganancias' }; return pintar();
+    case 'cliente': return ir('c-ficha', { id: x, vinculo: Number(el.dataset.v), nombre: el.dataset.n, tab: el.dataset.t || 'resumen' });
     case 'filtro': { const f = Object.assign({}, vista.f); f[el.dataset.k] = f[el.dataset.k] === x || !x ? '' : x; f.t = ($('coBusca') || {}).value || ''; vista.f = f; return pintar(); }
     case 'chip': {
       const cont = el.parentElement;
@@ -392,7 +390,7 @@ async function alClic(ev) {
     });
     case 'terminar': {
       if (!confirm('¿Seguro? Las sesiones pagadas que aún no ocurren se reembolsan.')) return;
-      return ocupado(async () => { await llamar('vinculo_terminar', { p_vinculo: Number(x) }); toast('Listo'); pila = []; vista = { v: (EST.coach && EST.coach.estado === 'activo' && vista.v === 'cliente') ? 'panel' : 'inicio' }; await refrescar(); pintar(); });
+      return ocupado(async () => { await llamar('vinculo_terminar', { p_vinculo: Number(x) }); toast('Listo'); pila = []; vista = { v: vista.v === 'c-ficha' ? 'c-clientes' : 'inicio' }; await refrescar(); pintar(); });
     }
     case 'guardar-perfil': return ocupado(async () => { EST = await llamar('coach_guardar', { p: leerPerfil() }); toast('Guardado'); pintar(); });
     case 'doc-subir': return ocupado(async () => {
@@ -426,7 +424,24 @@ async function alClic(ev) {
       return ocupado(async () => { await llamar('sesion_calificar', { p_id: Number(x), p_estrellas: Math.round(n), p_comentario: com }); toast('¡Gracias!'); pintar(); });
     }
     case 'reportar': { const det = prompt('Cuéntanos qué pasó', 'Mi coach no llegó'); if (det == null) return; return ocupado(async () => { await llamar('sesion_reportar', { p_id: Number(x), p_detalle: det }); toast('Lo revisaremos y te avisamos'); pintar(); }); }
-    case 'copiar': try { await navigator.clipboard.writeText(x); toast('Código copiado'); } catch (e) { toast(x); } return;
+    case 'copiar': try { await navigator.clipboard.writeText(x); toast('Copiado'); } catch (e) { toast(x); } return;
+    case 'usar-invitacion': { const cod = (($('coCodigoInv') || {}).value || '').trim(); if (!cod) { toast('Escribe el código de tu coach'); return; } return ir('invitacion', { codigo: cod }); }
+    case 'inv-mod': vista.mod = x; return pintar();
+    case 'inv-perm': { vista.perm = Object.assign({ entrenos: true, medidas: true, comidas: false, mente: false }, vista.perm); vista.perm[x] = !vista.perm[x]; return pintar(); }
+    case 'aceptar-invitacion': return ocupado(async () => {
+      await llamar('vinculo_por_codigo', { p_codigo: vista.codigo, p_modalidad: vista.mod || null, p_permisos: vista.perm || { entrenos: true, medidas: true, comidas: false, mente: false } });
+      try { localStorage.removeItem('aet_coach_inv'); } catch (e) {}
+      try { aetEvento('coach_invitacion'); } catch (e) {}
+      toast('¡Listo! Ya entrenas con tu coach'); pila = []; vista = { v: 'mi-coach' }; await refrescar(); pintar();
+    });
+    case 'prog-dia': vista.dia = Number(x); return pintar();
+    case 'registrar-ej': if (typeof aetFormEntreno === 'function') aetFormEntreno(x); return;
+    case 'msg-enviar': return ocupado(async () => {
+      const t = ($('coMsgIn') || {}).value || ''; if (!t.trim()) throw new Error(ERR.mensaje_vacio);
+      await llamar('mensaje_enviar', { p_vinculo: Number(x), p_texto: t }); await pintar();
+      const m = $('coMsgs'); if (m) m.scrollTop = m.scrollHeight; const i = $('coMsgIn'); if (i) i.focus();
+    });
+    default: if (window.__coachAccion) return window.__coachAccion(c, el, ocupado);
   }
 }
 document.addEventListener('click', alClic);
@@ -436,8 +451,32 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target 
 window.coachRender = function () { pintar(); };
 window.coachAbrir = function (v, extra) { pila = []; vista = Object.assign({ v: v || 'inicio' }, extra || {}); pintar(); };
 window.coachSub = function () { return pila.length > 0; };
+// Entrada desde Cuenta: un coach activo va directo a su espacio de trabajo
+window.aetCoachEntrar = async function () {
+  if (typeof aetIr === 'function') aetIr('coach');
+  const e = EST || await refrescar();
+  if (e && e.coach && e.coach.estado === 'activo') { pila = []; vista = { v: 'c-hoy' }; pintar(); }
+};
 window.coachVolver = function () { if (pila.length) { volver(); return true; } return false; };
-window.coachEstado = async function () { return refrescar(); };
+window.coachEstado = async function () {
+  const e = await refrescar();
+  // Invitación por enlace (?coach=CODIGO) guardada hasta que la persona tenga sesión
+  try {
+    const cod = localStorage.getItem('aet_coach_inv');
+    if (cod && e && e.disponible && !e.mi_coach && !(e.coach && e.coach.estado === 'activo')) {
+      localStorage.removeItem('aet_coach_inv');
+      if (typeof aetIr === 'function') aetIr('coach');
+      pila = []; vista = { v: 'invitacion', codigo: cod }; pintar();
+    }
+  } catch (x) {}
+  return e;
+};
+window.__aetCoach = {
+  llamar, esc, money, fecha, fechaCorta, toast, avatar, nivelTxt, estrellas, resumenPermisos, tarjetaSesion, chat, cab, PERM, ERR, VISTAS, nombreCorto,
+  est: () => EST, refrescar, pintar, ir, volver,
+  vista: () => vista, setVista: (v, conPila) => { if (conPila) pila.push(vista); else pila = []; vista = v; },
+  pilaVacia: () => pila.length === 0,
+};
 
 /* ---------------- Estilos ---------------- */
 const css = document.createElement('style');

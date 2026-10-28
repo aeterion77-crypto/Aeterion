@@ -2794,7 +2794,7 @@ body.coach-on .coach-entrada{display:block!important}
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi perfil</span><span class="app-card-meta" id="appPerfilMeta">Completar</span></div>
       <div class="app-card-desc">Tus datos, metas y lo que falta para dejar la app lista para ti. Puedes cambiarlo cuando quieras.</div>
     </button>
-    <button class="app-card coach-entrada" onclick="aetIr('coach')">
+    <button class="app-card coach-entrada" onclick="aetCoachEntrar()">
       <div class="app-card-top"><span class="app-card-titulo">🏋️ Coaches</span><span class="app-card-meta" id="appCoachMeta">Verificados</span></div>
       <div class="app-card-desc">Encuentra un entrenador verificado o, si eres entrenador, únete y administra a tus clientes.</div>
     </button>
@@ -7726,6 +7726,9 @@ function detectarModoApp() {
     aetRefrescar();
     renderPerfilResumenApp();
     const irParam = new URLSearchParams(location.search).get('ir');
+    // Invitación de un coach (?coach=CODIGO): se guarda hasta que la persona tenga sesión
+    const coachInv = (new URLSearchParams(location.search).get('coach') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
+    if (coachInv) { try { localStorage.setItem('aet_coach_inv', coachInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.coachEstado) coachEstado(); }, 1200); }
     if (irParam) setTimeout(() => aetIrDestino(irParam), 700);
     if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.tipo === 'aet-ir') aetIrDestino(ev.data.ir); });
     aetAtrasIniciar();
@@ -7809,6 +7812,7 @@ function cambiarPantallaApp(pantalla, btn) {
     const v = document.getElementById('appHabVolver'); if (v) v.textContent = aetHabOrigen === 'perfil' ? '← Volver a Progreso' : '← Volver a Inicio';
     btn = aetNavBtn('habitos');
   }
+  if (pantalla !== 'coach') document.body.classList.remove('modo-coach');
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-' + pantalla).classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
@@ -10466,6 +10470,7 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 // El Service Worker ya se registra arriba en el <head>, lo antes posible.
 </script>
 <script src="mente.js?v=1" defer></script>
-<script src="coach.js?v=1" defer></script>
+<script src="coach.js?v=2" defer></script>
+<script src="coach-espacio.js?v=1" defer></script>
 </body>
 </html>

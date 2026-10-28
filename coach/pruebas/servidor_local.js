@@ -12,6 +12,7 @@ const PUERTO = Number(process.argv[2] || 54329);
   await db.exec(fs.readFileSync(path.join(__dirname, 'stub_supabase.sql'), 'utf8'));
   await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '001_coaches.sql'), 'utf8'));
   await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '003_accesos_origen.sql'), 'utf8'));
+  await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '004_coach_espacio.sql'), 'utf8'));
   let cola = Promise.resolve();
   const enCola = (fn) => { const p = cola.then(fn, fn); cola = p.catch(() => {}); return p; };
 
