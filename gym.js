@@ -1,6 +1,6 @@
 /* ============================================================
    AETERION GYM — software para gimnasios
-   Staff (dueño, admin, recepción, coach): socios y vencimientos,
+   Staff (dueño, admin, recepción, entrenador): socios y vencimientos,
    entrada con QR o número, pagos registrados, caja, equipo, planes.
    Socio (en su app): su membresía y su QR de entrada.
    Funciona dentro de la app (#gymApp) y en la página de recepción
@@ -19,7 +19,7 @@ const sumaDias = (f, n) => { const d = new Date(f + 'T12:00:00Z'); d.setUTCDate(
 const fCorta = (f) => { if (!f) return '—'; try { return new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return f; } };
 const hora = (iso) => { try { return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
 const fechaHora = (iso) => { try { return new Date(iso).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } };
-const ROLES = { dueno: 'Dueño', admin: 'Administrador', recepcion: 'Recepción', coach: 'Coach' };
+const ROLES = { dueno: 'Dueño', admin: 'Administrador', recepcion: 'Recepción', coach: 'Entrenador' };
 const METODOS = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia', otro: 'Otro' };
 const ESTADOS = { al_corriente: ['Al corriente', 'ok'], por_vencer: ['Por vencer', 'warn'], vencido: ['Vencido', 'mal'], sin_pago: ['Sin pago', 'mal'], baja: ['Baja', 'gris'] };
 const ERR = {
@@ -298,7 +298,7 @@ VISTAS['g-mas'] = async () => {
   if (puede.cobrar()) op.push(['g-caja', 'Caja', 'Corte del día por forma de pago', 'gy-solo-movil']);
   if (puede.administrar()) op.push(['g-reportes', 'Reportes', 'Ingresos, ventas, ganancias · Excel y PDF', 'gy-solo-movil']);
   if (puede.administrar()) op.push(['g-ajustes', 'Ticket y datos del gimnasio', 'Impresora de 58 u 80 mm, encabezado, RFC']);
-  if (puede.administrar()) op.push(['g-equipo', 'Equipo y permisos', 'Recepción, administradores y coaches']);
+  if (puede.administrar()) op.push(['g-equipo', 'Equipo y permisos', 'Recepción, administradores y entrenadores']);
   if (puede.administrar()) op.push(['g-planes', 'Planes y precios', 'Lo que cobras a tus socios']);
   if (puede.dueno()) op.push(['g-sedes', 'Sedes', 'Sucursales de tu gimnasio']);
   op.push(['g-material', 'Material útil', 'Guías, cartel de entrada y consejos']);
@@ -315,10 +315,10 @@ VISTAS['g-equipo'] = async () => {
   const L = await llamar('gym_staff_listar', { p_gym: G });
   const lim = (INFO.plan_info.staff || 3) * INFO.sedes_max, act = L.filter((x) => x.activo).length;
   let h = titulo('Equipo', `${act} de ${lim} personas en tu plan`);
-  h += '<div class="gy-card">' + L.map((x) => `<div class="gy-staff ${x.activo ? '' : 'inactivo'}"><div><b>${esc(x.nombre)}${x.yo ? ' (tú)' : ''}</b><small>${esc(x.email)} · ${ROLES[x.rol]}${x.coach_aeterion ? ' · Coach Aeterion verificado' : ''}${x.activo ? '' : ' · sin acceso'}</small></div>${x.activo && !x.yo && x.rol !== 'dueno' && (puede.dueno() || x.rol !== 'admin') ? `<button class="gy-link" data-g="quitar-staff" data-x="${x.id}">Quitar</button>` : ''}</div>`).join('') + '</div>';
+  h += '<div class="gy-card">' + L.map((x) => `<div class="gy-staff ${x.activo ? '' : 'inactivo'}"><div><b>${esc(x.nombre)}${x.yo ? ' (tú)' : ''}</b><small>${esc(x.email)} · ${ROLES[x.rol]}${x.activo ? '' : ' · sin acceso'}</small></div>${x.activo && !x.yo && x.rol !== 'dueno' && (puede.dueno() || x.rol !== 'admin') ? `<button class="gy-link" data-g="quitar-staff" data-x="${x.id}">Quitar</button>` : ''}</div>`).join('') + '</div>';
   h += `<div class="gy-card gy-form"><b>Agregar persona</b><p class="gy-peq">Debe tener cuenta en la app Aeterion con ese correo.</p>
     <label>Correo<input class="gy-in" id="geMail" type="email" maxlength="120" autocomplete="off"></label>
-    <label>Rol<select class="gy-in" id="geRol">${puede.dueno() ? '<option value="admin">Administrador: todo menos sedes y plan</option>' : ''}<option value="recepcion" selected>Recepción: entradas, altas y pagos</option><option value="coach">Coach: ve socios y registra entradas</option></select></label>
+    <label>Rol<select class="gy-in" id="geRol">${puede.dueno() ? '<option value="admin">Administrador: todo menos sedes y plan</option>' : ''}<option value="recepcion" selected>Recepción: entradas, altas y pagos</option><option value="coach">Entrenador: ve socios y registra entradas</option></select></label>
     <button class="gy-btn" data-g="agregar-staff">Agregar</button></div>`;
   return h;
 };

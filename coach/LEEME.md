@@ -53,3 +53,8 @@ Para deshacer: apagar el interruptor (inmediato). Las tablas nuevas pueden queda
 - Coach: `coach-extra.js` — calendario, alimentación (solo con `coaches.puede_nutricion`, lo autoriza el admin), evaluación mutua, casos para Aeterion (`aet_casos`), bloqueos, vender productos (`?ref=CODIGO`), más material. El alumno ve la sugerencia de su coach en Entrenar y Nutrición sin perder lo de la app.
 - Admin: Soporte › Reportes y casos (`admin/casos-admin.js`); Coaches › autorizar planes de alimentación.
 - Pruebas: `prueba_gym_pos.js`, `prueba_coach_v3.js`, `prueba_gym_pos_app.py`, `prueba_espacio_app.py` (sección 7).
+
+## 2026-10-28 · Coaches retirado
+Se quitó todo lo de coaches de la app y del panel (coach.js, coach-espacio.js, coach-extra.js, admin/coach-admin.js y sus pruebas de pantalla).
+El código queda en el historial de git (commit e581ba7). Las tablas y funciones de coaches siguen en la base, apagadas (coach_config.activo = false) y sin pantallas.
+Se conservan: Aeterion Gym completo y «Reportes y casos» (lo usa la solicitud de mayoreo de los gimnasios).

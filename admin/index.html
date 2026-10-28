@@ -289,7 +289,6 @@
       <div class="card"><b>Pruebas recientes</b><div id="prLista" style="margin-top:8px"></div></div>
     </section>
 
-    <section id="tCoaches" class="oculto"><div id="coachAdm"><div class="card vacio">Cargando…</div></div></section>
     <section id="tCasos" class="oculto"><div id="casosAdm"><div class="card vacio">Cargando…</div></div></section>
     <section id="tAetgym" class="oculto"><div id="gymAdm"><div class="card vacio">Cargando…</div></div></section>
 
@@ -1381,13 +1380,13 @@ $('btnRefrescar').onclick = () => cargar(false);
 $('selUrgente').value = String(urgenteH);
 $('selUrgente').onchange = (e) => { urgenteH = Number(e.target.value); lsSet('aet_urgente', String(urgenteH)); pintarPedidos(); };
 
-const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', stripe: 'tStripe', promo: 'tPromo', coaches: 'tCoaches', aetgym: 'tAetgym', casos: 'tCasos', historial: 'tHistorial', seguridad: 'tSeguridad' };
+const TABS = { negocio: 'tNegocio', mayoreo: 'tMayoreo', gastos: 'tGastos', inicio: 'tInicio', tiendaAj: 'tTiendaAj', bloqueos: 'tBloqueos', sesion: 'tSesion', pedidos: 'tPedidos', soporte: 'tSoporte', resumen: 'tResumen', productos: 'tProductos', clientes: 'tClientes', cupones: 'tCupones', gimnasios: 'tGimnasios', inventario: 'tInventario', premium: 'tPremium', frases: 'tFrases', ajustes: 'tAjustes', uso: 'tUso', exportar: 'tExportar', stripe: 'tStripe', promo: 'tPromo', aetgym: 'tAetgym', casos: 'tCasos', historial: 'tHistorial', seguridad: 'tSeguridad' };
 // 6 secciones, cada una con sus sub-pestañas
 const GRUPOS = {
   inicio: ['Inicio', [['inicio', 'Hoy'], ['resumen', 'Ventas y métricas'], ['uso', 'Uso de la app']]],
   ventas: ['Ventas', [['pedidos', 'Pedidos'], ['stripe', 'Stripe'], ['clientes', 'Clientes'], ['cupones', 'Cupones'], ['exportar', 'Exportar']]],
   tienda: ['Tienda', [['productos', 'Productos'], ['inventario', 'Inventario'], ['negocio', 'Números'], ['mayoreo', 'Venta a gimnasio'], ['gastos', 'Gastos'], ['tiendaAj', 'Aviso y pausa']]],
-  premium: ['Premium', [['premium', 'Dar o quitar'], ['promo', 'Promoción'], ['gimnasios', 'Códigos de gimnasios'], ['coaches', 'Coaches'], ['aetgym', 'Aeterion Gym']]],
+  premium: ['Premium', [['premium', 'Dar o quitar'], ['promo', 'Promoción'], ['gimnasios', 'Códigos de gimnasios'], ['aetgym', 'Aeterion Gym']]],
   soporte: ['Soporte', [['soporte', 'Conversaciones'], ['casos', 'Reportes y casos'], ['bloqueos', 'Bloqueados']]],
   ajustes: ['Ajustes', [['ajustes', 'Textos de la app'], ['frases', 'Frases'], ['seguridad', 'Seguridad'], ['historial', 'Historial'], ['sesion', 'Avisos y sesión']]],
 };
@@ -1498,7 +1497,6 @@ async function cargarTab(t, silencioso) {
     if (t === 'soporte' || t === 'bloqueos') { await cargarSoporte(silencioso); }
     else if (t === 'inicio') { cargarPendientes(); }
     else if (t === 'stripe') { await cargarStripe(silencioso); }
-    else if (t === 'coaches') { if (window.cargarCoaches) await cargarCoaches(silencioso); }
     else if (t === 'aetgym') { if (window.cargarGymsAdm) await cargarGymsAdm(silencioso); }
     else if (t === 'casos') { if (window.cargarCasosAdm) await cargarCasosAdm(silencioso); }
     else if (t === 'promo') { if (silencioso && document.activeElement && document.activeElement.closest && document.activeElement.closest('#tPromo')) return; datosPr = await rpc('panel_promo'); pintarPromo(); }
@@ -2226,7 +2224,6 @@ registrarSW();
 sesion = leer();
 if (sesion && sesion.access_token) iniciar();
 </script>
-<script src="coach-admin.js?v=2"></script>
 <script src="gym-admin.js?v=1"></script>
 <script src="casos-admin.js?v=1"></script>
 </body>

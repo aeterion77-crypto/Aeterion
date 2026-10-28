@@ -2647,8 +2647,6 @@
   #aetBanner.aviso{background:#5a3b00;color:#ffe3a3}
   #aetBanner.promo{background:#0f3d2b;color:#b8f5d6}
   #aetBanner button{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:.3rem .5rem}
-  .coach-entrada{display:none!important}
-body.coach-on .coach-entrada{display:block!important}
   .gym-entrada,.socio-entrada{display:none!important}
 body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
 </style>
@@ -2680,7 +2678,6 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     <h2 class="app-titulo">Entrenar</h2>
     <p class="app-subtitulo">Tu entrenamiento de hoy, paso a paso</p>
     <div id="appEntrenarChips"></div>
-    <div id="appCoachSug"></div>
     <div id="appEntrenarHero"></div>
     <div id="appEntrenarLog"></div>
 
@@ -2723,7 +2720,6 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
   <div class="app-screen" id="app-screen-nutricion">
     <h2 class="app-titulo">Nutrición</h2>
     <p class="app-subtitulo">Registra tu día y elige tu plan</p>
-    <div id="appCoachNut"></div>
     <div id="appNutriHoy"></div>
     <button class="app-card" onclick="abrirCalculadora('sano')">
       <div class="app-card-top"><span class="app-card-titulo">Plan General</span><span class="app-card-meta">Personas sanas</span></div>
@@ -2757,8 +2753,6 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     </button>
   </div>
 
-  <!-- COACHES (entrenadores verificados; solo visible si el servidor lo habilita) -->
-  <div class="app-screen" id="app-screen-coach"><div id="coachApp"></div></div>
   <div class="app-screen" id="app-screen-gym"><div id="gymApp"></div></div>
 
   <!-- MENTE (salud mental: módulo propio, avance separado) -->
@@ -2798,10 +2792,6 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     <button class="app-card continuar" onclick="aetPerfilVer()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi perfil</span><span class="app-card-meta" id="appPerfilMeta">Completar</span></div>
       <div class="app-card-desc">Tus datos, metas y lo que falta para dejar la app lista para ti. Puedes cambiarlo cuando quieras.</div>
-    </button>
-    <button class="app-card coach-entrada" onclick="aetCoachEntrar()">
-      <div class="app-card-top"><span class="app-card-titulo">🏋️ Coaches</span><span class="app-card-meta" id="appCoachMeta">Verificados</span></div>
-      <div class="app-card-desc">Encuentra un entrenador verificado o, si eres entrenador, únete y administra a tus clientes.</div>
     </button>
     <button class="app-card gym-entrada" onclick="aetGymEntrar('g-hoy')">
       <div class="app-card-top"><span class="app-card-titulo">🏢 Aeterion Gym</span><span class="app-card-meta" id="appGymMeta">Mi gimnasio</span></div>
@@ -5636,7 +5626,6 @@ async function refrescarEstado() {
   actualizarUIAcceso();
   try { aetAyudaBadge(); } catch (e) {}
   try { aetPromoUI(); } catch (e) {}
-  try { if (window.coachEstado && sesionActiva) coachEstado(); } catch (e) {}
   try { if (window.gymEstado && sesionActiva) gymEstado(); } catch (e) {}
   return r;
 }
@@ -7740,12 +7729,6 @@ function detectarModoApp() {
     aetRefrescar();
     renderPerfilResumenApp();
     const irParam = new URLSearchParams(location.search).get('ir');
-    // Invitación de un coach (?coach=CODIGO): se guarda hasta que la persona tenga sesión
-    const coachInv = (new URLSearchParams(location.search).get('coach') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
-    if (coachInv) { try { localStorage.setItem('aet_coach_inv', coachInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.coachEstado) coachEstado(); }, 1200); }
-    // Recomendación de un coach (?ref=CODIGO): queda como referido para comisiones
-    const coachRef = (new URLSearchParams(location.search).get('ref') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
-    if (coachRef) { try { localStorage.setItem('aet_coach_ref', coachRef.toUpperCase()); } catch (e) {} }
     // Membresía de gimnasio (?socio=CODIGO): igual, se vincula al tener sesión
     const socioInv = (new URLSearchParams(location.search).get('socio') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 12);
     if (socioInv) { try { localStorage.setItem('aet_socio_inv', socioInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.gymEstado) gymEstado(); }, 1300); }
@@ -7768,7 +7751,6 @@ function _atrasCapas() {
   if (id === 'visor') { if (typeof appVisorOrigen !== 'undefined' && appVisorOrigen !== 'tienda') L.push('pantalla'); L.push('visor'); }
   else if (id === 'habitos') { if (aetHabOrigen === 'perfil') L.push('pantalla'); L.push('habitos'); }
   else if (id === 'mente' && window.menteSub && menteSub()) { L.push('pantalla'); L.push('mente'); }
-  else if (id === 'coach' && window.coachSub && coachSub()) { L.push('pantalla'); L.push('coach'); }
   else if (id === 'gym' && window.gymSub && gymSub()) { L.push('pantalla'); L.push('gym'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
@@ -7797,7 +7779,6 @@ function _atrasCerrarCapa() {
   else if (top === 'visor') volverDeVisorApp();
   else if (top === 'habitos') { aetIr(aetHabOrigen); window.scrollTo(0, 0); }
   else if (top === 'mente') menteVolver();
-  else if (top === 'coach') coachVolver();
   else if (top === 'gym') gymVolver();
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
@@ -7834,7 +7815,6 @@ function cambiarPantallaApp(pantalla, btn) {
     const v = document.getElementById('appHabVolver'); if (v) v.textContent = aetHabOrigen === 'perfil' ? '← Volver a Progreso' : '← Volver a Inicio';
     btn = aetNavBtn('habitos');
   }
-  if (pantalla !== 'coach') document.body.classList.remove('modo-coach');
   if (pantalla !== 'gym') document.body.classList.remove('modo-gym');
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-' + pantalla).classList.add('activo');
@@ -7842,12 +7822,11 @@ function cambiarPantallaApp(pantalla, btn) {
   if (btn) btn.classList.add('activo');
   aetEvento('sec_' + ({ perfil: 'progreso' }[pantalla] || pantalla));
   if (pantalla === 'inicio') renderDashboardApp();
-  if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); if (window.coachSugerencia) coachSugerencia().catch(() => {}); }
-  if (pantalla === 'nutricion') { aetRenderNutri(); if (window.coachNutricionCard) coachNutricionCard().catch(() => {}); }
+  if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); }
+  if (pantalla === 'nutricion') aetRenderNutri();
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
   if (pantalla === 'habitos') aetRenderHabitos();
   if (pantalla === 'mente' && window.menteRender) menteRender();
-  if (pantalla === 'coach' && window.coachRender) coachRender();
   if (pantalla === 'gym' && window.gymRender) gymRender();
   window.scrollTo(0, 0);
 }
@@ -8858,7 +8837,6 @@ function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
   if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
   if (d === 'premium') { aetIr('cuenta'); setTimeout(() => abrirCuenta(), 300); return; }
-  if (d === 'coach') { if (window.coachEstado) coachEstado().then(e => { if (e && e.disponible) aetIr('coach'); }); return; }
   if (['inicio', 'entrenar', 'nutricion', 'mente', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
 }
 
@@ -10494,10 +10472,7 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 // El Service Worker ya se registra arriba en el <head>, lo antes posible.
 </script>
 <script src="mente.js?v=1" defer></script>
-<script src="coach.js?v=3" defer></script>
-<script src="coach-espacio.js?v=2" defer></script>
-<script src="coach-extra.js?v=1" defer></script>
-<script src="gym.js?v=2" defer></script>
+<script src="gym.js?v=3" defer></script>
 <script src="gym-pos.js?v=1" defer></script>
 </body>
 </html>
