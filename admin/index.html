@@ -522,6 +522,22 @@
         <div class="fila" style="margin-top:12px"><button id="btnInv">Registrar</button></div>
         <div class="peq" style="margin-top:8px">Las ventas de la tienda restan solas. Aquí registras lo demás: lo que te llega, lo que entregas fuera de la tienda y los conteos.</div>
       </div>
+      <div class="card" style="margin-bottom:14px;border-color:rgba(201,168,76,.45)">
+        <b>Venta en persona</b>
+        <div class="peq" style="margin:4px 0 0">Lo que vendiste en mano. Se descuenta del inventario y se suma a tus ventas y ganancia en Números.</div>
+        <div class="rejilla c4" style="margin-top:10px">
+          <div class="campo"><label>Producto</label><select id="vpProd"></select></div>
+          <div class="campo"><label>Piezas</label><input id="vpCant" type="number" min="1" step="1" value="1"></div>
+          <div class="campo"><label>Precio c/u ($)</label><input id="vpPrecio" type="number" min="0" step="1"></div>
+          <div class="campo"><label>Cómo te pagó</label><select id="vpMet"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta</option><option value="otro">Otro</option></select></div>
+          <div class="campo"><label>Cliente (opcional)</label><input id="vpCliente" maxlength="80" placeholder="Ej. Juan"></div>
+          <div class="campo"><label>Fecha</label><input id="vpFecha" type="date"></div>
+          <div class="campo" style="grid-column:span 2"><label>Nota (opcional)</label><input id="vpNota" maxlength="200"></div>
+        </div>
+        <div class="peq" id="vpTotal" style="margin-top:8px"></div>
+        <div class="fila" style="margin-top:10px"><button id="btnVentaPersona">Registrar venta</button></div>
+        <div id="vpLista" style="margin-top:12px"></div>
+      </div>
       <div id="invProductos"></div>
       <div class="card" id="invMovs"></div>
     </section>
@@ -956,12 +972,12 @@ function cuentaNegocio(D) {
   const P = D.productos || [], T = D.tienda || {}, G = D.gimnasios || {};
   const costoTienda = P.reduce((s, p) => s + (p.uds_tienda || 0) * Number(p.costo || 0), 0);
   const ventasTienda = Number(T.subtotal || 0) - Number(T.descuento || 0);
-  const ventasGim = Number(G.total || 0), costoGim = Number(G.costo || 0);
+  const ventasGim = Number(G.total || 0), costoGim = Number(G.costo || 0), Pe = D.personal || {}, ventasPer = Number(Pe.total || 0), costoPer = Number(Pe.costo || 0);
   const envioNeto = Number(T.envio_cobrado || 0) - Number(T.envio_pagado || 0);
   const comision = Number(T.comision || 0), gastos = Number((D.gastos || {}).total || 0);
-  const neta = ventasTienda + ventasGim - costoTienda - costoGim - comision + envioNeto - gastos;
-  const ventas = ventasTienda + ventasGim;
-  return { costoTienda, ventasTienda, ventasGim, costoGim, envioNeto, comision, gastos, neta, ventas, sinCosto: P.filter((p) => p.costo == null).map((p) => p.nombre) };
+  const neta = ventasTienda + ventasGim + ventasPer - costoTienda - costoGim - costoPer - comision + envioNeto - gastos;
+  const ventas = ventasTienda + ventasGim + ventasPer;
+  return { costoTienda, ventasTienda, ventasGim, costoGim, ventasPer, costoPer, envioNeto, comision, gastos, neta, ventas, sinCosto: P.filter((p) => p.costo == null).map((p) => p.nombre) };
 }
 function pintarNegocio() {
   if (!$('ngCuerpo')) return;
@@ -976,7 +992,7 @@ function pintarNegocio() {
   const pedirCosto = inv.reduce((s, x) => s + (x.pedir || 0) * Number(x.p.costo || 0), 0);
   $('ngCuerpo').innerHTML = `
     <div class="kpis">
-      <div class="kpi"><small>Ventas</small><b>${money(c.ventas)}</b><i class="igual">tienda ${money(c.ventasTienda)} · gimnasios ${money(c.ventasGim)}</i></div>
+      <div class="kpi"><small>Ventas</small><b>${money(c.ventas)}</b><i class="igual">tienda ${money(c.ventasTienda)} · gimnasios ${money(c.ventasGim)}${c.ventasPer ? ' · en persona ' + money(c.ventasPer) : ''}</i></div>
       <div class="kpi" style="border-color:${c.neta >= 0 ? 'rgba(46,204,113,.45)' : 'rgba(231,76,60,.5)'}"><small>Ganancia neta</small><b style="color:${c.neta >= 0 ? 'var(--verde,#2ecc71)' : '#ff8a7d'}">${money(c.neta)}</b><i class="igual">${pct} % de lo que vendiste</i></div>
       <div class="kpi"><small>Pedidos de la tienda</small><b>${T.pedidos || 0}</b><i class="igual">${T.pedidos ? 'ticket promedio ' + money((c.ventasTienda) / T.pedidos) : '—'}</i></div>
       <div class="kpi" data-ir-my style="cursor:pointer"><small>Por cobrar a gimnasios</small><b style="color:${G.por_cobrar > 0 ? '#f1c40f' : 'inherit'}">${money(G.por_cobrar || 0)}</b><i class="igual">${G.por_cobrar > 0 ? 'toca para ver →' : 'todo cobrado'}</i></div>
@@ -985,7 +1001,8 @@ function pintarNegocio() {
       <table class="er">
         <tr><td>Ventas en la tienda <div class="sub">productos, ya con descuentos de cupón</div></td><td>${pesos2(c.ventasTienda)}</td></tr>
         <tr><td>Ventas a gimnasios</td><td>${pesos2(c.ventasGim)}</td></tr>
-        <tr class="menos"><td>Costo de lo que vendiste <div class="sub">lo que te costó cada pieza con tu proveedor</div></td><td>− ${pesos2(c.costoTienda + c.costoGim)}</td></tr>
+        <tr><td>Ventas en persona <div class="sub">registradas en Inventario</div></td><td>${pesos2(c.ventasPer)}</td></tr>
+        <tr class="menos"><td>Costo de lo que vendiste <div class="sub">lo que te costó cada pieza con tu proveedor</div></td><td>− ${pesos2(c.costoTienda + c.costoGim + c.costoPer)}</td></tr>
         <tr class="menos"><td>Comisión por pago con tarjeta <div class="sub">estimada: 3.6 % + $3 + IVA por pedido</div></td><td>− ${pesos2(c.comision)}</td></tr>
         <tr class="${c.envioNeto < 0 ? 'menos' : ''}"><td>Envíos (cobrado − pagado a paquetería) <div class="sub">cobraste ${pesos2(T.envio_cobrado)} · pagaste ${pesos2(T.envio_pagado)}${sinEnvio > 0 ? ' · ' + sinEnvio + ' pedido(s) sin costo de guía registrado' : ''}</div></td><td>${c.envioNeto < 0 ? '− ' + pesos2(-c.envioNeto) : pesos2(c.envioNeto)}</td></tr>
         <tr class="menos"><td>Gastos <div class="sub">publicidad, empaque, etc. (sub-pestaña Gastos)</div></td><td>− ${pesos2(c.gastos)}</td></tr>
@@ -996,11 +1013,11 @@ function pintarNegocio() {
     </div>
     <div class="bloque"><h3>Por producto</h3>${P.map((p) => {
       const mT = p.costo != null ? Number(p.precio) - Number(p.costo) : null, mG = p.costo != null && p.precio_gimnasio ? Number(p.precio_gimnasio) - Number(p.costo) : null;
-      const gan = (p.costo != null ? p.uds_tienda * mT : 0) + Number(p.ingreso_gim || 0) - Number(p.costo_gim || 0);
+      const gan = (p.costo != null ? p.uds_tienda * mT : 0) + Number(p.ingreso_gim || 0) - Number(p.costo_gim || 0) + Number(p.ingreso_personal || 0) - Number(p.costo_personal || 0);
       return `<div class="fila-item"><div class="cab"><div class="nom">${esc(p.nombre)}</div><div class="monto">${money(gan)}</div></div>
         <div class="np">
           <div><span>Costo proveedor</span>${p.costo != null ? money(p.costo) : '—'}</div>
-          <div><span>Vendidas en el periodo</span>${p.uds_tienda} tienda · ${p.uds_gim} gimnasios</div>
+          <div><span>Vendidas en el periodo</span>${p.uds_tienda} tienda · ${p.uds_gim} gimnasios${p.uds_personal ? ' · ' + p.uds_personal + ' en persona' : ''}</div>
           <div><span>Precio tienda · ganas</span>${money(p.precio)} · ${mT != null ? money(mT) + ' (' + Math.round(mT / p.precio * 100) + ' %)' : '—'}</div>
           <div><span>Precio gimnasio · ganas</span>${p.precio_gimnasio ? money(p.precio_gimnasio) + ' · ' + (mG != null ? money(mG) + ' (' + Math.round(mG / p.precio_gimnasio * 100) + ' %)' : '—') : '—'}</div>
         </div></div>`;
@@ -1023,7 +1040,7 @@ function pintarMayoreo() {
     $('myItems').dataset.listo = '1';
   }
   calcMayoreo();
-  const V = G.ventas || [];
+  const V = (G.ventas || []).filter((v) => v.tipo !== 'personal');
   $('myLista').innerHTML = `<b>Ventas a gimnasios</b>${G.por_cobrar > 0 ? ` <span class="tag a">por cobrar ${money(G.por_cobrar)}</span>` : ''}` + (V.length ? V.map((v) => {
     const gan = Number(v.total) - Number(v.costo);
     return `<div class="fila-item" data-vg="${esc(v.id)}"><div class="cab"><div style="min-width:0"><div class="nom">${esc(v.gimnasio)}</div><div class="peq">${esc(fechaDia(v.fecha))} · ${(v.items || []).map((i) => esc(i.nombre.replace(/^Aeterion /, '')) + ' ×' + i.qty).join(', ')}</div>${v.nota ? `<div class="peq">${esc(v.nota)}</div>` : ''}</div><div style="text-align:right"><div class="monto">${money(v.total)}</div><div class="peq">ganas ${money(gan)}</div></div></div>
@@ -2144,6 +2161,13 @@ function pintarInventario() {
   const D = datosInv || { productos: [], movs: [] };
   const sel = $('iProd'), act = sel.value;
   sel.innerHTML = D.productos.map((p) => `<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join(''); if (act) sel.value = act;
+  const vs = $('vpProd'), vact = vs.value;
+  vs.innerHTML = D.productos.map((p) => `<option value="${esc(p.id)}">${esc(p.nombre)}${p.stock != null ? ' (' + p.stock + ')' : ''}</option>`).join(''); if (vact) vs.value = vact;
+  if (!vact || $('vpPrecio').value === '') vpPrecioDe();
+  if (!$('vpFecha').value) $('vpFecha').value = hoyMx();
+  vpCalc();
+  const VP = D.ventas_persona || [];
+  $('vpLista').innerHTML = VP.length ? '<div class="peq" style="margin-bottom:4px">Últimas ventas en persona</div>' + VP.map((v) => `<div class="fila-item"><div class="cab"><div style="min-width:0"><div class="nom">${(v.items || []).map((i) => esc(i.nombre.replace(/^Aeterion /, '')) + ' ×' + i.qty).join(', ')}</div><div class="peq">${esc(fechaDia(v.fecha))}${v.cliente && v.cliente !== 'Venta en persona' ? ' · ' + esc(v.cliente) : ''}${v.metodo ? ' · ' + esc(v.metodo) : ''}${v.nota ? ' · ' + esc(v.nota) : ''}</div></div><div style="text-align:right"><div class="monto">${money(v.total)}</div><button class="mal mini" data-vp-anular="${esc(v.id)}" style="margin-top:4px">Anular</button></div></div></div>`).join('') : '';
   const nombre = {}; D.productos.forEach((p) => { nombre[p.id] = p.nombre; });
   $('invProductos').innerHTML = `<div class="kpis">${D.productos.map((p) => {
     const sinControl = p.stock == null, bajo = !sinControl && p.stock <= p.stock_minimo;
@@ -2152,6 +2176,32 @@ function pintarInventario() {
   const T = { entrada: '＋ Entrada', salida: '− Salida', ajuste: '＝ Conteo' };
   $('invMovs').innerHTML = `<b>Últimos movimientos</b>` + (D.movs.length ? D.movs.map((m) => `<div class="fila-item"><div class="cab"><div><div class="nom">${T[m.tipo]} · ${m.cantidad}</div><div class="peq">${esc(nombre[m.producto] || m.producto)} · ${new Date(m.creado_en).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${m.nota ? ' · ' + esc(m.nota) : ''}</div></div><div style="text-align:right"><div class="monto">${m.saldo}</div><div class="peq">quedan</div></div></div></div>`).join('') : '<div class="vacio">Aún no hay movimientos registrados.</div>');
 }
+function vpPrecioDe() { const p = ((datosInv || {}).productos || []).find((x) => x.id === $('vpProd').value); $('vpPrecio').value = p && p.precio != null ? Number(p.precio) : ''; }
+function vpCalc() { const q = Math.floor(Number($('vpCant').value || 0)), pr = Number($('vpPrecio').value || 0); $('vpTotal').textContent = q > 0 && pr >= 0 ? 'Total: ' + money(q * pr) : ''; }
+$('vpProd').onchange = () => { vpPrecioDe(); vpCalc(); };
+$('vpCant').oninput = vpCalc; $('vpPrecio').oninput = vpCalc;
+$('btnVentaPersona').onclick = async () => {
+  const q = Number($('vpCant').value), pr = Number($('vpPrecio').value), prod = ((datosInv || {}).productos || []).find((x) => x.id === $('vpProd').value);
+  if (!prod) { aviso('Elige el producto.'); return; }
+  if (!(q >= 1) || q !== Math.floor(q)) { aviso('Escribe cuántas piezas vendiste.'); return; }
+  if ($('vpPrecio').value === '' || !(pr >= 0)) { aviso('Escribe el precio.'); return; }
+  const cli = $('vpCliente').value.trim(), fecha = $('vpFecha').value || null;
+  if (cli.length === 1) { aviso('Escribe el nombre del cliente o déjalo vacío.'); return; }
+  if (!confirm('¿Registrar venta en persona de ' + q + ' × ' + prod.nombre + ' por ' + money(q * pr) + (fecha && fecha !== hoyMx() ? ' con fecha ' + fechaDia(fecha) : '') + '?\nSe descuenta del inventario.')) return;
+  $('btnVentaPersona').disabled = true;
+  try {
+    const r = await rpc('panel_venta_gim_registrar', { p_gimnasio: cli, p_items: [{ id: prod.id, qty: q, precio: pr }], p_pagado: true, p_nota: $('vpNota').value.trim() || null, p_fecha: fecha, p_tipo: 'personal', p_metodo: $('vpMet').value });
+    if (r.ok) { aviso('Venta registrada: ' + money(r.total) + ' · ganas ' + money(r.total - r.costo) + '.', true); $('vpCant').value = '1'; $('vpCliente').value = ''; $('vpNota').value = ''; $('vpFecha').value = hoyMx(); await cargarTab('inventario', false); }
+    else aviso({ stock_insuficiente: 'No hay suficientes piezas (quedan ' + r.stock + '). Registra primero la entrada.', fecha_invalida: 'La fecha no puede ser futura ni de hace más de un año.', precio_invalido: 'Revisa el precio.', cantidad_invalida: 'Revisa las piezas.' }[r.error] || 'No se pudo registrar: ' + r.error);
+  } catch (e) { aviso('No se pudo completar. Inténtalo de nuevo.'); }
+  $('btnVentaPersona').disabled = false;
+};
+$('vpLista').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-vp-anular]'); if (!b) return;
+  if (!confirm('¿Anular esta venta? Las piezas regresan al inventario.')) return;
+  b.disabled = true;
+  try { await rpc('panel_venta_gim_estado', { p_id: Number(b.dataset.vpAnular), p_pagado: null, p_anular: true }); aviso('Venta anulada.', true); await cargarTab('inventario', false); } catch (err) { aviso('No se pudo anular.'); b.disabled = false; }
+});
 $('btnInv').onclick = async () => {
   const tipo = $('iTipo').value, cant = Number($('iCant').value);
   if ($('iCant').value === '' || !(cant >= 0) || cant !== Math.floor(cant) || (tipo !== 'ajuste' && cant < 1)) { aviso(ERR_INV.cantidad_invalida); return; }
