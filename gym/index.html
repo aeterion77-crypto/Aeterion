@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0b0c">
+<meta name="theme-color" content="#0b0c0f">
 <meta name="robots" content="noindex">
 <title>Aeterion Gym · Recepción</title>
 <link rel="icon" href="../icon-192.png">
@@ -41,7 +41,7 @@ html,body{margin:0;background:var(--negro);color:var(--texto);font-family:var(--
     <button id="btnAtras" class="sec">Usar otro correo</button>
   </div>
 </div>
-<div class="contenedor oculto" id="panel"><div id="gymApp"></div></div>
+<div class="oculto" id="panel"><div id="gymApp"></div></div>
 <div id="msg" role="status"></div>
 <script>
 const SUPABASE_URL = 'https://pjbfhglrvsgheuyhguyp.supabase.co';
@@ -107,8 +107,8 @@ $('btnEntrar').onclick = async () => {
 $('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnCodigo').click(); });
 $('codigo').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEntrar').click(); });
 </script>
-<script src="../gym.js?v=3"></script>
-<script src="../gym-pos.js?v=1"></script>
+<script src="../gym.js?v=4"></script>
+<script src="../gym-pos.js?v=2"></script>
 <script>
 sesion = leer();
 if (sesion && sesion.refresh_token) iniciar();
