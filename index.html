@@ -2649,6 +2649,8 @@
   #aetBanner button{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:.3rem .5rem}
   .coach-entrada{display:none!important}
 body.coach-on .coach-entrada{display:block!important}
+  .gym-entrada,.socio-entrada{display:none!important}
+body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
 </style>
 </head>
 
@@ -2755,6 +2757,7 @@ body.coach-on .coach-entrada{display:block!important}
 
   <!-- COACHES (entrenadores verificados; solo visible si el servidor lo habilita) -->
   <div class="app-screen" id="app-screen-coach"><div id="coachApp"></div></div>
+  <div class="app-screen" id="app-screen-gym"><div id="gymApp"></div></div>
 
   <!-- MENTE (salud mental: módulo propio, avance separado) -->
   <div class="app-screen" id="app-screen-mente"><div id="menteApp"></div></div>
@@ -2797,6 +2800,14 @@ body.coach-on .coach-entrada{display:block!important}
     <button class="app-card coach-entrada" onclick="aetCoachEntrar()">
       <div class="app-card-top"><span class="app-card-titulo">🏋️ Coaches</span><span class="app-card-meta" id="appCoachMeta">Verificados</span></div>
       <div class="app-card-desc">Encuentra un entrenador verificado o, si eres entrenador, únete y administra a tus clientes.</div>
+    </button>
+    <button class="app-card gym-entrada" onclick="aetGymEntrar('g-hoy')">
+      <div class="app-card-top"><span class="app-card-titulo">🏢 Aeterion Gym</span><span class="app-card-meta" id="appGymMeta">Mi gimnasio</span></div>
+      <div class="app-card-desc">Socios, vencimientos, entradas con QR, pagos y tu equipo.</div>
+    </button>
+    <button class="app-card socio-entrada" onclick="aetGymEntrar('s-mio')">
+      <div class="app-card-top"><span class="app-card-titulo">🎫 Mi gimnasio</span><span class="app-card-meta" id="appSocioMeta">Vincular</span></div>
+      <div class="app-card-desc">Tu membresía, cuándo vence y tu QR para entrar.</div>
     </button>
     <button class="app-card" onclick="recAbrir()">
       <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
@@ -5624,6 +5635,7 @@ async function refrescarEstado() {
   try { aetAyudaBadge(); } catch (e) {}
   try { aetPromoUI(); } catch (e) {}
   try { if (window.coachEstado && sesionActiva) coachEstado(); } catch (e) {}
+  try { if (window.gymEstado && sesionActiva) gymEstado(); } catch (e) {}
   return r;
 }
 
@@ -7729,6 +7741,9 @@ function detectarModoApp() {
     // Invitación de un coach (?coach=CODIGO): se guarda hasta que la persona tenga sesión
     const coachInv = (new URLSearchParams(location.search).get('coach') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
     if (coachInv) { try { localStorage.setItem('aet_coach_inv', coachInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.coachEstado) coachEstado(); }, 1200); }
+    // Membresía de gimnasio (?socio=CODIGO): igual, se vincula al tener sesión
+    const socioInv = (new URLSearchParams(location.search).get('socio') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 12);
+    if (socioInv) { try { localStorage.setItem('aet_socio_inv', socioInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.gymEstado) gymEstado(); }, 1300); }
     if (irParam) setTimeout(() => aetIrDestino(irParam), 700);
     if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.tipo === 'aet-ir') aetIrDestino(ev.data.ir); });
     aetAtrasIniciar();
@@ -7749,6 +7764,7 @@ function _atrasCapas() {
   else if (id === 'habitos') { if (aetHabOrigen === 'perfil') L.push('pantalla'); L.push('habitos'); }
   else if (id === 'mente' && window.menteSub && menteSub()) { L.push('pantalla'); L.push('mente'); }
   else if (id === 'coach' && window.coachSub && coachSub()) { L.push('pantalla'); L.push('coach'); }
+  else if (id === 'gym' && window.gymSub && gymSub()) { L.push('pantalla'); L.push('gym'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
   if (document.querySelector('#appSheet.abierto')) L.push('hoja');
@@ -7777,6 +7793,7 @@ function _atrasCerrarCapa() {
   else if (top === 'habitos') { aetIr(aetHabOrigen); window.scrollTo(0, 0); }
   else if (top === 'mente') menteVolver();
   else if (top === 'coach') coachVolver();
+  else if (top === 'gym') gymVolver();
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
 // Quita pasos de más (cuando algo se cerró con su propio botón ✕)
@@ -7813,6 +7830,7 @@ function cambiarPantallaApp(pantalla, btn) {
     btn = aetNavBtn('habitos');
   }
   if (pantalla !== 'coach') document.body.classList.remove('modo-coach');
+  if (pantalla !== 'gym') document.body.classList.remove('modo-gym');
   document.querySelectorAll('.app-screen').forEach(p => p.classList.remove('activo'));
   document.getElementById('app-screen-' + pantalla).classList.add('activo');
   document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('activo'));
@@ -7825,6 +7843,7 @@ function cambiarPantallaApp(pantalla, btn) {
   if (pantalla === 'habitos') aetRenderHabitos();
   if (pantalla === 'mente' && window.menteRender) menteRender();
   if (pantalla === 'coach' && window.coachRender) coachRender();
+  if (pantalla === 'gym' && window.gymRender) gymRender();
   window.scrollTo(0, 0);
 }
 
@@ -10472,5 +10491,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 <script src="mente.js?v=1" defer></script>
 <script src="coach.js?v=2" defer></script>
 <script src="coach-espacio.js?v=1" defer></script>
+<script src="gym.js?v=1" defer></script>
 </body>
 </html>

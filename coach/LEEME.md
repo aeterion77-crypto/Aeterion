@@ -40,3 +40,10 @@ python3 prueba_admin.py   # 12 revisiones del panel de admin
 5. Piloto con 5–10 coaches y luego encender para todos.
 
 Para deshacer: apagar el interruptor (inmediato). Las tablas nuevas pueden quedarse sin afectar nada.
+
+## Aeterion Gym (005)
+- `coach/sql/005_gym.sql` (aplicada en producción como `gym_005`): gimnasios, sedes, equipo por rol, planes, socios, pagos registrados, asistencias.
+- App: `gym.js` (pantalla `app-screen-gym`; tarjetas «Aeterion Gym» para staff y «Mi gimnasio» para socios; enlace `?socio=CODIGO`).
+- Recepción en computadora: `gym/index.html` (entra con código por correo).
+- Admin: Premium › Aeterion Gym (`admin/gym-admin.js`).
+- Pruebas: `node pruebas/prueba_gym.js` y `python3 pruebas/prueba_gym_app.py`.

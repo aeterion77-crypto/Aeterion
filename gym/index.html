@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="robots" content="noindex">
+<title>Aeterion Gym · Recepción</title>
+<link rel="icon" href="../icon-192.png">
+<style>
+:root{--negro:#0b0b0c;--negro2:#141414;--oro:#c9a84c;--texto:#ddd;--gris:#9a9a9a;--font-ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--font-display:Georgia,"Times New Roman",serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--negro);color:var(--texto);font-family:var(--font-ui);-webkit-text-size-adjust:100%}
+.contenedor{padding:0 16px max(16px,env(safe-area-inset-bottom))}
+.oculto{display:none!important}
+#login{max-width:400px;margin:12vh auto 0;padding:0 16px}
+#login h1{font-family:var(--font-display);letter-spacing:.25em;color:var(--oro);font-size:20px;margin:0 0 .3rem}
+#login h1 b{color:#fff}
+#login p{color:var(--gris);font-size:14px;line-height:1.5}
+#login input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#fff;font:inherit;font-size:16px;padding:.75rem;margin:.4rem 0 .6rem;min-height:46px}
+#login input:focus{outline:none;border-color:var(--oro)}
+#login button{width:100%;background:var(--oro);color:#141109;border:0;border-radius:12px;padding:.85rem;font:inherit;font-weight:700;font-size:15px;cursor:pointer;min-height:48px}
+#login button.sec{background:transparent;color:var(--oro);border:1px solid rgba(201,168,76,.5);margin-top:.5rem}
+#login button:disabled{opacity:.5}
+#msg{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);max-width:calc(100% - 32px);background:#2a2620;color:#fff;border:1px solid rgba(201,168,76,.45);border-radius:12px;padding:.7rem 1rem;font-size:14px;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+#msg.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="login">
+  <h1>AETERION <b>GYM</b></h1>
+  <p>Recepción y administración de tu gimnasio. Entra con el correo de tu cuenta Aeterion.</p>
+  <div id="paso1">
+    <input id="email" type="email" autocomplete="email" placeholder="tu@correo.com">
+    <button id="btnCodigo">Enviarme un código</button>
+  </div>
+  <div id="paso2" class="oculto">
+    <p>Escribe el código que enviamos a <b id="destino"></b>.</p>
+    <input id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Código">
+    <button id="btnEntrar">Entrar</button>
+    <button id="btnAtras" class="sec">Usar otro correo</button>
+  </div>
+</div>
+<div class="contenedor oculto" id="panel"><div id="gymApp"></div></div>
+<div id="msg" role="status"></div>
+<script>
+const SUPABASE_URL = 'https://pjbfhglrvsgheuyhguyp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_X86RvXPbwY5tXG34PxGzBA_T8yjEiM7';
+const $ = (id) => document.getElementById(id);
+const CLAVE = 'aet_gym_recepcion';
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+let sesion = null, emailPend = '', _tm;
+function aviso(t) { const m = $('msg'); m.textContent = t; m.classList.add('on'); clearTimeout(_tm); _tm = setTimeout(() => m.classList.remove('on'), 4500); }
+function guardar() { lsSet(CLAVE, sesion ? JSON.stringify(sesion) : ''); }
+function leer() { try { return JSON.parse(lsGet(CLAVE) || 'null'); } catch (e) { return null; } }
+async function auth(ruta, cuerpo) {
+  try {
+    const r = await fetch(SUPABASE_URL + '/auth/v1/' + ruta, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) });
+    let d = null; try { d = await r.json(); } catch (e) {}
+    return { ok: r.ok, status: r.status, d };
+  } catch (e) { return { ok: false, status: 0, d: null }; }
+}
+const expirada = (s) => !s || (!!s.expires_at && s.expires_at * 1000 < Date.now() + 60000);
+let _ref = null;
+function refrescarSesion() {
+  if (_ref) return _ref;
+  _ref = (async () => {
+    const g = leer(); if (g && g.access_token !== (sesion && sesion.access_token) && !expirada(g)) { sesion = g; return 'ok'; }
+    const rt = (g && g.refresh_token) || (sesion && sesion.refresh_token); if (!rt) return 'fin';
+    const t = await auth('token?grant_type=refresh_token', { refresh_token: rt });
+    if (t.ok && t.d && t.d.access_token) { sesion = t.d; guardar(); return 'ok'; }
+    return (!t.status || t.status >= 500 || t.status === 429) ? 'red' : 'fin';
+  })().finally(() => { _ref = null; });
+  return _ref;
+}
+async function rpc(fn, args) {
+  if (sesion && expirada(sesion)) { const st = await refrescarSesion(); if (st === 'red') return { ok: false, red: true, data: null }; if (st === 'fin') { salir(); return { ok: false, status: 401, data: { message: 'no_autenticado' } }; } }
+  if (!sesion) return { ok: false, status: 401, data: { message: 'no_autenticado' } };
+  const llamar = () => fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
+  let r;
+  try { r = await llamar(); if (r.status === 401) { const st = await refrescarSesion(); if (st === 'ok') r = await llamar(); else if (st === 'fin') { salir(); } } }
+  catch (e) { return { ok: false, red: true, data: null }; }
+  let d = null; try { d = await r.json(); } catch (e) {}
+  return { ok: r.ok, status: r.status, data: d };
+}
+function salir() {
+  if (sesion) fetch(SUPABASE_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + sesion.access_token } }).catch(() => {});
+  sesion = null; guardar(); $('panel').classList.add('oculto'); $('login').classList.remove('oculto'); $('paso2').classList.add('oculto'); $('paso1').classList.remove('oculto');
+}
+window.AET_GYM_ENV = { standalone: true, base: '../', appUrl: location.origin + location.pathname.replace(/gym\/(index\.html)?$/, ''), rpc, toast: aviso, salir };
+function iniciar() { $('login').classList.add('oculto'); $('panel').classList.remove('oculto'); window.gymAbrir('g-hoy'); }
+$('btnCodigo').onclick = async () => {
+  const email = $('email').value.trim().toLowerCase();
+  if (!email.includes('@')) { aviso('Escribe un correo válido.'); return; }
+  $('btnCodigo').disabled = true; const r = await auth('otp', { email, create_user: false }); $('btnCodigo').disabled = false;
+  if (!r.ok) { aviso(r.status === 0 ? 'Sin conexión.' : 'No se pudo enviar el código. Revisa que el correo tenga cuenta en Aeterion o espera un minuto.'); return; }
+  emailPend = email; $('destino').textContent = email; $('paso1').classList.add('oculto'); $('paso2').classList.remove('oculto'); $('codigo').focus();
+};
+$('btnAtras').onclick = () => { $('paso2').classList.add('oculto'); $('paso1').classList.remove('oculto'); };
+$('btnEntrar').onclick = async () => {
+  const token = $('codigo').value.trim(); if (!token) return;
+  $('btnEntrar').disabled = true; const r = await auth('verify', { type: 'email', email: emailPend, token }); $('btnEntrar').disabled = false;
+  if (!r.ok || !r.d || !r.d.access_token) { aviso('Código incorrecto o vencido.'); return; }
+  sesion = r.d; guardar(); $('codigo').value = ''; iniciar();
+};
+$('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnCodigo').click(); });
+$('codigo').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEntrar').click(); });
+</script>
+<script src="../gym.js?v=1"></script>
+<script>
+sesion = leer();
+if (sesion && sesion.refresh_token) iniciar();
+</script>
+</body>
+</html>
