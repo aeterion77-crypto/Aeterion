@@ -2680,6 +2680,7 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     <h2 class="app-titulo">Entrenar</h2>
     <p class="app-subtitulo">Tu entrenamiento de hoy, paso a paso</p>
     <div id="appEntrenarChips"></div>
+    <div id="appCoachSug"></div>
     <div id="appEntrenarHero"></div>
     <div id="appEntrenarLog"></div>
 
@@ -2722,6 +2723,7 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
   <div class="app-screen" id="app-screen-nutricion">
     <h2 class="app-titulo">Nutrición</h2>
     <p class="app-subtitulo">Registra tu día y elige tu plan</p>
+    <div id="appCoachNut"></div>
     <div id="appNutriHoy"></div>
     <button class="app-card" onclick="abrirCalculadora('sano')">
       <div class="app-card-top"><span class="app-card-titulo">Plan General</span><span class="app-card-meta">Personas sanas</span></div>
@@ -7741,6 +7743,9 @@ function detectarModoApp() {
     // Invitación de un coach (?coach=CODIGO): se guarda hasta que la persona tenga sesión
     const coachInv = (new URLSearchParams(location.search).get('coach') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
     if (coachInv) { try { localStorage.setItem('aet_coach_inv', coachInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.coachEstado) coachEstado(); }, 1200); }
+    // Recomendación de un coach (?ref=CODIGO): queda como referido para comisiones
+    const coachRef = (new URLSearchParams(location.search).get('ref') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
+    if (coachRef) { try { localStorage.setItem('aet_coach_ref', coachRef.toUpperCase()); } catch (e) {} }
     // Membresía de gimnasio (?socio=CODIGO): igual, se vincula al tener sesión
     const socioInv = (new URLSearchParams(location.search).get('socio') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 12);
     if (socioInv) { try { localStorage.setItem('aet_socio_inv', socioInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.gymEstado) gymEstado(); }, 1300); }
@@ -7837,8 +7842,8 @@ function cambiarPantallaApp(pantalla, btn) {
   if (btn) btn.classList.add('activo');
   aetEvento('sec_' + ({ perfil: 'progreso' }[pantalla] || pantalla));
   if (pantalla === 'inicio') renderDashboardApp();
-  if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); }
-  if (pantalla === 'nutricion') aetRenderNutri();
+  if (pantalla === 'entrenar') { aetRenderHero(); aetRenderEntrenar(); if (window.coachSugerencia) coachSugerencia().catch(() => {}); }
+  if (pantalla === 'nutricion') { aetRenderNutri(); if (window.coachNutricionCard) coachNutricionCard().catch(() => {}); }
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
   if (pantalla === 'habitos') aetRenderHabitos();
   if (pantalla === 'mente' && window.menteRender) menteRender();
@@ -10489,8 +10494,10 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 // El Service Worker ya se registra arriba en el <head>, lo antes posible.
 </script>
 <script src="mente.js?v=1" defer></script>
-<script src="coach.js?v=2" defer></script>
-<script src="coach-espacio.js?v=1" defer></script>
-<script src="gym.js?v=1" defer></script>
+<script src="coach.js?v=3" defer></script>
+<script src="coach-espacio.js?v=2" defer></script>
+<script src="coach-extra.js?v=1" defer></script>
+<script src="gym.js?v=2" defer></script>
+<script src="gym-pos.js?v=1" defer></script>
 </body>
 </html>

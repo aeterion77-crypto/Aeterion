@@ -146,6 +146,7 @@ VISTAS.inicio = async () => {
       <p class="co-peq">${money(p.mensual)} al mes, sin cuota de entrada. Cancelas cuando quieras. No garantizamos clientes ni ingresos.</p>
       <button class="co-btn co-sec-btn" data-c="solicitud">Quiero ser coach</button></div>`;
   }
+  if (window.__coachInicioExtra) h += await window.__coachInicioExtra().catch(() => '');
   return h;
 };
 
@@ -235,6 +236,7 @@ VISTAS['mi-coach'] = async () => {
     } else h += '<p class="co-peq">Tu coach todavía no te asigna un programa. Mientras, puedes seguir con los programas de la app.</p>';
     h += '<div class="co-sec" id="coSecMensajes">Mensajes</div>' + chat(msgs, mc.vinculo);
   }
+  if (window.__miCoachExtra) h += await window.__miCoachExtra(mc).catch(() => '');
   h += '<div class="co-sec">Qué compartes</div><div class="co-card co-perms">' + PERM.map(([k, t, s]) => switchPerm(k, t, s, mc.permisos[k], 'perm-cambiar')).join('') + '</div>';
   const prox = ses.filter((s) => ['por_pagar', 'pagada'].includes(s.estado));
   const pas = ses.filter((s) => !['por_pagar', 'pagada'].includes(s.estado));
@@ -460,6 +462,8 @@ window.aetCoachEntrar = async function () {
 window.coachVolver = function () { if (pila.length) { volver(); return true; } return false; };
 window.coachEstado = async function () {
   const e = await refrescar();
+  // Recomendación por enlace (?ref=CODIGO): la persona queda como referida del coach
+  try { const ref = localStorage.getItem('aet_coach_ref'); if (ref && e && e.disponible) { localStorage.removeItem('aet_coach_ref'); llamar('coach_usar_codigo', { p_codigo: ref }).catch(() => {}); } } catch (x) {}
   // Invitación por enlace (?coach=CODIGO) guardada hasta que la persona tenga sesión
   try {
     const cod = localStorage.getItem('aet_coach_inv');

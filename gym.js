@@ -31,11 +31,15 @@ const ERR = {
   cuenta_no_encontrada: 'Esa persona aún no tiene cuenta en Aeterion. Pídele que se registre en la app con ese correo.', rol_invalido: 'Rol inválido.',
   codigo_invalido: 'Ese código no existe o ya no está activo.', codigo_usado: 'Ese código ya está vinculado a otra cuenta.', rango_largo: 'Elige un rango de hasta un año.',
   demasiados_planes: 'Tienes el máximo de planes.', sede_invalida: 'Sede inválida.',
+  foto_invalida: 'La foto no es válida o es muy grande.', venta_vacia: 'Agrega al menos un producto.', venta_larga: 'Demasiados productos en una venta.',
+  cantidad_invalida: 'Revisa la cantidad.', producto_no_encontrado: 'Ese producto ya no está disponible.', descuento_invalido: 'El descuento no puede ser mayor que el total.',
+  pago_con_invalido: 'El efectivo recibido debe cubrir el total.', venta_no_encontrada: 'Esa venta no existe o ya estaba cancelada.', codigo_repetido: 'Ya tienes otro producto con ese código.',
+  demasiados_productos: 'Llegaste al máximo de productos.', tipo_invalido: 'Opción inválida.', rango_invalido: 'Revisa las fechas.',
 };
 const api = (fn, args) => (ENV.rpc ? ENV.rpc(fn, args || {}) : _rpc(fn, args || {}));
 async function llamar(fn, args) {
   const r = await api(fn, args);
-  if (!r.ok) { const m = r.data && (r.data.message || r.data.msg); throw new Error(ERR[m] || (r.red ? 'Sin conexión. Inténtalo de nuevo.' : 'No se pudo completar. Inténtalo de nuevo.')); }
+  if (!r.ok) { const m = String((r.data && (r.data.message || r.data.msg)) || ''); if (/^sin_existencia: /.test(m)) throw new Error('No hay suficiente existencia de ' + m.slice(16) + '.'); throw new Error(ERR[m] || (r.red ? 'Sin conexión. Inténtalo de nuevo.' : 'No se pudo completar. Inténtalo de nuevo.')); }
   return r.data;
 }
 function cargarQR() {
@@ -89,22 +93,58 @@ async function pintar() {
     r.innerHTML = enGym ? marco(err) : err;
   }
 }
-const NAV = [['g-hoy', 'Hoy', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>'], ['g-entrada', 'Entrada', '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/>'],
+const NAV = [['g-hoy', 'Panel', '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'], ['g-entrada', 'Entrada', '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/>'],
   ['g-socios', 'Socios', '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.2 2.5 3.6 5.2"/>'],
-  ['g-caja', 'Caja', '<rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10h19M7 15h3"/>'], ['g-mas', 'Más', '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>']];
-const RAIZ_DE = { 'g-socio': 'g-socios', 'g-nuevo': 'g-socios', 'g-equipo': 'g-mas', 'g-planes': 'g-mas', 'g-sedes': 'g-mas', 'g-material': 'g-mas', 'g-doc': 'g-mas', 'g-plan': 'g-mas', 'g-elegir': 'g-mas' };
+  ['g-vender', 'Vender', '<path d="M3 4h2.5l2.2 11h10.6L21 7.5H6.4"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/>', 'cobrar'],
+  ['g-inventario', 'Inventario', '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>', 'administrar', 1],
+  ['g-caja', 'Caja', '<rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10h19M7 15h3"/>', 'cobrar', 1],
+  ['g-reportes', 'Reportes', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', 'administrar', 1], ['g-mas', 'Más', '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>']];
+ const RAIZ_DE = { 'g-producto': 'g-inventario', 'g-kardex': 'g-inventario', 'g-ventas': 'g-vender', 'g-venta': 'g-vender', 'g-ajustes': 'g-mas', 'g-aeterion': 'g-mas', 'g-socio': 'g-socios', 'g-nuevo': 'g-socios', 'g-equipo': 'g-mas', 'g-planes': 'g-mas', 'g-sedes': 'g-mas', 'g-material': 'g-mas', 'g-doc': 'g-mas', 'g-plan': 'g-mas', 'g-elegir': 'g-mas' };
 function marco(html, sinNav) {
-  const nav = NAV.filter((n) => n[0] !== 'g-caja' || puede.cobrar());
+  const nav = NAV.filter((n) => !n[3] || puede[n[3]]());
   const act = nav.some((n) => n[0] === vista.v) ? vista.v : (RAIZ_DE[vista.v] || 'g-hoy');
   return `<div class="gy-top"><div class="gy-marca"><span>AETERION <b>GYM</b></span>${INFO ? `<small>${esc(INFO.nombre)} · ${ROLES[rol()] || ''}</small>` : ''}</div>
       ${PAGINA ? '<button class="gy-salir" data-g="salir-pagina">Salir</button>' : '<button class="gy-salir" data-g="salir">Mi entreno</button>'}</div>
     <div class="gy-cuerpo">${INFO && INFO.estado === 'suspendido' ? '<div class="gy-aviso">Gimnasio suspendido: solo consulta. Contacta a Aeterion.</div>' : ''}${pila.length ? '<button class="gy-atras" data-g="volver">‹ Volver</button>' : ''}${html}</div>
-    ${sinNav ? '' : `<nav class="gy-nav">${nav.map(([k, n, ico]) => `<button class="${k === act ? 'on' : ''}" data-g="tab" data-x="${k}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ico}</svg><span>${n}</span></button>`).join('')}</nav>`}`;
+    ${sinNav ? '' : `<nav class="gy-nav">${nav.map(([k, n, ico, , esc1]) => `<button class="${k === act ? 'on' : ''}${esc1 ? ' gy-solo-pc' : ''}" data-g="tab" data-x="${k}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ico}</svg><span>${n}</span></button>`).join('')}</nav>`}`;
 }
 const titulo = (t, sub, extra) => `<div class="gy-titulo"><div><h2>${t}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${extra || ''}</div>`;
 const pill = (e) => { const x = ESTADOS[e] || ['', 'gris']; return `<em class="gy-pill ${x[1]}">${x[0]}</em>`; };
 const venceTxt = (s) => s.estado === 'baja' ? 'Dado de baja' : !s.vence_en ? 'Sin pagos registrados' : s.dias < 0 ? `Venció hace ${-s.dias} ${s.dias === -1 ? 'día' : 'días'} (${fCorta(s.vence_en)})` : s.dias === 0 ? 'Vence hoy' : `Vence en ${s.dias} ${s.dias === 1 ? 'día' : 'días'} (${fCorta(s.vence_en)})`;
-const filaSocio = (s) => `<button class="gy-socio" data-g="socio" data-x="${s.id}"><span class="gy-num">${s.numero}</span><div><b>${esc(s.nombre)}${s.vinculado ? ' <i title="Usa la app">📱</i>' : ''}</b><small>${esc(venceTxt(s))}${s.plan ? ' · ' + esc(s.plan) : ''}</small></div>${pill(s.estado)}</button>`;
+const filaSocio = (s) => `<button class="gy-socio" data-g="socio" data-x="${s.id}"><span class="gy-num">${s.numero}</span><div><b>${esc(s.nombre)}${s.vinculado ? ' <i title="Usa la app">📱</i>' : ''}${s.tiene_foto ? ' <i title="Con foto">📷</i>' : ''}</b><small>${esc(venceTxt(s))}${s.plan ? ' · ' + esc(s.plan) : ''}${Number(s.saldo) > 0 ? ' · debe ' + money(s.saldo) : ''}</small></div>${pill(s.estado)}</button>`;
+
+/* ---------------- Gráficas (SVG ligero) ---------------- */
+const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const diaCorto = (f) => DIAS[new Date(String(f).slice(0, 10) + 'T12:00:00').getDay()];
+const PALETA = ['#c9a84c', '#7fb3d5', '#4cc38a', '#e5866f', '#b48ee0', '#e8b64c', '#8aa1b1'];
+// series: [{ etiqueta, valores: [n, n2...] }] apiladas; colores por capa
+function barras(datos, colores, opts) {
+  opts = opts || {}; const n = datos.length, W = Math.max(320, n * 22), H = opts.alto || 140, pad = 22; if (!n) return '';
+  const tot = datos.map((d) => d.valores.reduce((a, b) => a + Number(b || 0), 0)); const max = Math.max(1, ...tot);
+  const bw = (W - 8) / n; let h = `<svg viewBox="0 0 ${W} ${H + pad}" class="gy-graf" role="img" aria-label="${esc(opts.titulo || 'Gráfica')}">`;
+  [0.5, 1].forEach((f) => { const y = H - (H - 14) * f; h += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.07)"/>`; });
+  datos.forEach((d, i) => {
+    let y = H; const x = 4 + i * bw + bw * 0.18, w = Math.max(2, bw * 0.64);
+    d.valores.forEach((v, k) => { const hh = (H - 14) * Number(v || 0) / max; if (hh <= 0) return; y -= hh; h += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" rx="2.5" fill="${colores[k]}"><title>${esc(d.etiqueta)}: ${esc(opts.fmt ? opts.fmt(v) : v)}</title></rect>`; });
+    if (opts.numeros && tot[i]) h += `<text x="${(x + w / 2).toFixed(1)}" y="${(y - 4).toFixed(1)}" text-anchor="middle" font-size="10" fill="#bbb">${esc(opts.fmt ? opts.fmt(tot[i]) : tot[i])}</text>`;
+    if (n <= 14 || i % Math.ceil(n / 10) === 0) h += `<text x="${(x + w / 2).toFixed(1)}" y="${H + 15}" text-anchor="middle" font-size="9.5" fill="#888">${esc(d.etiqueta)}</text>`;
+  });
+  return h + '</svg>';
+}
+function dona(items) {
+  const tot = items.reduce((a, b) => a + Number(b.n || 0), 0); if (!tot) return '<p class="gy-peq">Sin membresías vigentes.</p>';
+  let a0 = -Math.PI / 2, h = '<div class="gy-dona"><svg viewBox="0 0 120 120" aria-hidden="true">';
+  items.forEach((it, i) => {
+    const f = Number(it.n) / tot, a1 = a0 + f * Math.PI * 2, gr = f > 0.5 ? 1 : 0;
+    if (f >= 0.999) h += `<circle cx="60" cy="60" r="44" fill="none" stroke="${PALETA[i % 7]}" stroke-width="18"/>`;
+    else h += `<path d="M${60 + 44 * Math.cos(a0)} ${60 + 44 * Math.sin(a0)} A44 44 0 ${gr} 1 ${60 + 44 * Math.cos(a1)} ${60 + 44 * Math.sin(a1)}" fill="none" stroke="${PALETA[i % 7]}" stroke-width="18"/>`;
+    a0 = a1;
+  });
+  h += `<text x="60" y="58" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">${tot}</text><text x="60" y="74" text-anchor="middle" font-size="9" fill="#999">vigentes</text></svg><ul>`;
+  items.forEach((it, i) => { h += `<li><i style="background:${PALETA[i % 7]}"></i>${esc(it.plan)}<b>${Math.round(Number(it.n) * 100 / tot)}%</b></li>`; });
+  return h + '</ul></div>';
+}
+const avatar = (s, cls) => s && s.foto ? `<img class="gy-foto ${cls || ''}" src="${esc(s.foto)}" alt="">` : `<span class="gy-num ${cls || ''}">${s ? s.numero : ''}</span>`;
 
 /* ---------------- Vistas del staff ---------------- */
 const VISTAS = {};
@@ -112,15 +152,18 @@ VISTAS['g-hoy'] = async () => {
   const R = await llamar('gym_resumen', { p_gym: G });
   let h = `<p class="gy-fecha">${esc(new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }))}</p>`;
   h += `<button class="gy-btn gy-grande gy-entrar" data-g="tab" data-x="g-entrada">Registrar entrada</button>`;
-  h += `<div class="gy-kpis"><button data-g="filtro-socios" data-x="al_corriente"><b>${R.al_corriente}</b><span>Al corriente</span></button><button data-g="filtro-socios" data-x="por_vencer"><b class="warn">${R.por_vencer_n}</b><span>Por vencer</span></button><button data-g="filtro-socios" data-x="vencidos"><b class="mal">${R.vencidos_n}</b><span>Vencidos</span></button>
-    <div><b>${R.asistencias_hoy}</b><span>Entradas hoy</span></div>${R.ingresos_hoy != null ? `<div><b>${money(R.ingresos_hoy)}</b><span>Cobrado hoy</span></div><div><b>${money(R.ingresos_mes)}</b><span>Este mes</span></div>` : `<div><b>${R.asistencias_7}</b><span>Entradas 7 días</span></div><div><b>${R.socios}</b><span>Socios</span></div>`}</div>`;
+  h += `<div class="gy-kpis"><button data-g="filtro-socios" data-x="activos"><b>${R.socios}</b><span>Socios activos</span></button><button data-g="filtro-socios" data-x="al_corriente"><b class="ok">${R.al_corriente}</b><span>Membresías vigentes</span></button><button data-g="filtro-socios" data-x="por_vencer"><b class="warn">${R.por_vencer_n}</b><span>Por vencer</span></button>
+    <button data-g="filtro-socios" data-x="vencidos"><b class="mal">${R.vencidos_n}</b><span>Vencidos / sin pago</span></button><div><b>${R.asistencias_hoy}</b><span>Entradas hoy</span></div>${R.ingresos_hoy != null ? `<div><b>${money(R.ingresos_mes)}</b><span>Ingresos del mes</span></div>` : `<div><b>${R.asistencias_7}</b><span>Entradas 7 días</span></div>`}</div>`;
+  if (R.ingresos_hoy != null) h += `<div class="gy-mini-kpis"><span>Cobrado hoy <b>${money(R.ingresos_hoy)}</b></span><span>Ventas hoy <b>${money(R.ventas_hoy)}</b></span><span>Altas del mes <b>${R.altas_mes}</b></span>${R.con_saldo ? `<span class="warn">Con saldo pendiente <b>${R.con_saldo}</b></span>` : ''}${R.stock_bajo ? `<button data-g="tab" data-x="g-inventario" class="mal">Productos por agotarse <b>${R.stock_bajo}</b></button>` : ''}</div>`;
+  h += `<div class="gy-graficas"><div class="gy-card"><b>Asistencias últimos 7 días</b>${barras(R.serie_asis.map((x) => ({ etiqueta: diaCorto(x.d), valores: [x.n] })), ['#c9a84c'], { numeros: true, titulo: 'Asistencias últimos 7 días' })}</div>
+    <div class="gy-card"><b>Distribución de membresías</b>${dona(R.membresias)}</div></div>`;
   if (INFO.plan_info && R.socios >= (INFO.plan_info.socios * INFO.sedes_max) * 0.9) h += `<div class="gy-aviso">Vas en ${R.socios} de ${INFO.plan_info.socios * INFO.sedes_max} socios de tu plan ${esc(INFO.plan_info.nombre)}.</div>`;
   if (!INFO.planes.some((p) => Number(p.precio) > 0) && puede.administrar()) h += `<div class="gy-card gy-dest"><b>Primer paso: tus precios</b><p>Configura tus planes (mensual, trimestral, visita) para poder registrar pagos.</p><button class="gy-btn" data-g="ir" data-x="g-planes">Configurar planes</button></div>`;
   if (!R.socios && puede.cobrar()) h += `<div class="gy-card gy-dest"><b>Da de alta a tus socios</b><p>Con su nombre y teléfono basta. Cada socio recibe un número y un código para ver su membresía y su QR en la app.</p><button class="gy-btn" data-g="ir" data-x="g-nuevo">Nuevo socio</button></div>`;
   h += `<div class="gy-sec">Por vencer (${R.por_vencer_n})</div>`;
   h += R.por_vencer.length ? '<div class="gy-card gy-lista">' + R.por_vencer.map((s) => `<div class="gy-fila">${filaSocio(s)}${s.telefono ? `<a class="gy-wa" href="${waLink(s.telefono, `Hola ${s.nombre.split(' ')[0]}, te recordamos que tu membresía de ${INFO.nombre} vence el ${fCorta(s.vence_en)}. ¡Te esperamos!`)}" target="_blank" rel="noopener" aria-label="Recordar por WhatsApp">WhatsApp</a>` : ''}</div>`).join('') + '</div>' : '<p class="gy-peq">Nadie vence en los próximos días.</p>';
   h += `<div class="gy-sec">Entradas de hoy (${R.asistencias_hoy})</div>`;
-  h += R.entradas.length ? '<div class="gy-card">' + R.entradas.map((e) => `<div class="gy-entrada-f"><b>${hora(e.hora)}</b><span>#${e.numero} ${esc(e.nombre)}</span>${e.al_corriente ? '' : '<em class="gy-pill mal">Sin pago al día</em>'}</div>`).join('') + '</div>' : '<p class="gy-peq">Aún no hay entradas hoy.</p>';
+  h += R.entradas.length ? '<div class="gy-card">' + R.entradas.map((e) => `<button class="gy-entrada-f" data-g="socio" data-x="${e.socio_id}"><b>${hora(e.hora)}</b><span>#${e.numero} ${esc(e.nombre)}</span>${e.al_corriente ? '' : '<em class="gy-pill mal">Sin pago al día</em>'}</button>`).join('') + '</div>' : '<p class="gy-peq">Aún no hay entradas hoy.</p>';
   if (R.vencidos.length) h += `<div class="gy-sec">Vencieron en los últimos 30 días</div><div class="gy-card gy-lista">` + R.vencidos.slice(0, 10).map((s) => `<div class="gy-fila">${filaSocio(s)}${s.telefono ? `<a class="gy-wa" href="${waLink(s.telefono, `Hola ${s.nombre.split(' ')[0]}, te extrañamos en ${INFO.nombre}. Tu membresía venció el ${fCorta(s.vence_en)}; cuando quieras te ayudamos a renovarla.`)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</div>`).join('') + '</div>';
   return h;
 };
@@ -140,7 +183,8 @@ function resultado(r) {
   const s = r.socio;
   if (!r.ok) return `<div class="gy-res mal"><b>${esc(s.nombre)}</b><span>Socio dado de baja</span></div>`;
   const cls = s.estado === 'al_corriente' ? 'ok' : s.estado === 'por_vencer' ? 'warn' : 'mal';
-  return `<div class="gy-res ${cls}"><small>#${s.numero}</small><b>${esc(s.nombre)}</b><span>${cls === 'mal' ? '⚠️ ' : ''}${esc(venceTxt(s))}</span>${r.repetido ? '<small>Ya había registrado su entrada hace poco.</small>' : '<small>Entrada registrada ' + hora(new Date().toISOString()) + '</small>'}
+  const bloquea = cls === 'mal' && INFO && INFO.ajustes && INFO.ajustes.politica_vencidos === 'bloquear';
+  return `<div class="gy-res ${cls}">${bloquea ? '<strong class="gy-alto">PIDE QUE RENUEVE ANTES DE PASAR</strong>' : ''}${s.foto ? `<img class="gy-foto gy-foto-xl" src="${esc(s.foto)}" alt="">` : ''}<small>#${s.numero}</small><b>${esc(s.nombre)}</b><span>${cls === 'mal' ? '⚠️ ' : ''}${esc(venceTxt(s))}</span>${Number(s.saldo) > 0 ? `<small class="gy-debe">Saldo pendiente: ${money(s.saldo)}</small>` : ''}${r.repetido ? '<small>Ya había registrado su entrada hace poco.</small>' : '<small>Entrada registrada ' + hora(new Date().toISOString()) + '</small>'}
     <div class="gy-fila2">${cls !== 'ok' && puede.cobrar() ? `<button class="gy-btn" data-g="socio" data-x="${s.id}" data-c="1">Cobrar</button>` : ''}<button class="gy-btn gy-sec-btn" data-g="socio" data-x="${s.id}">Ver socio</button></div></div>`;
 }
 async function checkin(dato, metodo) {
@@ -199,15 +243,19 @@ VISTAS['g-nuevo'] = async (v) => {
 
 VISTAS['g-socio'] = async (v) => {
   const s = await llamar('gym_socio_detalle', { p_gym: G, p_socio: v.id }); vista.s = s;
-  let h = `<div class="gy-ficha"><span class="gy-num gy-num-g">${s.numero}</span><div><h2>${esc(s.nombre)}</h2><p>${pill(s.estado)} ${esc(venceTxt(s))}</p></div></div>`;
+  let h = `<div class="gy-ficha">${s.foto ? `<img class="gy-foto gy-foto-g" src="${esc(s.foto)}" alt="">` : `<span class="gy-num gy-num-g">${s.numero}</span>`}<div><h2>${esc(s.nombre)}</h2><p>#${s.numero} · ${pill(s.estado)} ${esc(venceTxt(s))}</p>
+      ${Number(s.saldo) > 0 ? `<p class="gy-debe">Debe ${money(s.saldo)}</p>` : ''}
+      ${puede.cobrar() ? `<label class="gy-link gy-foto-btn">${s.foto ? 'Cambiar foto' : '📷 Agregar foto'}<input type="file" accept="image/*" capture="user" id="gyFoto" hidden></label>${s.foto ? ' <button class="gy-link" data-g="quitar-foto">Quitar</button>' : ''}` : ''}</div></div>`;
   if (s.estado !== 'baja' && puede.cobrar()) {
     const planes = INFO.planes; const sel = planes.find((p) => p.id === s.plan_id) || planes.find((p) => Number(p.dias) === 30) || planes[0];
     h += `<div class="gy-card gy-cobro" id="gyCobro"><b>Registrar pago</b>${planes.length ? `
       <label>Plan<select class="gy-in" id="gpPlan">${planes.map((p) => `<option value="${p.id}" data-precio="${p.precio}" ${sel && p.id === sel.id ? 'selected' : ''}>${esc(p.nombre)} · ${p.dias} días · ${money(p.precio)}</option>`).join('')}</select></label>
-      <label>Monto cobrado<input class="gy-in" id="gpMonto" type="number" min="0" step="0.01" inputmode="decimal" value="${sel ? sel.precio : ''}"></label>
+      <div class="gy-fila2"><label>Precio<input class="gy-in" id="gpTotal" type="number" min="0" step="0.01" inputmode="decimal" value="${sel ? sel.precio : ''}"></label>
+      <label>Paga ahora<input class="gy-in" id="gpMonto" type="number" min="0" step="0.01" inputmode="decimal" value="${sel ? sel.precio : ''}"></label></div>
+      <p class="gy-peq" id="gpParcial"></p>
       <div class="gy-seg" id="gpMet">${Object.keys(METODOS).map((k, i) => `<button class="${i === 0 ? 'on' : ''}" data-g="metodo" data-x="${k}">${METODOS[k]}</button>`).join('')}</div>
       <p class="gy-peq">${s.vence_en && s.dias >= 0 ? `Se suma desde el ${fCorta(sumaDias(s.vence_en, 1))}.` : 'Empieza hoy.'} El cobro lo haces tú en el gimnasio; aquí solo se registra.</p>
-      <button class="gy-btn gy-grande" data-g="cobrar">Registrar pago</button>` : `<p>Primero configura tus planes.</p>${puede.administrar() ? '<button class="gy-btn" data-g="ir" data-x="g-planes">Configurar planes</button>' : ''}`}</div>`;
+      <button class="gy-btn gy-grande" data-g="cobrar">Registrar pago</button><button class="gy-link" data-g="ticket-pago" style="color:var(--oro,#c9a84c)">Imprimir comprobante del último pago</button>` : `<p>Primero configura tus planes.</p>${puede.administrar() ? '<button class="gy-btn" data-g="ir" data-x="g-planes">Configurar planes</button>' : ''}`}</div>`;
   }
   h += `<div class="gy-acciones">${s.estado !== 'baja' ? '<button class="gy-btn gy-sec-btn" data-g="entrada-manual">Registrar entrada</button>' : ''}${puede.cobrar() ? '<button class="gy-btn gy-sec-btn" data-g="editar-socio">Editar</button>' : ''}</div>`;
   if (s.token && s.estado !== 'baja') {
@@ -215,7 +263,14 @@ VISTAS['g-socio'] = async (v) => {
     h += `<div class="gy-card"><b>App del socio</b>${s.vinculado ? '<p>✅ Ya usa la app: ve su membresía y muestra su QR al entrar.</p>' : `<p>Código para la app: <b class="gy-codigo">${esc(s.codigo_vincular)}</b></p><p class="gy-peq">Con la app ve cuándo vence su membresía y entra mostrando su QR. Es gratis para tu socio.</p>`}
       <div class="gy-fila2">${!s.vinculado && s.telefono ? `<a class="gy-btn gy-wa-b" href="${waLink(s.telefono, `Hola ${s.nombre.split(' ')[0]}, ya puedes ver tu membresía de ${INFO.nombre} y entrar con tu QR en la app Aeterion. Abre este enlace: ${link}`)}" target="_blank" rel="noopener">Enviar por WhatsApp</a>` : ''}<button class="gy-btn gy-sec-btn" data-g="credencial">Credencial con QR</button></div></div>`;
   }
-  if (s.pagos) h += `<div class="gy-sec">Pagos</div>` + (s.pagos.length ? '<div class="gy-card">' + s.pagos.map((p) => `<div class="gy-pago ${p.anulado ? 'anulado' : ''}"><div><b>${money(p.monto)} · ${METODOS[p.metodo]}</b><small>${esc(p.plan || p.concepto || '')} · ${fCorta(p.desde)} a ${fCorta(p.hasta)} · registrado ${fechaHora(p.fecha)}${p.anulado ? ' · ANULADO: ' + esc(p.motivo || '') : ''}</small></div>${!p.anulado && puede.administrar() ? `<button class="gy-link" data-g="anular" data-x="${p.id}">Anular</button>` : ''}</div>`).join('') + '</div>' : '<p class="gy-peq">Sin pagos registrados.</p>');
+  if (s.pagos) h += `<div class="gy-sec">Pagos y abonos</div>` + (s.pagos.length ? '<div class="gy-card">' + s.pagos.map((p) => {
+    const pend = p.pago_de ? 0 : Number(p.total) - Number(p.abonado || 0);
+    return `<div class="gy-pago ${p.anulado ? 'anulado' : ''}"><div><b>${p.pago_de ? 'Abono ' : ''}${money(p.monto)}${!p.pago_de && Number(p.total) !== Number(p.monto) ? ' de ' + money(p.total) : ''} · ${METODOS[p.metodo]}</b>
+      <small>${p.pago_de ? 'Abono a un pago anterior' : esc(p.plan || p.concepto || '') + ' · ' + fCorta(p.desde) + ' a ' + fCorta(p.hasta)} · ${fechaHora(p.fecha)}${p.anulado ? ' · ANULADO: ' + esc(p.motivo || '') : ''}</small>
+      ${!p.anulado && pend > 0 ? `<small class="gy-debe">Pendiente ${money(pend)}</small>` : ''}</div>
+      <div class="gy-pago-acc">${!p.anulado && pend > 0 && puede.cobrar() ? `<button class="gy-btn gy-mini" data-g="abonar" data-x="${p.id}" data-p="${pend}">Abonar</button>` : ''}${!p.anulado && puede.administrar() ? `<button class="gy-link" data-g="anular" data-x="${p.id}">Anular</button>` : ''}</div></div>`;
+  }).join('') + '</div>' : '<p class="gy-peq">Sin pagos registrados.</p>');
+  if (s.compras && s.compras.length) h += `<div class="gy-sec">Compras en tienda</div><div class="gy-card">` + s.compras.map((c) => `<button class="gy-pago ${c.cancelada ? 'anulado' : ''}" data-g="venta" data-x="${c.id}"><div><b>Venta #${c.folio}</b><small>${fechaHora(c.fecha)}${c.cancelada ? ' · CANCELADA' : ''}</small></div><strong>${money(c.total)}</strong></button>`).join('') + '</div>';
   h += `<div class="gy-sec">Asistencia · ${s.asistencias_30} en 30 días</div>` + (s.asistencias.length ? `<div class="gy-card gy-asis">${s.asistencias.map((a) => `<span>${fechaHora(a)}</span>`).join('')}</div>` : '<p class="gy-peq">Aún no registra entradas.</p>');
   if (s.nota) h += `<div class="gy-card"><b>Nota</b><p>${esc(s.nota)}</p></div>`;
   if (puede.administrar()) h += `<button class="gy-btn gy-peligro" data-g="baja" data-x="${s.estado === 'baja' ? '1' : '0'}">${s.estado === 'baja' ? 'Reactivar socio' : 'Dar de baja'}</button>`;
@@ -227,10 +282,10 @@ VISTAS['g-caja'] = async (v) => {
   const R = { hoy: [hoy, hoy], ayer: [sumaDias(hoy, -1), sumaDias(hoy, -1)], semana: [sumaDias(hoy, -6), hoy], mes: [hoy.slice(0, 8) + '01', hoy] };
   const opciones = puede.administrar() ? ['hoy', 'ayer', 'semana', 'mes'] : ['hoy', 'ayer'];
   const C = await llamar('gym_caja', { p_gym: G, p_desde: R[r][0], p_hasta: R[r][1] });
-  let h = titulo('Caja', 'Pagos registrados en Aeterion');
+  let h = titulo('Caja', 'Membresías, abonos y ventas registrados');
   h += `<div class="gy-chips">${opciones.map((k) => `<button class="gy-chip ${r === k ? 'on' : ''}" data-g="rango" data-x="${k}">${{ hoy: 'Hoy', ayer: 'Ayer', semana: '7 días', mes: 'Este mes' }[k]}</button>`).join('')}</div>`;
-  h += `<div class="gy-card gy-total"><span>Total</span><b>${money(C.total)}</b><div class="gy-metodos">${Object.keys(METODOS).filter((k) => C.por_metodo[k]).map((k) => `<div><small>${METODOS[k]}</small><b>${money(C.por_metodo[k])}</b></div>`).join('') || '<small>Sin pagos en este periodo</small>'}</div></div>`;
-  h += C.pagos.length ? '<div class="gy-card">' + C.pagos.map((p) => `<button class="gy-pago ${p.anulado ? 'anulado' : ''}" data-g="socio" data-x="${p.socio_id}"><div><b>#${p.numero} ${esc(p.socio)}</b><small>${fechaHora(p.fecha)} · ${esc(p.plan || '')} · ${METODOS[p.metodo]}${p.anulado ? ' · ANULADO' : ''}</small></div><strong>${money(p.monto)}</strong></button>`).join('') + '</div>' : '';
+  h += `<div class="gy-card gy-total"><span>Total</span><b>${money(C.total)}</b><small>Membresías y abonos ${money(C.membresias)} · Ventas ${money(C.ventas)}</small><div class="gy-metodos">${Object.keys(METODOS).filter((k) => C.por_metodo[k]).map((k) => `<div><small>${METODOS[k]}</small><b>${money(C.por_metodo[k])}</b></div>`).join('') || '<small>Sin pagos en este periodo</small>'}</div></div>`;
+  h += C.pagos.length ? '<div class="gy-card">' + C.pagos.map((p) => `<button class="gy-pago ${p.anulado ? 'anulado' : ''}" data-g="${p.tipo === 'venta' ? 'venta' : 'socio'}" data-x="${p.tipo === 'venta' ? p.id : p.socio_id}"><div><b>${p.tipo === 'venta' ? esc(p.plan) + (p.socio ? ' · ' + esc(p.socio) : '') : '#' + p.numero + ' ' + esc(p.socio)}</b><small>${fechaHora(p.fecha)} · ${esc(p.plan || '')} · ${METODOS[p.metodo]}${p.anulado ? ' · ANULADO' : ''}</small></div><strong>${money(p.monto)}</strong></button>`).join('') + '</div>' : '';
   h += '<p class="gy-peq">Para tu corte de caja: compara el total en efectivo con lo que hay en la caja.</p>';
   return h;
 };
@@ -238,13 +293,19 @@ VISTAS['g-caja'] = async (v) => {
 VISTAS['g-mas'] = async () => {
   let h = titulo(esc(INFO.nombre), `${ROLES[rol()]} · plan ${esc((INFO.plan_info || {}).nombre || INFO.plan)}`);
   const op = [];
-  if (puede.administrar()) op.push(['g-equipo', 'Equipo', 'Recepción, administradores y coaches']);
+  if (puede.administrar()) op.push(['g-inventario', 'Inventario', 'Productos, existencias y entradas de mercancía', 'gy-solo-movil']);
+  if (puede.cobrar()) op.push(['g-ventas', 'Historial de ventas', 'Tickets, reimpresión y cancelaciones']);
+  if (puede.cobrar()) op.push(['g-caja', 'Caja', 'Corte del día por forma de pago', 'gy-solo-movil']);
+  if (puede.administrar()) op.push(['g-reportes', 'Reportes', 'Ingresos, ventas, ganancias · Excel y PDF', 'gy-solo-movil']);
+  if (puede.administrar()) op.push(['g-ajustes', 'Ticket y datos del gimnasio', 'Impresora de 58 u 80 mm, encabezado, RFC']);
+  if (puede.administrar()) op.push(['g-equipo', 'Equipo y permisos', 'Recepción, administradores y coaches']);
   if (puede.administrar()) op.push(['g-planes', 'Planes y precios', 'Lo que cobras a tus socios']);
   if (puede.dueno()) op.push(['g-sedes', 'Sedes', 'Sucursales de tu gimnasio']);
   op.push(['g-material', 'Material útil', 'Guías, cartel de entrada y consejos']);
   if (puede.dueno()) op.push(['g-plan', 'Mi plan Aeterion', 'Plan, límites y pagos']);
+  if (puede.administrar()) op.push(['g-aeterion', 'Vender productos Aeterion', 'Suplementos y accesorios a precio de mayoreo']);
   if (EST.gyms.length > 1) op.push(['g-elegir', 'Cambiar de gimnasio', EST.gyms.length + ' gimnasios']);
-  h += op.map(([k, t, s]) => `<button class="gy-op" data-g="ir" data-x="${k}"><b>${t}</b><span>${s}</span><i>›</i></button>`).join('');
+  h += op.map(([k, t, s, c]) => `<button class="gy-op ${c || ''}" data-g="ir" data-x="${k}"><b>${t}</b><span>${s}</span><i>›</i></button>`).join('');
   if (!PAGINA) h += '<p class="gy-peq">Para la computadora de recepción abre <b>' + esc(appUrl().replace(/^https?:\/\//, '')) + 'gym/</b> e inicia sesión con tu correo.</p>';
   return h;
 };
@@ -307,6 +368,35 @@ async function imprimir(html, titulo) {
   w.document.close();
 }
 
+/* ---------------- Tickets 58 / 80 mm ---------------- */
+function ticketHtml(cuerpo) {
+  const A = (INFO && INFO.ajustes) || {}; const ancho = Number(A.ticket_ancho) === 58 ? 58 : 80;
+  const cab = `<div class="c"><b class="g">${esc(INFO.nombre)}</b>${A.ticket_encabezado ? `<div>${esc(A.ticket_encabezado)}</div>` : ''}${A.direccion ? `<div>${esc(A.direccion)}</div>` : ''}${A.rfc ? `<div>RFC ${esc(A.rfc)}</div>` : ''}</div><hr>`;
+  const pie = `<hr><div class="c">${A.ticket_pie ? esc(A.ticket_pie) : '¡Gracias por tu preferencia!'}</div><div class="c p">Aeterion Gym</div>`;
+  return { ancho, html: `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Ticket</title><style>
+    @page{size:${ancho}mm auto;margin:0}*{box-sizing:border-box}body{margin:0;padding:3mm;width:${ancho}mm;font:${ancho === 58 ? 10.5 : 12}px/1.35 'Courier New',monospace;color:#000}
+    .c{text-align:center}.g{font-size:1.25em}.p{font-size:.85em;margin-top:2mm}hr{border:0;border-top:1px dashed #000;margin:2mm 0}table{width:100%;border-collapse:collapse}td{vertical-align:top;padding:.3mm 0}td.r{text-align:right;white-space:nowrap}.t td{font-weight:700;font-size:1.15em}
+    @media screen{body{margin:10px auto;box-shadow:0 0 0 1px #ccc}button{display:block;margin:10px auto;padding:8px 16px}}@media print{button{display:none}}</style></head><body>${cab}${cuerpo}${pie}<button onclick="print()">Imprimir</button><script>setTimeout(function(){print()},300)<\/script></body></html>` };
+}
+function abrirTicket(cuerpo) {
+  const t = ticketHtml(cuerpo); const w = window.open('', '_blank', 'width=' + (t.ancho === 58 ? 300 : 380) + ',height=640');
+  if (!w) { toast('Permite las ventanas emergentes para imprimir el ticket.'); return; }
+  w.document.write(t.html); w.document.close();
+}
+function ticketVenta(v) {
+  abrirTicket(`<div>Venta #${v.folio}${v.cancelada ? ' · CANCELADA' : ''}</div><div>${esc(fechaHora(v.fecha))}</div>${v.socio ? `<div>Socio #${v.socio.numero} ${esc(v.socio.nombre)}</div>` : ''}${v.vendedor ? `<div>Atendió: ${esc(v.vendedor)}</div>` : ''}<hr>
+    <table>${v.items.map((i) => `<tr><td>${i.cantidad} ${esc(i.nombre)}</td><td class="r">${money(i.importe)}</td></tr>`).join('')}</table><hr>
+    <table><tr><td>Subtotal</td><td class="r">${money(v.subtotal)}</td></tr>${Number(v.descuento) ? `<tr><td>Descuento</td><td class="r">-${money(v.descuento)}</td></tr>` : ''}<tr class="t"><td>TOTAL</td><td class="r">${money(v.total)}</td></tr>
+    <tr><td>${METODOS[v.metodo]}</td><td class="r">${v.pago_con != null ? money(v.pago_con) : ''}</td></tr>${v.cambio != null ? `<tr><td>Cambio</td><td class="r">${money(v.cambio)}</td></tr>` : ''}</table>`);
+}
+function ticketPago(s, p) {
+  const pend = p.pago_de ? null : Number(p.total) - Number(p.abonado || 0);
+  abrirTicket(`<div>Comprobante de pago</div><div>${esc(fechaHora(p.fecha))}</div><div>Socio #${s.numero} ${esc(s.nombre)}</div><hr>
+    <table><tr><td>${p.pago_de ? 'Abono' : esc(p.plan || p.concepto || 'Membresía')}</td><td class="r">${money(p.pago_de ? p.monto : p.total)}</td></tr>
+    ${p.desde ? `<tr><td colspan="2">Vigencia: ${fCorta(p.desde)} a ${fCorta(p.hasta)}</td></tr>` : ''}</table><hr>
+    <table><tr class="t"><td>PAGADO</td><td class="r">${money(p.monto)}</td></tr><tr><td>${METODOS[p.metodo]}</td><td></td></tr>${pend > 0 ? `<tr><td>Saldo pendiente</td><td class="r">${money(pend)}</td></tr>` : ''}</table>`);
+}
+
 /* ---------------- Socio (en su app) ---------------- */
 VISTAS['s-mio'] = async () => {
   await refrescar(); const L = EST.socio || [];
@@ -315,11 +405,18 @@ VISTAS['s-mio'] = async () => {
   for (const s of L) {
     const svg = await qrSvg('AET-GYM:' + s.token, 7).catch(() => '');
     const cls = s.estado === 'al_corriente' ? 'ok' : s.estado === 'por_vencer' ? 'warn' : 'mal';
-    h += `<div class="gy-card gy-socio-app"><div class="gy-top2"><b>${esc(s.gym)}</b>${pill(s.estado)}</div>
-      <div class="gy-qr">${svg}</div><p class="gy-centro">Muéstralo en recepción al entrar</p>
-      <div class="gy-res ${cls}"><small>Socio #${s.numero}${s.plan ? ' · ' + esc(s.plan) : ''}</small><b>${esc(venceTxt(s))}</b><small>${s.asistencias_30} ${s.asistencias_30 === 1 ? 'entrada' : 'entradas'} en los últimos 30 días</small></div>
+    const hoy = new Date(); const diasMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate(); const meta = Math.max(8, Math.round(diasMes * 0.55));
+    const f = Math.min(1, s.asistencias_mes / meta), R = 34, C = 2 * Math.PI * R;
+    h += `<div class="gy-mem ${cls}"><div class="gy-mem-top"><span>${esc(s.gym)}</span>${s.foto ? `<img class="gy-foto" src="${esc(s.foto)}" alt="">` : ''}</div>
+        <small>Mi membresía</small><b>${esc(s.plan || 'Sin plan')}</b>${pill(s.estado)}<p>${esc(venceTxt(s))}</p><span class="gy-mem-num">Socio #${s.numero}</span></div>
+      <div class="gy-mem-fila"><div class="gy-card gy-anillo"><small>Asistencias este mes</small><svg viewBox="0 0 90 90" aria-hidden="true"><circle cx="45" cy="45" r="${R}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+          ${f > 0 ? `<circle cx="45" cy="45" r="${R}" fill="none" stroke="#c9a84c" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 45 45)"/>` : ''}
+          <text x="45" y="47" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">${s.asistencias_mes}</text><text x="45" y="62" text-anchor="middle" font-size="9" fill="#999">de ${meta}</text></svg></div>
+        <div class="gy-card gy-prox"><small>Próximo pago</small><b>${s.vence_en ? fCorta(sumaDias(String(s.vence_en).slice(0, 10), 1)) : 'Pendiente'}</b>${s.precio_plan != null ? `<strong>${money(s.precio_plan)}</strong>` : ''}${Number(s.saldo) > 0 ? `<em class="gy-debe">Saldo pendiente ${money(s.saldo)}</em>` : ''}</div></div>
+      <div class="gy-card gy-socio-app"><b>Tu QR de entrada</b><div class="gy-qr">${svg}</div><p class="gy-centro">Muéstralo en recepción al entrar</p></div>
+      ${s.pagos && s.pagos.length ? `<div class="gy-sec">Mis pagos</div><div class="gy-card">${s.pagos.map((p) => `<div class="gy-pago"><div><b>${esc(p.concepto || 'Pago')}</b><small>${fCorta(p.fecha)}${p.hasta ? ' · vigente hasta ' + fCorta(p.hasta) : ''}</small></div><strong>${money(p.monto)}</strong></div>`).join('')}</div>` : ''}
       <p class="gy-peq">Tu gimnasio solo ve tu membresía y tus entradas. Tu progreso y tus datos de salud en Aeterion son privados.</p>
-      <button class="gy-link" data-g="desvincular" data-x="${s.id}">Desvincular de este gimnasio</button></div>`;
+      <button class="gy-link" data-g="desvincular" data-x="${s.id}">Desvincular de este gimnasio</button>`;
   }
   h += '<div class="gy-card"><b>¿Otro gimnasio?</b><div class="gy-fila2"><input class="gy-in" id="gyCodSocio" maxlength="8" placeholder="Código" style="text-transform:uppercase"><button class="gy-btn gy-sec-btn" data-g="vincular">Vincular</button></div></div>';
   return h;
@@ -356,11 +453,19 @@ async function alClic(ev) {
     case 'editar-socio': return ir('g-nuevo', { s: vista.s });
     case 'metodo': el.parentElement.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); return;
     case 'cobrar': return ocupado(async () => {
-      const plan = Number($('gpPlan').value), monto = Number($('gpMonto').value), met = ($('gpMet').querySelector('.on') || {}).dataset;
-      if (!(monto >= 0) || $('gpMonto').value === '') throw new Error('Escribe el monto cobrado.');
-      const s = await llamar('gym_pago_registrar', { p_gym: G, p_socio: vista.s.id, p_plan: plan, p_monto: monto, p_metodo: met ? met.x : 'efectivo', p_concepto: null });
-      toast(`Pago registrado. Vence el ${fCorta(s.vence_en)}`); await pintar();
+      const plan = Number($('gpPlan').value), monto = Number($('gpMonto').value), total = Number($('gpTotal').value), met = ($('gpMet').querySelector('.on') || {}).dataset;
+      if (!(monto >= 0) || $('gpMonto').value === '') throw new Error('Escribe cuánto paga ahora.');
+      if (!(total >= 0) || $('gpTotal').value === '') throw new Error('Escribe el precio.');
+      if (monto > total) throw new Error('Lo que paga no puede ser mayor que el precio.');
+      if (monto < total && !confirm(`Queda un saldo pendiente de ${money(total - monto)}. ¿Registrar como pago parcial?`)) return;
+      const s = await llamar('gym_pago_registrar', { p_gym: G, p_socio: vista.s.id, p_plan: plan, p_monto: monto, p_metodo: met ? met.x : 'efectivo', p_concepto: null, p_total: total });
+      toast(`Pago registrado. Vence el ${fCorta(s.vence_en)}${Number(s.saldo) > 0 ? ' · debe ' + money(s.saldo) : ''}`); await pintar();
     });
+    case 'abonar': { const pend = Number(el.dataset.p); const m = prompt(`¿Cuánto abona? (pendiente ${money(pend)})`, String(pend)); if (m == null) return;
+      const met = prompt('¿Cómo pagó? Escribe: efectivo, tarjeta, transferencia u otro', 'efectivo'); if (met == null) return;
+      return ocupado(async () => { const s = await llamar('gym_abono_registrar', { p_gym: G, p_pago: Number(x), p_monto: Number(String(m).replace(/[^0-9.]/g, '')), p_metodo: (met || 'efectivo').trim().toLowerCase() }); toast(Number(s.saldo) > 0 ? 'Abono registrado. Debe ' + money(s.saldo) : 'Abono registrado. Ya no debe nada'); await pintar(); }); }
+    case 'quitar-foto': if (!confirm('¿Quitar la foto?')) return; return ocupado(async () => { await llamar('gym_socio_foto', { p_gym: G, p_socio: vista.s.id, p_foto: null }); await pintar(); });
+    case 'ticket-pago': { const s = vista.s; const p = (s.pagos || []).find((q) => !q.anulado); if (!p) { toast('No hay pagos para imprimir.'); return; } return ticketPago(s, p); }
     case 'anular': { const m = prompt('¿Por qué se anula este pago? (queda registrado)'); if (m == null) return; return ocupado(async () => { await llamar('gym_pago_anular', { p_gym: G, p_pago: Number(x), p_motivo: m }); toast('Pago anulado'); await pintar(); }); }
     case 'baja': if (!confirm(x === '1' ? '¿Reactivar a este socio?' : '¿Dar de baja a este socio? Ya no podrá registrar entradas.')) return; return ocupado(async () => { await llamar('gym_socio_baja', { p_gym: G, p_socio: vista.s.id, p_activo: x === '1' }); INFO = await llamar('gym_info', { p_gym: G }); await pintar(); });
     case 'credencial': return ocupado(async () => { const s = vista.s; const svg = await qrSvg('AET-GYM:' + s.token, 6); imprimir(`<div class="cred"><div class="marca">${esc(INFO.nombre.toUpperCase())}</div><div class="qr">${svg}</div><div class="num">#${s.numero}</div><div>${esc(s.nombre)}</div><p style="font-size:12px">Muestra este código al entrar · Aeterion Gym</p></div>`, 'Credencial ' + s.nombre); });
@@ -373,6 +478,8 @@ async function alClic(ev) {
     case 'desactivar-plan': if (!confirm('¿Dejar de vender este plan? Los pagos anteriores no cambian.')) return; return ocupado(async () => { const p = INFO.planes.find((q) => String(q.id) === x); await llamar('gym_plan_guardar', { p_gym: G, p: { id: p.id, nombre: p.nombre, precio: String(p.precio), dias: String(p.dias), activo: false } }); INFO = await llamar('gym_info', { p_gym: G }); vista.edit = null; await pintar(); });
     case 'guardar-sede': return ocupado(async () => { await llamar('gym_sede_guardar', { p_gym: G, p: { nombre: $('gdNom').value, direccion: $('gdDir').value } }); INFO = await llamar('gym_info', { p_gym: G }); toast('Sede agregada'); await pintar(); });
     case 'vincular': return ocupado(async () => { const c = ($('gyCodSocio').value || '').trim(); if (!c) throw new Error('Escribe tu código.'); await llamar('socio_vincular', { p_codigo: c }); toast('¡Listo! Ya ves tu membresía'); await refrescar(); await pintar(); });
+    default: if (window.__gymAccion) return window.__gymAccion(a, x, el, ocupado);
+      return;
     case 'desvincular': if (!confirm('¿Desvincular tu cuenta de este gimnasio? Tu membresía sigue igual en el gimnasio.')) return; return ocupado(async () => { await llamar('socio_desvincular', { p_socio: Number(x) }); await refrescar(); await pintar(); });
   }
 }
@@ -382,7 +489,26 @@ document.addEventListener('keydown', (e) => {
   if (e.target.id === 'gyNum') { e.preventDefault(); const b = document.querySelector('[data-g="checkin"]'); if (b) b.click(); }
   if (e.target.id === 'gyBusca') { vista.q = e.target.value.trim(); pintar(); }
 });
-document.addEventListener('change', (e) => { if (e.target && e.target.id === 'gpPlan') { const o = e.target.selectedOptions[0]; const m = $('gpMonto'); if (o && m) m.value = o.dataset.precio; } });
+function parcialTxt() { const t = Number(($('gpTotal') || {}).value), m = Number(($('gpMonto') || {}).value), el = $('gpParcial'); if (!el) return; el.textContent = m < t ? `Pago parcial: quedará debiendo ${money(t - m)}.` : ''; el.classList.toggle('gy-debe', m < t); }
+document.addEventListener('change', async (e) => {
+  if (e.target && e.target.id === 'gpPlan') { const o = e.target.selectedOptions[0]; if (o) { $('gpMonto').value = o.dataset.precio; $('gpTotal').value = o.dataset.precio; parcialTxt(); } }
+  if (e.target && e.target.id === 'gyFoto' && e.target.files && e.target.files[0]) {
+    try { const foto = await reducirFoto(e.target.files[0], 320); await llamar('gym_socio_foto', { p_gym: G, p_socio: vista.s.id, p_foto: foto }); toast('Foto guardada'); pintar(); }
+    catch (x) { toast(x.message || 'No se pudo usar esa foto.'); }
+  }
+});
+document.addEventListener('input', (e) => { if (e.target && (e.target.id === 'gpMonto' || e.target.id === 'gpTotal')) parcialTxt(); });
+// Foto cuadrada y ligera (≈20–40 KB): no se sube el archivo original
+function reducirFoto(file, lado) {
+  return new Promise((ok, no) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = lado; const m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, lado, lado); URL.revokeObjectURL(url);
+      let q = 0.78, d = c.toDataURL('image/jpeg', q); while (d.length > 110000 && q > 0.3) { q -= 0.12; d = c.toDataURL('image/jpeg', q); } ok(d); };
+    img.onerror = () => { URL.revokeObjectURL(url); no(new Error('No se pudo leer la imagen.')); };
+    img.src = url;
+  });
+}
 document.addEventListener('visibilitychange', () => { if (document.hidden) pararCamara(); });
 
 /* ---------------- API pública ---------------- */
@@ -395,6 +521,8 @@ window.gymEstado = async function () {
   return e;
 };
 window.gymRender = function () { pintar(); };
+window.__aetGym = { VISTAS, llamar, esc, money, fCorta, fechaHora, hora, hoyMx, sumaDias, toast, titulo, METODOS, barras, dona, PALETA, diaCorto, puede, rol, ir, volver, pintar, ticketVenta, ticketPago, imprimir,
+  get G() { return G; }, get INFO() { return INFO; }, set INFO(v) { INFO = v; }, get vista() { return vista; }, get PAGINA() { return PAGINA; }, base: ENV.base || '', appUrl };
 window.gymAbrir = function (v) { pararCamara(); pila = []; vista = { v: v || 'g-hoy' }; pintar(); };
 window.gymSub = function () { return pila.length > 0; };
 window.gymVolver = function () { if (pila.length) { volver(); return true; } return false; };
@@ -488,8 +616,36 @@ body.modo-gym .app-bottomnav,body.modo-gym .app-header{display:none!important}
 #gymApp .gy-socio-app .gy-top2{display:flex;justify-content:space-between;align-items:center} #gymApp .gy-socio-app .gy-top2 b{color:#fff;font-size:16px}
 #gymApp .gy-qr{background:#fff;border-radius:16px;padding:12px;width:min(260px,80%);margin:1rem auto .4rem} #gymApp .gy-qr svg{display:block;width:100%;height:auto}
 #gymApp .gy-cargando{padding:3rem 0;text-align:center;color:var(--gris,#999)}
+#gymApp .gy-solo-pc{display:none!important}
+#gymApp .gy-alto{display:block;background:#e5866f;color:#1a0d09;border-radius:10px;padding:.4rem;margin-bottom:.6rem;font-size:13px;letter-spacing:.05em}
+#gymApp .gy-total > small{display:block;font-size:12px;color:var(--gris,#999)}
+#gymApp .gy-kpis b.ok{color:#4cc38a}
+#gymApp .gy-mini-kpis{display:flex;flex-wrap:wrap;gap:.4rem;margin:-.4rem 0 1rem}
+#gymApp .gy-mini-kpis > *{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:.35rem .7rem;font:inherit;font-size:12px;color:var(--gris,#999)}
+#gymApp .gy-mini-kpis b{color:#fff;margin-left:.25rem} #gymApp .gy-mini-kpis .warn b{color:#e8b64c} #gymApp .gy-mini-kpis .mal{cursor:pointer;border-color:rgba(229,134,111,.4)} #gymApp .gy-mini-kpis .mal b{color:#e5866f}
+#gymApp .gy-graficas{display:grid;gap:.8rem} #gymApp .gy-graficas .gy-card{margin:0}
+#gymApp .gy-graf{width:100%;height:auto;max-height:230px;display:block;margin-top:.5rem}
+#gymApp .gy-dona{display:flex;align-items:center;gap:1rem;margin-top:.4rem} #gymApp .gy-dona svg{width:120px;flex:none}
+#gymApp .gy-dona ul{list-style:none;margin:0;padding:0;flex:1;min-width:0;font-size:12.5px} #gymApp .gy-dona li{display:flex;align-items:center;gap:.45rem;padding:.2rem 0}
+#gymApp .gy-dona li i{width:10px;height:10px;border-radius:3px;flex:none} #gymApp .gy-dona li b{margin-left:auto;color:#fff}
+#gymApp .gy-foto{width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none;background:#222}
+#gymApp .gy-foto-g{width:72px;height:72px;border-radius:16px} #gymApp .gy-foto-xl{width:96px;height:96px;border-radius:50%;display:block;margin:0 auto .4rem;border:3px solid currentColor}
+#gymApp .gy-foto-btn{color:var(--oro,#c9a84c);display:inline-block;margin-top:.3rem;cursor:pointer}
+#gymApp .gy-debe{color:#e8b64c!important;font-weight:700;font-style:normal}
+#gymApp .gy-pago-acc{display:flex;flex-direction:column;align-items:flex-end;gap:.2rem}
+#gymApp button.gy-entrada-f{width:100%;background:none;border:0;border-top:1px solid rgba(255,255,255,.06);color:inherit;font:inherit;text-align:left;cursor:pointer} #gymApp button.gy-entrada-f:first-child{border-top:0}
+#gymApp .gy-mem{position:relative;border-radius:18px;padding:1.1rem 1.1rem 1rem;margin-bottom:.8rem;background:linear-gradient(140deg,#2b2412,#141414 70%);border:1px solid rgba(201,168,76,.45);overflow:hidden}
+#gymApp .gy-mem.mal{background:linear-gradient(140deg,#2b1712,#141414 70%);border-color:rgba(229,134,111,.45)}
+#gymApp .gy-mem-top{display:flex;justify-content:space-between;align-items:center;color:var(--oro,#c9a84c);font-weight:700;letter-spacing:.06em;font-size:13px;margin-bottom:.6rem}
+#gymApp .gy-mem small{display:block;color:var(--gris,#999);font-size:11px;letter-spacing:.1em;text-transform:uppercase} #gymApp .gy-mem > b{display:inline-block;color:#fff;font-size:24px;font-family:var(--font-display,serif);margin:.15rem .5rem .2rem 0}
+#gymApp .gy-mem p{margin:.3rem 0 0;color:#fff;font-size:14px} #gymApp .gy-mem-num{position:absolute;right:1.1rem;bottom:.9rem;font-size:11.5px;color:var(--gris,#999)}
+#gymApp .gy-mem-fila{display:grid;grid-template-columns:1fr 1fr;gap:.6rem} #gymApp .gy-mem-fila .gy-card{margin-bottom:.8rem}
+#gymApp .gy-anillo{text-align:center} #gymApp .gy-anillo small,#gymApp .gy-prox small{display:block;font-size:11px;color:var(--gris,#999)} #gymApp .gy-anillo svg{width:90px;margin:.3rem auto 0;display:block}
+#gymApp .gy-prox b{display:block;color:#fff;font-size:17px;margin-top:.5rem} #gymApp .gy-prox strong{display:block;color:var(--oro,#c9a84c);font-size:20px;margin-top:.3rem} #gymApp .gy-prox em{display:block;font-size:12px;margin-top:.4rem}
 @media (min-width:900px){
-  #gymApp{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:180px minmax(0,1fr);column-gap:28px;align-items:start}
+  #gymApp .gy-solo-pc{display:flex!important} #gymApp .gy-solo-movil{display:none!important}
+  #gymApp .gy-graficas{grid-template-columns:1.4fr 1fr}
+  #gymApp{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:180px minmax(0,1fr);column-gap:28px;align-items:start}
   #gymApp .gy-top{grid-column:1/-1;grid-row:1}
   #gymApp .gy-nav{grid-column:1;grid-row:2;position:sticky;top:72px;left:auto;right:auto;bottom:auto;flex-direction:column;background:none;border:0;padding:0}
   #gymApp .gy-nav button{flex-direction:row;justify-content:flex-start;gap:.7rem;font-size:14px;padding:.7rem .8rem;border-radius:10px;min-height:44px}

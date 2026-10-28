@@ -107,7 +107,8 @@ $('btnEntrar').onclick = async () => {
 $('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnCodigo').click(); });
 $('codigo').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEntrar').click(); });
 </script>
-<script src="../gym.js?v=1"></script>
+<script src="../gym.js?v=2"></script>
+<script src="../gym-pos.js?v=1"></script>
 <script>
 sesion = leer();
 if (sesion && sesion.refresh_token) iniciar();

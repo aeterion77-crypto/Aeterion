@@ -21,9 +21,9 @@ let CLIENTES = null;   // caché de coach_mis_clientes
 const NAV = [['c-hoy', 'Hoy', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>'],
   ['c-clientes', 'Clientes', '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.2 2.5 3.6 5.2"/>'],
   ['c-programas', 'Programas', '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'],
-  ['c-academia', 'Academia', '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>'],
-  ['c-ganancias', 'Ganancias', '<path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 1.6 2.6 4.5 3.2 4.5 1.6 4.5 3.5-2 3.3-4.5 3.3-4.5-1.4-4.5-3.2"/>']];
-const RAIZ_DE = { 'c-ficha': 'c-clientes', 'c-invitar': 'c-clientes', 'c-editor': 'c-programas', 'c-doc': 'c-academia', 'c-agenda': 'c-hoy', 'c-cuenta': 'c-hoy', 'c-perfil': 'c-hoy', 'c-publico': 'c-hoy' };
+  ['c-agenda', 'Agenda', '<rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>'],
+  ['c-mas', 'Más', '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>']];
+const RAIZ_DE = { 'c-ficha': 'c-clientes', 'c-invitar': 'c-clientes', 'c-editor': 'c-programas', 'c-academia': 'c-mas', 'c-doc': 'c-mas', 'c-ganancias': 'c-mas', 'c-vender': 'c-mas', 'c-casos': 'c-mas', 'c-bloqueados': 'c-mas', 'c-cuenta': 'c-mas', 'c-perfil': 'c-mas', 'c-publico': 'c-mas' };
 window.__coachMarco = function (html, v) {
   const act = NAV.some((n) => n[0] === v.v) ? v.v : (RAIZ_DE[v.v] || 'c-hoy');
   return `<div class="cx-top"><span class="cx-logo">AETERION <b>COACH</b></span>
@@ -130,7 +130,7 @@ VISTAS['c-ficha'] = async (v) => {
   if (!x || x.estado !== 'activo') { CLIENTES = null; return titulo('Cliente') + '<div class="co-card"><b>Ya no tienes acceso a este cliente</b><p>Terminó el vínculo o retiró sus permisos.</p></div>'; }
   v.vinculo = x.vinculo; v.nombre = x.nombre;
   const tab = v.tab || 'resumen';
-  const TABS = [['resumen', 'Resumen'], ['entrenos', 'Entrenos'], ['medidas', 'Medidas'], ['notas', 'Notas'], ['mensajes', 'Mensajes' + (x.no_leidos ? ` (${x.no_leidos})` : '')]];
+  const TABS = [['resumen', 'Resumen'], ['mensajes', 'Chat' + (x.no_leidos ? ` (${x.no_leidos})` : '')], ['entrenos', 'Entrenos'], ['medidas', 'Medidas'], ['plan', 'Alimentación'], ['evaluacion', 'Evaluación'], ['notas', 'Notas']];
   let h = `<div class="cx-ficha-cab">${avatar(x.nombre, true)}<div><h2>${esc(x.nombre)}</h2><p>${x.modalidad === 'linea' ? 'En línea' : 'Presencial'} · cliente desde ${fechaCorta(x.desde)}</p></div></div>
     <div class="cx-tabs">${TABS.map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-c="cx-tabficha" data-x="${k}">${n}</button>`).join('')}</div>`;
   const p = x.permisos || {};
@@ -144,6 +144,7 @@ VISTAS['c-ficha'] = async (v) => {
       <textarea class="co-in" id="cxNota" rows="3" maxlength="1000" placeholder="Ej. Molestia leve en rodilla izquierda al bajar escaleras"></textarea><button class="co-btn" data-c="cx-nota" data-x="${esc(x.cliente_id)}">Guardar nota</button></div>` +
       notas.map((n) => `<div class="co-card cx-nota"><p>${esc(n.texto)}</p><div class="co-top"><span class="co-peq">${fecha(n.fecha)}</span><button class="co-link" data-c="cx-nota-borrar" data-x="${n.id}">Borrar</button></div></div>`).join('');
   }
+  if ((tab === 'plan' || tab === 'evaluacion') && window.__coachFichaTab) return h + await window.__coachFichaTab(tab, x, v);
   const d = await llamar('coach_cliente_datos', { p_cliente: x.cliente_id }); const D = d.datos || {};
   const parse = (k, def) => { try { const r = JSON.parse(D[k]); return r == null ? def : r; } catch (e) { return def; } };
   if (tab === 'entrenos') {
@@ -188,6 +189,7 @@ VISTAS['c-ficha'] = async (v) => {
       <label class="co-lab">Precio</label><input class="co-in" id="csPrecio" type="number" value="${t.precio_sesion || ''}" max="${t.tope_sesion || ''}"><label class="co-lab">Nota <span class="co-peq">(opcional)</span></label><input class="co-in" id="csNota" maxlength="200" placeholder="Ej. Pierna y técnica de sentadilla">
       <p class="co-peq">Tu cliente la paga en la app para confirmarla.</p><button class="co-btn co-btn-grande" data-c="crear-sesion" data-x="${x.vinculo}">Enviar propuesta</button></div>`;
   }
+  if (window.__coachFichaResumen) h += await window.__coachFichaResumen(x).catch(() => '');
   h += `<button class="co-btn co-peligro" data-c="terminar" data-x="${x.vinculo}">Terminar vínculo</button>`;
   return h;
 };
@@ -417,8 +419,10 @@ window.__coachAccion = async function (c, el, ocupado) {
       toast(P.cliente_id ? 'Programa asignado. Tu cliente ya lo ve en su app.' : 'Plantilla guardada');
       return irA('c-programas', { seg: P.cliente_id ? 'asignados' : 'plantillas' });
     });
+    default: if (window.__coachAccion2) return window.__coachAccion2(c, el, ocupado, V);
   }
 };
+window.__coachEspacio = { irA, clientes: (f) => clientes(f), titulo, sinCache: () => { CLIENTES = null; } };
 
 /* ---------------- Estilos del espacio ---------------- */
 const css = document.createElement('style');

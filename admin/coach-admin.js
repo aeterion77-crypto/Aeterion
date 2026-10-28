@@ -54,7 +54,7 @@ function detalle(c) {
     <dt>Zona / gym</dt><dd>${esc([c.zona, c.gimnasio].filter(Boolean).join(' · ') || '—')}</dd><dt>Precios</dt><dd>${money(c.precio_sesion)} sesión · ${money(c.precio_mensual)} mes</dd>
     <dt>Experiencia</dt><dd>${c.experiencia_anios ?? '—'} años</dd><dt>Membresía</dt><dd>${c.membresia_hasta ? 'hasta ' + fechaDia(c.membresia_hasta) : 'sin pagar'}${c.primer_pago_en ? ' · primer mes pagado' : ''}</dd>
     <dt>Clientes</dt><dd>${c.clientes} · faltas 90 d: ${c.faltas} · calif. ${c.calificacion && c.calificacion.resenas ? c.calificacion.promedio + ' (' + c.calificacion.resenas + ')' : '—'}</dd>
-    <dt>Curso</dt><dd>${c.curso_aprobado_en ? 'aprobado ' + fechaDia(c.curso_aprobado_en) : 'pendiente'}</dd>${c.motivo ? `<dt>Motivo</dt><dd>${esc(c.motivo)}</dd>` : ''}</dl>
+    <dt>Alimentación</dt><dd>${c.puede_nutricion ? 'puede enviar planes' : 'usa el plan de la app'}</dd><dt>Curso</dt><dd>${c.curso_aprobado_en ? 'aprobado ' + fechaDia(c.curso_aprobado_en) : 'pendiente'}</dd>${c.motivo ? `<dt>Motivo</dt><dd>${esc(c.motivo)}</dd>` : ''}</dl>
     ${c.bio ? `<div class="peq" style="margin:6px 0">${esc(c.bio)}</div>` : ''}
     <b style="display:block;margin:10px 0 4px">Documentos</b>
     <div class="peq" style="margin-bottom:6px">Verifica el número de la certificación en el registro del organismo que la emite y la cédula en el Registro Nacional de Profesionistas.</div>`;
@@ -65,7 +65,7 @@ function detalle(c) {
   if ((c.disputas || []).length) h += '<b style="display:block;margin:12px 0 4px">Disputas</b>' + c.disputas.map((s) => `<div class="acc"><div><b>${fechaDia(s.inicio)} · ${money(s.precio)}</b><div class="peq">${esc(s.nota || '')}</div></div><div class="acciones" style="margin:0"><button class="mal mini" data-ca="disputa" data-v="${s.id}" data-e="1">Sí faltó</button><button class="sec mini" data-ca="disputa" data-v="${s.id}" data-e="0">Sí se dio</button></div></div>`).join('');
   h += '<div class="fila" style="margin-top:12px">';
   if (c.estado === 'revision') h += `<button data-ca="decidir" data-e="aprobar">Aprobar</button><button class="sec" data-ca="decidir" data-e="pedir_documento">Pedir un cambio</button><button class="mal" data-ca="decidir" data-e="rechazar">Rechazar</button>`;
-  if (c.estado === 'activo') h += `<select id="caNivel" style="width:auto">${[1, 2, 3].map((n) => `<option value="${n}" ${c.nivel === n ? 'selected' : ''}>Nivel ${n} · ${NIVEL[n]}</option>`).join('')}</select><button class="sec" data-ca="nivel">Cambiar nivel</button>${c.curso_aprobado_en ? '' : '<button class="sec" data-ca="decidir" data-e="curso">Marcar curso aprobado</button>'}<button class="mal" data-ca="decidir" data-e="suspender">Suspender</button>`;
+  if (c.estado === 'activo') h += `<select id="caNivel" style="width:auto">${[1, 2, 3].map((n) => `<option value="${n}" ${c.nivel === n ? 'selected' : ''}>Nivel ${n} · ${NIVEL[n]}</option>`).join('')}</select><button class="sec" data-ca="nivel">Cambiar nivel</button>${c.curso_aprobado_en ? '' : '<button class="sec" data-ca="decidir" data-e="curso">Marcar curso aprobado</button>'}<button class="sec" data-ca="nutricion" data-v="${c.puede_nutricion ? '0' : '1'}">${c.puede_nutricion ? 'Quitar planes de alimentación' : 'Autorizar planes de alimentación'}</button><button class="mal" data-ca="decidir" data-e="suspender">Suspender</button>`;
   if (c.estado === 'suspendido') h += '<button data-ca="decidir" data-e="reactivar">Reactivar</button>';
   if (c.estado !== 'baja') h += '<button class="mal" data-ca="decidir" data-e="baja">Dar de baja</button>';
   return h + '</div></div>';
@@ -103,6 +103,8 @@ document.addEventListener('click', async (e) => {
       return hacer(() => rpc('admin_coach_documento', { p_doc: Number(v), p_estado: el.dataset.e, p_nota: nota })); }
     case 'disputa': if (!confirm(el.dataset.e === '1' ? 'Se reembolsa al cliente y cuenta como falta del coach. ¿Seguro?' : 'Se da por dada la sesión. ¿Seguro?')) return;
       return hacer(async () => { await rpc('admin_sesion_resolver', { p_id: Number(v), p_coach_falto: el.dataset.e === '1' }); bitacora('Coaches: resolvió disputa', '#' + v); }, 'Resuelta');
+    case 'nutricion': if (!confirm(v === '1' ? '¿Autorizar a este coach a enviar planes de alimentación? Hazlo solo si validaste su cédula o certificación en nutrición.' : '¿Quitar la autorización? Sus clientes verán solo el plan de la app.')) return;
+      return hacer(async () => { await rpc('admin_coach_nutricion', { p_coach: abierto, p_valor: v === '1' }); bitacora('Coaches: alimentación', abierto + ' → ' + v); }, 'Listo');
     case 'nivel': return hacer(async () => { const n = Number($('caNivel').value); await rpc('admin_coach_decidir', { p_coach: abierto, p_accion: 'nivel', p_nivel: n }); bitacora('Coaches: nivel', abierto + ' → ' + n); }, 'Nivel actualizado');
     case 'decidir': {
       const acc = el.dataset.e; let motivo = null;

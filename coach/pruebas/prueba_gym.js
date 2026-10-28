@@ -6,7 +6,7 @@ let ok = 0, mal = 0; const chk = (n, c, x) => { if (c) ok++; else { mal++; conso
 (async () => {
   const db = new PGlite(); const L = (f) => db.exec(fs.readFileSync(f, 'utf8'));
   await L(path.join(__dirname, 'stub_supabase.sql'));
-  for (const f of ['001_coaches.sql', '003_accesos_origen.sql', '004_coach_espacio.sql', '005_gym.sql']) await L(path.join(__dirname, '..', 'sql', f));
+  for (const f of ['001_coaches.sql', '003_accesos_origen.sql', '004_coach_espacio.sql', '005_gym.sql', '006_gym_pos.sql']) await L(path.join(__dirname, '..', 'sql', f));
   const su = async (q, p) => { await db.exec('reset role'); return db.query(q, p); };
   for (const [k, id] of Object.entries(U)) { await su('insert into auth.users values ($1,$2)', [id, k + '@x.mx']); await su('insert into perfiles (id,email,nombre) values ($1,$2,$3)', [id, k + '@x.mx', k]); }
   await su('insert into admins values ($1)', [U.admin]);
