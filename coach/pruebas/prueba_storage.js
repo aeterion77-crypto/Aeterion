@@ -6,6 +6,7 @@ let ok = 0, mal = 0; const chk = (n, c) => { if (c) ok++; else { mal++; console.
   const db = new PGlite();
   for (const f of ['stub_supabase.sql', 'stub_storage.sql']) await db.exec(fs.readFileSync(path.join(__dirname, f), 'utf8'));
   await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '001_coaches.sql'), 'utf8'));
+  await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '003_accesos_origen.sql'), 'utf8'));
   await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '002_coach_documentos_storage.sql'), 'utf8'));
   await db.query(`insert into public.admins values ($1)`, [A]);
   const como = async (u, sql, p) => { await db.exec('reset role'); await db.query(`select set_config('request.jwt.claims',$1,false)`, [JSON.stringify({ sub: u })]); await db.exec('set role authenticated');

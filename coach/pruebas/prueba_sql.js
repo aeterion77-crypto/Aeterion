@@ -20,6 +20,7 @@ function check(nombre, cond, extra) {
   const db = new PGlite();
   await db.exec(fs.readFileSync(path.join(__dirname, 'stub_supabase.sql'), 'utf8'));
   await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '001_coaches.sql'), 'utf8'));
+  await db.exec(fs.readFileSync(path.join(__dirname, '..', 'sql', '003_accesos_origen.sql'), 'utf8'));
 
   const su = async (sql, params) => { await db.exec('reset role'); return db.query(sql, params); };
   for (const [k, id] of Object.entries(U)) {

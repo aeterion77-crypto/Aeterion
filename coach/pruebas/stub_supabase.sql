@@ -17,7 +17,8 @@ grant usage on schema public to anon, authenticated, service_role;
 -- Tablas existentes en producción que el módulo usa (mismas columnas relevantes)
 create table public.perfiles (id uuid primary key, email text, nombre text, creado_en timestamptz default now());
 create table public.progreso (user_id uuid, clave text, valor text, version bigint default 1, actualizado_en timestamptz default now(), primary key (user_id, clave));
-create table public.accesos (id bigserial primary key, user_id uuid not null, origen text not null, referencia text, inicio timestamptz default now(), hasta timestamptz not null, revocado_en timestamptz, creado_en timestamptz default now(), cortado_por text, aviso1_en timestamptz, aviso2_en timestamptz);
+create table public.accesos (id bigserial primary key, user_id uuid not null, origen text not null, referencia text, inicio timestamptz default now(), hasta timestamptz not null, revocado_en timestamptz, creado_en timestamptz default now(), cortado_por text, aviso1_en timestamptz, aviso2_en timestamptz,
+  constraint accesos_origen_check check (origen = any (array['codigo','pago','admin','promo'])));
 create unique index accesos_promo_unico on public.accesos (user_id) where origen = 'promo';
 create table public.admins (user_id uuid primary key);
 create table public.usuarios_bloqueos (user_id uuid primary key);

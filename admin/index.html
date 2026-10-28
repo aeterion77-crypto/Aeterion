@@ -755,7 +755,7 @@ function pintarAccesos() {
   const f = accesos.filter((a) => !q || String(a.email).toLowerCase().includes(q));
   $('listaAccesos').innerHTML = f.length ? f.map((a) => {
     const est = a.revocado_en ? '<span class="tag x">Quitado</span>' : a.vigente ? '<span class="tag v">Activo</span>' : '<span class="tag x">Vencido</span>';
-    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : a.origen === 'codigo' ? 'Código' : a.origen === 'promo' ? 'Prueba de lanzamiento' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div><div class="acciones">${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}<button class="sec mini" data-dar="${esc(a.email)}">Dar días</button></div></div>`;
+    return `<div class="acc"><div><b>${esc(a.email)}</b><div class="peq">${est}${esc(a.origen === 'pago' ? 'Pago' : a.origen === 'codigo' ? 'Código' : a.origen === 'promo' ? 'Prueba de lanzamiento' : a.origen === 'coach' ? 'Coach (membresía)' : 'Manual')} · vence ${fechaCorta(a.hasta)}</div></div><div class="acciones">${a.vigente ? `<button class="mal mini" data-quitar="${esc(a.email)}">Quitar</button>` : ''}<button class="sec mini" data-dar="${esc(a.email)}">Dar días</button></div></div>`;
   }).join('') : '<div class="vacio">Sin accesos.</div>';
 }
 
