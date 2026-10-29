@@ -65,7 +65,7 @@ function mapa() {
   const total = QB ? Object.values(QB).reduce((a, x) => a + x.length, 0) : 180;
   const L = Math.min(d.nivel, NIVELES); const superados = Object.keys(d.estrellas).length;
   const precision = d.respondidas ? Math.round(d.aciertos * 100 / d.respondidas) : 0;
-  let h = `<button class="app-visor-volver" onclick="aetIr('educacion')">← Volver a Educación</button>
+  let h = `<button class="app-visor-volver" onclick="aetIr('juegos')">← Volver a Juegos</button>
     <div class="tv-cab"><div><h2 class="app-titulo">Trivia Aeterion</h2><p class="app-subtitulo">${NIVELES} niveles · ${total} preguntas. De lo básico a fisiología de élite.</p></div>
       <div class="tv-energia"><div class="tv-rayos" aria-label="${d.rayos} de ${RAYOS} rayos">${rayosHtml(d.rayos)}</div><small>${d.rayos} de ${RAYOS} rayos</small></div></div>
     <div class="tv-stats"><div><b>${fmt(d.puntos)}</b><span>Puntos</span></div><div><b>${L}</b><span>Nivel actual</span></div><div><b>${superados}</b><span>Superados</span></div><div><b>${precision}%</b><span>Precisión</span></div></div>`;
