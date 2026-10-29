@@ -7387,7 +7387,7 @@ const RESPALDO_VALIDADORES = {
   aet_programa: v => _esObj(v), aet_perfil_agua: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
   aet_inicio: v => _esObj(v) && (v.estado === 'hecho' || v.estado === 'saltado'),
-  aet_memo: v => _esObj(v) && Number.isInteger(v.nivel) && v.nivel >= 1 && v.nivel <= 24 && _esObj(v.estrellas) && _esObj(v.album),
+  aet_memo: v => _esObj(v) && Number.isInteger(v.nivel) && v.nivel >= 1 && v.nivel <= 100 && _esObj(v.estrellas) && _esObj(v.album),
   aet_trivia: v => _esObj(v) && Number.isFinite(v.puntos) && v.puntos >= 0 && Number.isInteger(v.nivel) && v.nivel >= 1 && v.nivel <= 15 && _esObj(v.estrellas),
   aet_mente: v => _esObj(v) && ['checkins', 'practicas', 'retos', 'diario', 'evals', 'fichas'].every(c => v[c] == null || _esObj(v[c])),
   aet_habitos: v => _esObj(v) && Array.isArray(v.lista) && v.lista.length <= 200 && _esObj(v.reg) &&
@@ -10479,6 +10479,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 </script>
 <script src="mente.js?v=1" defer></script>
 <script src="trivia.js?v=2" defer></script>
-<script src="juegos.js?v=1" defer></script>
+<script src="juegos.js?v=2" defer></script>
 </body>
 </html>

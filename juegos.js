@@ -1,6 +1,6 @@
 /* ============================================================
    AETERION · JUEGOS — pestaña de juegos (Trivia + Memorama).
-   Memorama: 24 niveles en 4 mundos (cada mundo agrega un giro),
+   Memorama: 100 niveles en 10 mundos (cada mundo agrega un giro),
    reto diario igual para todos, contrarreloj infinito y álbum de
    cartas con un dato de salud por carta. Sin vidas ni energía.
    Las cartas viven en juegos-imagenes.js (se carga al abrir).
@@ -17,24 +17,46 @@ const toast = (t) => { try { aetToast(t); } catch (e) {} };
 const vibrar = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 const mmss = (s) => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 
-/* ---------------- Mundos y niveles ---------------- */
+/* ---------------- Mundos y niveles ----------------
+   10 mundos × 10 niveles. Todos los niveles tienen límite de movimientos:
+   si se acaban antes de terminar, pierdes. Solo los 3 primeros niveles
+   muestran el tablero al inicio. Para abrir un mundo necesitas 18★ del anterior. */
 const MUNDOS = [
-  { n: 'Calentamiento', i: '🔥', giro: null, txt: 'Encuentra las parejas. Mientras menos movimientos, más estrellas.', pares: [3, 4, 5, 6, 6, 8] },
-  { n: 'Contra el reloj', i: '⏱️', giro: 'tiempo', txt: 'Cada nivel tiene tiempo límite. Cada pareja te da segundos extra.', pares: [6, 6, 8, 8, 10, 10] },
-  { n: 'Ciencia', i: '🧬', giro: 'concepto', txt: 'Une cada imagen con su nombre. Aprendes mientras juegas.', pares: [5, 6, 6, 8, 8, 10] },
-  { n: 'Élite', i: '🏆', giro: 'mezcla', txt: 'Cada 4 errores dos cartas cambian de lugar. Memoria de campeón.', pares: [8, 10, 10, 12, 15, 18] },
+  { n: 'Calentamiento', i: '🔥', g: [], f: 2.7, txt: 'Encuentra las parejas antes de quedarte sin movimientos.', pares: [4, 5, 6, 6, 7, 8, 8, 9, 10, 10] },
+  { n: 'Contra el reloj', i: '⏱️', g: ['tiempo'], f: 2.6, seg: [5, 3.8], txt: 'Tiempo límite y movimientos contados. Cada pareja suma 1 segundo.', pares: [6, 7, 8, 8, 9, 10, 10, 11, 12, 12] },
+  { n: 'Ciencia', i: '🧬', g: ['concepto'], f: 2.6, txt: 'Une cada imagen con su nombre.', pares: [6, 7, 8, 8, 9, 10, 10, 11, 12, 12] },
+  { n: 'Tríos', i: '🔺', g: ['trio'], f: 3.3, txt: 'Ahora son grupos de 3 cartas iguales. Si la segunda no coincide, se voltean.', pares: [4, 4, 5, 5, 6, 6, 7, 7, 8, 8] },
+  { n: 'Mismo tema', i: '🎯', g: ['tema'], f: 2.5, txt: 'Todas las cartas son del mismo tema y se parecen entre sí.', pares: [8, 9, 10, 10, 11, 12, 12, 13, 14, 14] },
+  { n: 'Élite', i: '🌀', g: ['mezcla'], f: 2.5, txt: 'Cada 3 errores, dos cartas cambian de lugar.', pares: [9, 10, 10, 11, 12, 12, 13, 14, 14, 15] },
+  { n: 'Vistazo rápido', i: '⚡', g: ['rapido', 'tiempo'], f: 2.4, seg: [4.2, 3.2], txt: 'Las cartas se voltean casi al instante y hay tiempo límite.', pares: [9, 10, 10, 11, 12, 12, 13, 14, 14, 15] },
+  { n: 'Lesiones', i: '🩹', g: ['trampa'], f: 2.4, txt: 'Hay cartas de lesión escondidas: cada una te cuesta 2 movimientos.', pares: [10, 10, 11, 12, 12, 13, 14, 14, 15, 16] },
+  { n: 'Terremoto', i: '🌋', g: ['terremoto'], f: 2.75, txt: 'Cada 10 movimientos se revuelven todas las cartas que siguen boca abajo.', pares: [10, 11, 12, 12, 13, 14, 14, 15, 16, 16] },
+  { n: 'Leyenda', i: '👑', g: ['concepto', 'mezcla', 'tiempo'], f: 2.5, seg: [5, 4], txt: 'Imagen + nombre, cartas que se mezclan y reloj. Solo para leyendas.', pares: [12, 13, 14, 15, 16, 17, 18, 20, 22, 24] },
 ];
-const NIVELES = MUNDOS.reduce((a, m) => a + m.pares.length, 0);
+const POR_MUNDO = 10, NIVELES = MUNDOS.length * POR_MUNDO, ESTRELLAS_MUNDO = 18;
 function nivelInfo(L) {
-  let k = L;
-  for (let w = 0; w < MUNDOS.length; w++) { if (k <= MUNDOS[w].pares.length) { const p = MUNDOS[w].pares[k - 1]; return { L, w, p, giro: MUNDOS[w].giro, tiempo: MUNDOS[w].giro === 'tiempo' ? 10 + p * 5 : MUNDOS[w].giro === 'mezcla' && p >= 12 ? 30 + p * 6 : 0 }; } k -= MUNDOS[w].pares.length; }
-  return null;
+  const w = Math.floor((L - 1) / POR_MUNDO), k = (L - 1) % POR_MUNDO, m = MUNDOS[w]; if (!m) return null;
+  const p = m.pares[k], g = new Set(m.g), trio = g.has('trio');
+  const trampas = g.has('trampa') ? 2 + Math.floor(k / 3) : 0;
+  const limite = Math.ceil(p * m.f * (1 - 0.015 * k)) + trampas * 3;
+  const seg = m.seg ? m.seg[0] + (m.seg[1] - m.seg[0]) * k / (POR_MUNDO - 1) : 0;
+  return { L, w, k, p, g, trio, grupo: trio ? 3 : 2, limite, tiempo: g.has('tiempo') ? Math.round(p * seg * (g.has('concepto') ? 1.25 : 1)) : 0,
+    vistazo: L <= 3, trampas, concepto: g.has('concepto') };
 }
-const columnas = (n) => { for (const c of [3, 4, 5, 6]) if (n % c === 0 && n / c <= c + 2) return c; return n <= 12 ? 4 : 6; };
-const estrellasDe = (p, mov, pista) => { const e = mov <= Math.ceil(p * 1.6) ? 3 : mov <= Math.ceil(p * 2.3) ? 2 : 1; return pista ? Math.min(2, e) : e; };
+const columnas = (n) => { let mejor = 4, pts = 1e9; for (let c = 3; c <= 8; c++) { const r = Math.ceil(n / c), vac = r * c - n, s = vac * 4 + Math.abs(r - c * 1.35) * 2 + (c > 6 ? 6 : 0); if (s < pts) { pts = s; mejor = c; } } return mejor; };
+const estrellasDe = (cfg, mov, pista) => { const e = mov <= Math.ceil(cfg.limite * 0.72) ? 3 : mov <= Math.ceil(cfg.limite * 0.86) ? 2 : 1; return pista ? Math.min(2, e) : e; };
+const estrellasMundo = (d, w) => { let s = 0; for (let L = w * POR_MUNDO + 1; L <= (w + 1) * POR_MUNDO; L++) s += d.estrellas[L] || 0; return s; };
+const mundoAbierto = (d, w) => w === 0 || (d.nivel > w * POR_MUNDO && estrellasMundo(d, w - 1) >= ESTRELLAS_MUNDO);
+const nivelAbierto = (d, L) => L <= d.nivel && mundoAbierto(d, Math.floor((L - 1) / POR_MUNDO));
 
 /* ---------------- Estado ---------------- */
-function leer() { let d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {} return Object.assign({ nivel: 1, estrellas: {}, mejor: {}, album: {}, diario: {}, racha: 0, ultimoDiario: null, infinito: 0, recientes: [], partidas: 0, puntos: 0, t: 0 }, d || {}); }
+// v2: los niveles cambiaron (100 niveles más difíciles). Se conserva álbum, retos diarios, racha y récord.
+function leer() {
+  let d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  d = Object.assign({ v: 2, nivel: 1, estrellas: {}, mejor: {}, album: {}, diario: {}, racha: 0, ultimoDiario: null, infinito: 0, recientes: [], partidas: 0, puntos: 0, t: 0 }, d || {});
+  if (d.v !== 2) { d.v = 2; d.nivel = 1; d.estrellas = {}; d.mejor = {}; d.puntos = 0; }
+  return d;
+}
 function guardar(d) { d.t = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
 
 /* ---------------- Cartas ---------------- */
@@ -46,17 +68,22 @@ function cargarCartas() {
 }
 function azar(semilla) { let s = semilla >>> 0 || 1; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function barajar(a, r) { r = r || Math.random; a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-// Elige p cartas sin repetir las que salieron hace poco; siempre entra un producto Aeterion si hay 4+ parejas.
-function elegirCartas(p, d, r) {
-  const L = CARTAS.lista, prods = L.filter((c) => c.cat === 'aeterion'), resto = L.filter((c) => c.cat !== 'aeterion');
+// Elige p cartas sin repetir las que salieron hace poco; entra un producto Aeterion si hay 4+ parejas.
+// tema: todas de una sola categoría (más difícil: se parecen en color y estilo).
+function elegirCartas(p, d, r, tema) {
+  const L = CARTAS.lista, prods = L.filter((c) => c.cat === 'aeterion');
+  let resto = L.filter((c) => c.cat !== 'aeterion');
+  if (tema) { const cats = barajar(Object.keys(CARTAS.cats).filter((k) => k !== 'aeterion' && resto.filter((c) => c.cat === k).length >= p), r); if (cats.length) resto = resto.filter((c) => c.cat === cats[0]); }
   const rec = new Set(r ? [] : d.recientes);
   const frescas = barajar(resto.filter((c) => !rec.has(c.id)), r), usadas = barajar(resto.filter((c) => rec.has(c.id)), r);
   const sel = [];
-  if (p >= 4) sel.push(barajar(prods, r)[0]);
+  if (p >= 4 && !tema) sel.push(barajar(prods, r)[0]);
   for (const c of [...frescas, ...usadas]) { if (sel.length >= p) break; sel.push(c); }
-  if (!r) { d.recientes = [...sel.map((c) => c.id), ...d.recientes.filter((id) => !sel.some((c) => c.id === id))].slice(0, 50); }
+  if (sel.length < p) for (const c of barajar(L.filter((c) => !sel.includes(c)), r)) { if (sel.length >= p) break; sel.push(c); }
+  if (!r) { d.recientes = [...sel.map((c) => c.id), ...d.recientes.filter((id) => !sel.some((c) => c.id === id))].slice(0, 60); }
   return sel;
 }
+const TRAMPA = `<div class="mm-cara mm-trampa"><svg viewBox="0 0 64 64" aria-label="Lesión"><rect x="8" y="22" width="48" height="20" rx="10" fill="#f2c9a5" stroke="#2b2118" stroke-width="2.4" transform="rotate(-35 32 32)"/><rect x="24" y="24" width="16" height="16" rx="3" fill="#e8b58a" stroke="#2b2118" stroke-width="2" transform="rotate(-35 32 32)"/><g fill="#c48a5c" transform="rotate(-35 32 32)"><circle cx="28" cy="29" r="1.3"/><circle cx="36" cy="29" r="1.3"/><circle cx="28" cy="35" r="1.3"/><circle cx="36" cy="35" r="1.3"/></g></svg><b>−2 mov</b></div>`;
 const caraHtml = (c, texto) => {
   const cat = CARTAS.cats[c.cat];
   if (texto) return `<div class="mm-cara mm-texto" style="--k:${cat.c}"><span>${esc(c.n)}</span></div>`;
@@ -84,7 +111,7 @@ function hub() {
   return `<h2 class="app-titulo">Juegos</h2><p class="app-subtitulo">Aprende de salud y entrenamiento jugando</p>
     <button class="jg-tarjeta jg-trivia" onclick="aetIr('trivia')"><div class="jg-ico">⚡</div><div class="jg-txt"><b>Trivia Aeterion</b><span>15 niveles · 180 preguntas con tiempo</span>
       <div class="jg-chips"><em>Nivel ${t.nivel}</em><em>${fmt(t.puntos)} pts</em><em>${'⚡'.repeat(t.rayos)}${'·'.repeat(3 - t.rayos)} rayos</em></div></div><i>›</i></button>
-    <button class="jg-tarjeta jg-memo" data-jg="memo"><div class="jg-ico">🧠</div><div class="jg-txt"><b>Memorama</b><span>${NIVELES} niveles · ${CARTAS ? CARTAS.lista.length : 82} cartas de fitness, ciencia y productos Aeterion</span>
+    <button class="jg-tarjeta jg-memo" data-jg="memo"><div class="jg-ico">🧠</div><div class="jg-txt"><b>Memorama</b><span>${NIVELES} niveles difíciles · ${CARTAS ? CARTAS.lista.length : 82} cartas de fitness, ciencia y productos Aeterion</span>
       <div class="jg-chips"><em>Nivel ${Math.min(d.nivel, NIVELES)}</em><em>★ ${est}/${NIVELES * 3}</em><em>Álbum ${Object.keys(d.album).length}</em></div></div><i>›</i></button>
     <button class="jg-tarjeta jg-diario ${diarioHecho ? 'hecho' : ''}" data-jg="diario"><div class="jg-ico">📅</div><div class="jg-txt"><b>Reto diario</b><span>${diarioHecho ? `Hecho hoy en ${d.diario[hoy()].mov} movimientos · vuelve mañana` : 'El mismo tablero para todos, una vez al día'}</span>
       <div class="jg-chips"><em>🔥 Racha ${d.racha} ${d.racha === 1 ? 'día' : 'días'}</em></div></div><i>›</i></button>
@@ -92,20 +119,28 @@ function hub() {
 }
 
 /* ---------------- MENÚ DEL MEMORAMA ---------------- */
+let mundoVisto = null;
 function memoMenu() {
-  const d = leer();
-  let h = `<button class="app-visor-volver" data-jg="hub">← Volver a Juegos</button><h2 class="app-titulo">Memorama</h2><p class="app-subtitulo">Encuentra las parejas con el menor número de movimientos</p>
-    <div class="mm-modos"><button class="mm-modo" data-jg="jugar" data-l="${Math.min(d.nivel, NIVELES)}"><b>▶ Nivel ${Math.min(d.nivel, NIVELES)}</b><span>Continuar</span></button>
+  const d = leer(); const L0 = Math.min(d.nivel, NIVELES); const wAct = Math.floor((L0 - 1) / POR_MUNDO);
+  const totE = Object.values(d.estrellas).reduce((a, x) => a + x, 0);
+  const puedeSeguir = nivelAbierto(d, L0);
+  let h = `<button class="app-visor-volver" data-jg="hub">← Volver a Juegos</button><h2 class="app-titulo">Memorama</h2><p class="app-subtitulo">${NIVELES} niveles · ★ ${totE} de ${NIVELES * 3}</p>
+    <div class="mm-modos"><button class="mm-modo" data-jg="jugar" data-l="${puedeSeguir ? L0 : wAct * POR_MUNDO}"><b>▶ Nivel ${puedeSeguir ? L0 : wAct * POR_MUNDO}</b><span>${puedeSeguir ? 'Continuar' : `Te faltan ★ para el mundo ${wAct + 1}`}</span></button>
       <button class="mm-modo" data-jg="diario"><b>📅 Reto diario</b><span>${d.diario[hoy()] ? 'Hecho ✓' : 'Disponible'}</span></button>
       <button class="mm-modo" data-jg="infinito"><b>⏱️ Contrarreloj</b><span>Récord ${d.infinito} parejas</span></button>
       <button class="mm-modo" data-jg="album"><b>📖 Álbum</b><span>${Object.keys(d.album).length} de ${CARTAS.lista.length}</span></button></div>`;
-  let n = 0;
+  const abierto = mundoVisto == null ? wAct : mundoVisto;
   MUNDOS.forEach((m, w) => {
-    const ini = n + 1; n += m.pares.length; const abierto = d.nivel >= ini;
-    h += `<section class="mm-mundo ${abierto ? '' : 'bloq'}"><div class="mm-mundo-cab"><span>${m.i}</span><div><b>Mundo ${w + 1} · ${m.n}</b><small>${abierto ? m.txt : 'Termina el mundo anterior para abrirlo'}</small></div></div><div class="mm-nvs">`;
-    for (let L = ini; L <= n; L++) { const st = d.estrellas[L], bl = L > d.nivel;
-      h += `<button class="mm-nv ${st ? 'hecho' : L === d.nivel ? 'actual' : ''} ${bl ? 'bloq' : ''}" data-jg="jugar" data-l="${L}" ${bl ? 'disabled' : ''} aria-label="Nivel ${L}">${L}<small>${st ? '★'.repeat(st) + '☆'.repeat(3 - st) : bl ? '🔒' : nivelInfo(L).p + ' pares'}</small></button>`; }
-    h += '</div></section>';
+    const ab = mundoAbierto(d, w) || (w === 0), est = estrellasMundo(d, w), ini = w * POR_MUNDO + 1;
+    const falta = w > 0 && !ab ? (d.nivel > w * POR_MUNDO ? `Necesitas ${ESTRELLAS_MUNDO}★ en «${MUNDOS[w - 1].n}» (llevas ${estrellasMundo(d, w - 1)})` : `Termina «${MUNDOS[w - 1].n}» para abrirlo`) : '';
+    h += `<section class="mm-mundo ${ab ? '' : 'bloq'} ${w === abierto ? 'on' : ''}"><button class="mm-mundo-cab" data-jg="mundo" data-w="${w}"><span>${ab ? m.i : '🔒'}</span><div><b>Mundo ${w + 1} · ${m.n}</b><small>${ab ? m.txt : falta}</small></div><em>${est}/30★</em></button>`;
+    if (w === abierto) {
+      h += '<div class="mm-nvs">';
+      for (let L = ini; L < ini + POR_MUNDO; L++) { const st = d.estrellas[L], bl = !nivelAbierto(d, L), ni = nivelInfo(L);
+        h += `<button class="mm-nv ${st ? 'hecho' : L === d.nivel ? 'actual' : ''} ${bl ? 'bloq' : ''}" data-jg="jugar" data-l="${L}" ${bl ? 'disabled' : ''} aria-label="Nivel ${L}">${L}<small>${st ? '★'.repeat(st) + '☆'.repeat(3 - st) : bl ? '🔒' : ni.p + (ni.trio ? ' tríos' : ' pares')}</small></button>`; }
+      h += '</div>';
+    }
+    h += '</section>';
   });
   return h;
 }
@@ -130,112 +165,150 @@ function verDato(id) {
 }
 
 /* ---------------- PARTIDA ---------------- */
-let reloj = 0, tVuelta = 0;
-function pararReloj() { clearInterval(reloj); clearTimeout(tVuelta); }
+let reloj = 0, tVuelta = 0, tTrampa = 0;
+function pararReloj() { clearInterval(reloj); clearTimeout(tVuelta); clearTimeout(tTrampa); }
+const GIROS_DIARIO = [[], ['concepto'], ['mezcla'], ['tema'], ['trio'], ['terremoto'], ['trampa']];
+function armarMazo(sel, cfg, r) {
+  const mazo = [];
+  sel.forEach((c, i) => { for (let k = 0; k < cfg.grupo; k++) mazo.push({ c, txt: cfg.concepto && k === 1, par: i }); });
+  for (let t = 0; t < (cfg.trampas || 0); t++) mazo.push({ trampa: true, par: -1 - t });
+  return barajar(mazo, r);
+}
 async function empezar(modo, L) {
   try { await cargarCartas(); } catch (e) { toast('Sin conexión: no se pudieron cargar las cartas.'); return; }
   const d = leer(); let cfg;
-  if (modo === 'nivel') { if (L > d.nivel) return; cfg = nivelInfo(L); }
-  else if (modo === 'diario') { const r = azar(Number(hoy().replace(/-/g, ''))); cfg = { p: 10, giro: r() < 0.4 ? 'concepto' : null, tiempo: 0, r }; }
-  else cfg = { p: 6, giro: null, tiempo: 45 };
+  if (modo === 'nivel') { if (!nivelAbierto(d, L)) return; cfg = nivelInfo(L); }
+  else if (modo === 'diario') {
+    const r = azar(Number(hoy().replace(/-/g, ''))); const g = new Set(GIROS_DIARIO[Math.floor(r() * GIROS_DIARIO.length)]); const trio = g.has('trio');
+    const p = trio ? 7 : 14; cfg = { p, g, trio, grupo: trio ? 3 : 2, concepto: g.has('concepto'), trampas: g.has('trampa') ? 3 : 0, limite: Math.ceil(p * (trio ? 3.2 : 2.45)), tiempo: 0, vistazo: false, r };
+  } else cfg = { p: 6, g: new Set(), grupo: 2, limite: 0, tiempo: 40, vistazo: false, trampas: 0 };
   const r = cfg.r || null;
-  const sel = elegirCartas(cfg.p, d, r); guardar(d);
-  const mazo = [];
-  sel.forEach((c, i) => { mazo.push({ id: c.id, c, txt: false, par: i }); mazo.push({ id: c.id, c, txt: cfg.giro === 'concepto', par: i }); });
-  P = { modo, L, cfg, mazo: barajar(mazo, r), abiertas: [], hechas: 0, mov: 0, errores: 0, combo: 0, mejorCombo: 0, pts: 0, pista: false, ini: 0, resta: cfg.tiempo, nuevas: [], tablero: 1, totalPares: 0, fin: false, bloq: true };
+  const sel = elegirCartas(cfg.p, d, r, cfg.g.has('tema')); guardar(d);
+  P = { modo, L, cfg, mazo: armarMazo(sel, cfg, r), abiertas: [], hechas: 0, mov: 0, errores: 0, combo: 0, mejorCombo: 0, pts: 0, pista: false, ini: 0, resta: cfg.tiempo, nuevas: [], tablero: 1, totalPares: 0, fin: false, bloq: true, extra: 0 };
   V = 'juego'; pintarJuego(); window.scrollTo(0, 0);
-  // Vistazo inicial: todas boca arriba un momento
-  const ver = Math.min(2600, 900 + cfg.p * 110);
-  setTimeout(() => { document.querySelectorAll('#mmTablero .mm-carta').forEach((e) => e.classList.add('ab')); }, 120);
-  tVuelta = setTimeout(() => { if (!P) return; document.querySelectorAll('#mmTablero .mm-carta').forEach((e) => e.classList.remove('ab')); P.bloq = false; P.ini = Date.now(); arrancarReloj(); }, ver + 120);
+  if (cfg.vistazo) {
+    const ver = 700 + cfg.p * 90;
+    setTimeout(() => { document.querySelectorAll('#mmTablero .mm-carta').forEach((e) => e.classList.add('ab')); }, 120);
+    tVuelta = setTimeout(() => { if (!P) return; document.querySelectorAll('#mmTablero .mm-carta').forEach((e) => e.classList.remove('ab')); P.bloq = false; P.ini = Date.now(); arrancarReloj(); }, ver + 120);
+  } else { P.bloq = false; P.ini = Date.now(); arrancarReloj(); }
 }
 function tituloPartida() { return P.modo === 'nivel' ? `Nivel ${P.L} · ${MUNDOS[P.cfg.w].n}` : P.modo === 'diario' ? 'Reto diario' : `Contrarreloj · tablero ${P.tablero}`; }
+const giroTxt = (c) => [c.concepto && 'imagen + nombre', c.trio && 'tríos', c.g.has('tema') && 'mismo tema', c.g.has('mezcla') && 'se mezclan', c.g.has('rapido') && 'vistazo rápido', c.trampas && 'lesiones', c.g.has('terremoto') && 'terremoto'].filter(Boolean).join(' · ');
 function pintarJuego() {
-  const cols = columnas(P.mazo.length);
-  raiz().innerHTML = `<div class="mm-juego"><div class="mm-top"><button class="mm-salir" data-jg="salir" aria-label="Salir">✕</button><div class="mm-tit">${esc(tituloPartida())}${P.cfg.giro === 'concepto' ? ' · imagen + nombre' : P.cfg.giro === 'mezcla' ? ' · se mezclan' : ''}</div>
+  const cols = columnas(P.mazo.length), c = P.cfg, gt = giroTxt(c);
+  raiz().innerHTML = `<div class="mm-juego"><div class="mm-top"><button class="mm-salir" data-jg="salir" aria-label="Salir">✕</button><div class="mm-tit">${esc(tituloPartida())}${gt ? `<small>${esc(gt)}</small>` : ''}</div>
       <button class="mm-pista" data-jg="pista" ${P.pista || P.modo === 'infinito' ? 'disabled' : ''} title="Ver todas un segundo (máximo 2 estrellas)">💡</button></div>
-    <div class="mm-hud"><div><b id="mmMov">${P.mov}</b><span>Movimientos</span></div><div><b id="mmPar">${P.hechas}/${P.cfg.p}</b><span>Parejas</span></div><div class="${P.cfg.tiempo ? 'mm-tiempo' : ''}"><b id="mmT">${P.cfg.tiempo ? mmss(P.resta) : '0:00'}</b><span>${P.cfg.tiempo ? 'Restante' : 'Tiempo'}</span></div><div><b id="mmPts">${fmt(P.pts)}</b><span>Puntos</span></div></div>
-    ${P.cfg.tiempo ? '<div class="mm-tbarra"><i id="mmTB"></i></div>' : ''}
+    <div class="mm-hud"><div class="${c.limite ? 'mm-lim' : ''}"><b id="mmMov">${c.limite ? `${P.mov}<i>/${c.limite}</i>` : P.mov}</b><span>Movimientos</span></div><div><b id="mmPar">${P.hechas}/${c.p}</b><span>${c.trio ? 'Tríos' : 'Parejas'}</span></div><div class="${c.tiempo ? 'mm-tiempo' : ''}"><b id="mmT">${c.tiempo ? mmss(P.resta) : '0:00'}</b><span>${c.tiempo ? 'Restante' : 'Tiempo'}</span></div><div><b id="mmPts">${fmt(P.pts)}</b><span>Puntos</span></div></div>
+    ${c.limite ? '<div class="mm-tbarra mm-mbarra"><i id="mmMB"></i></div>' : ''}${c.tiempo ? '<div class="mm-tbarra"><i id="mmTB"></i></div>' : ''}
     <div class="mm-combo" id="mmCombo"></div>
-    <div class="mm-tablero" id="mmTablero" style="--cols:${cols}">${P.mazo.map((m, i) => `<button class="mm-carta" data-jg="carta" data-i="${i}" aria-label="Carta ${i + 1}"><div class="mm-in">${DORSO}<div class="mm-frente">${caraHtml(m.c, m.txt)}</div></div></button>`).join('')}</div>
-    <div class="mm-dato-vivo" id="mmVivo"></div></div>`;
+    <div class="mm-tablero" id="mmTablero" style="--cols:${cols}">${P.mazo.map((m, i) => `<button class="mm-carta" data-jg="carta" data-i="${i}" aria-label="Carta ${i + 1}"><div class="mm-in">${DORSO}<div class="mm-frente">${m.trampa ? TRAMPA : caraHtml(m.c, m.txt)}</div></div></button>`).join('')}</div>
+    <div class="mm-dato-vivo" id="mmVivo">${P.modo === 'nivel' && P.L <= 3 ? 'Memoriza el tablero: solo en los primeros niveles lo ves al empezar.' : ''}</div></div>`;
+  hudMov();
+}
+function hudMov() {
+  const c = P.cfg, m = $('mmMov'); if (!m) return;
+  if (c.limite) { m.innerHTML = `${P.mov}<i>/${c.limite}</i>`; const b = $('mmMB'); if (b) { const f = Math.max(0, 1 - P.mov / c.limite); b.style.width = f * 100 + '%'; b.parentElement.classList.toggle('poco', f < 0.2); } m.parentElement.classList.toggle('poco', c.limite - P.mov <= 3); }
+  else m.textContent = P.mov;
 }
 function arrancarReloj() {
   pararReloj();
-  const t0 = Date.now(); const r0 = P.resta;
+  const t0 = Date.now(), r0 = P.resta;
   reloj = setInterval(() => {
     if (!P || P.fin) return pararReloj();
-    const el = (Date.now() - P.ini) / 1000;
     if (P.cfg.tiempo) {
       P.resta = Math.max(0, r0 - (Date.now() - t0) / 1000 + (P.extra || 0));
       const t = $('mmT'); if (t) t.textContent = mmss(P.resta);
-      const b = $('mmTB'); if (b) { b.style.width = Math.min(100, P.resta / (P.cfg.tiempo) * 100) + '%'; b.parentElement.classList.toggle('poco', P.resta < 8); }
-      if (P.resta <= 0) terminar(false);
-    } else { const t = $('mmT'); if (t) t.textContent = mmss(el); }
+      const b = $('mmTB'); if (b) { b.style.width = Math.min(100, P.resta / P.cfg.tiempo * 100) + '%'; b.parentElement.classList.toggle('poco', P.resta < 8); }
+      if (P.resta <= 0) terminar(false, 'tiempo');
+    } else { const t = $('mmT'); if (t) t.textContent = mmss((Date.now() - P.ini) / 1000); }
   }, 200);
 }
-function sumarTiempo(s) { if (!P.cfg.tiempo) return; P.extra = (P.extra || 0) + s; }
+function sumarTiempo(s) { if (P.cfg.tiempo) P.extra = (P.extra || 0) + s; }
+const cartaEl = (k) => document.querySelector(`#mmTablero .mm-carta[data-i="${k}"]`);
+function aviso(html) { const cb = $('mmCombo'); if (!cb) return; cb.innerHTML = html; cb.classList.remove('pop'); void cb.offsetWidth; cb.classList.add('pop'); }
+function contarMov(n) {
+  P.mov += n; hudMov();
+  if (P.cfg.g.has('terremoto') && Math.floor(P.mov / 10) > Math.floor((P.mov - n) / 10)) setTimeout(terremoto, 700);
+}
 function voltear(i) {
   if (!P || P.bloq || P.fin) return;
-  const el = document.querySelector(`#mmTablero .mm-carta[data-i="${i}"]`); if (!el || el.classList.contains('ab') || el.classList.contains('ok')) return;
-  if (P.abiertas.length === 2) cerrarPendientes();
-  el.classList.add('ab'); P.abiertas.push(i);
-  if (P.abiertas.length < 2) return;
-  P.mov++; $('mmMov').textContent = P.mov;
-  const [a, b] = P.abiertas.map((k) => P.mazo[k]);
-  if (a.par === b.par) {
-    P.combo++; P.mejorCombo = Math.max(P.mejorCombo, P.combo); P.hechas++; P.totalPares++;
-    const ganan = 100 + (P.combo > 1 ? (P.combo - 1) * 50 : 0); P.pts += ganan;
-    P.abiertas.forEach((k) => { const e = document.querySelector(`#mmTablero .mm-carta[data-i="${k}"]`); e.classList.add('ok'); e.disabled = true; });
-    P.abiertas = [];
-    const d = leer(); if (!d.album[a.id]) { d.album[a.id] = hoy(); P.nuevas.push(a.c); guardar(d); }
-    $('mmPar').textContent = `${P.hechas}/${P.cfg.p}`; $('mmPts').textContent = fmt(P.pts);
-    const cb = $('mmCombo'); if (P.combo > 1) { cb.innerHTML = `<b>¡Combo x${P.combo}!</b> +${ganan}`; cb.classList.remove('pop'); void cb.offsetWidth; cb.classList.add('pop'); }
-    const vivo = $('mmVivo'); if (vivo) vivo.innerHTML = `<b>${esc(a.c.n)}</b> ${esc(a.c.d)}`;
-    sumarTiempo(P.modo === 'infinito' ? 3 : 2);
-    vibrar(25);
-    if (P.hechas === P.cfg.p) { if (P.modo === 'infinito') return siguienteTablero(); setTimeout(() => terminar(true), 450); }
-  } else {
-    P.combo = 0; P.errores++;
-    tVuelta = setTimeout(cerrarPendientes, 750);
-    if (P.cfg.giro === 'mezcla' && P.errores % 4 === 0) setTimeout(mezclar, 800);
+  const el = cartaEl(i); if (!el || el.classList.contains('ab') || el.classList.contains('ok')) return;
+  if (P.pendiente) cerrarPendientes();
+  const m = P.mazo[i];
+  if (m.trampa) {
+    cerrarPendientes(); el.classList.add('ab'); P.bloq = true; P.combo = 0;
+    contarMov(2); sumarTiempo(-5); vibrar([80, 40, 80]); aviso('<b class="mal">¡Lesión!</b> −2 movimientos' + (P.cfg.tiempo ? ' · −5 s' : ''));
+    tTrampa = setTimeout(() => { el.classList.remove('ab'); if (P) { P.bloq = false; revisarLimite(); } }, 650);
+    return;
   }
+  el.classList.add('ab'); P.abiertas.push(i);
+  const prim = P.mazo[P.abiertas[0]];
+  if (m.par !== prim.par) {   // fallo
+    contarMov(1); P.combo = 0; P.errores++; P.pendiente = true;
+    tVuelta = setTimeout(cerrarPendientes, P.cfg.g.has('rapido') ? 330 : 720);
+    if (P.cfg.g.has('mezcla') && P.errores % 3 === 0) setTimeout(mezclar, 760);
+    if (!revisarLimite()) return;
+    return;
+  }
+  if (P.abiertas.length < P.cfg.grupo) return;   // va bien en un trío
+  contarMov(1);
+  P.combo++; P.mejorCombo = Math.max(P.mejorCombo, P.combo); P.hechas++; P.totalPares++;
+  const ganan = 100 * (P.cfg.grupo - 1) + (P.combo > 1 ? (P.combo - 1) * 60 : 0); P.pts += ganan;
+  P.abiertas.forEach((k) => { const e = cartaEl(k); e.classList.add('ok'); e.disabled = true; });
+  P.abiertas = [];
+  const d = leer(); if (!d.album[prim.c.id]) { d.album[prim.c.id] = hoy(); P.nuevas.push(prim.c); guardar(d); }
+  $('mmPar').textContent = `${P.hechas}/${P.cfg.p}`; $('mmPts').textContent = fmt(P.pts);
+  if (P.combo > 1) aviso(`<b>¡Combo x${P.combo}!</b> +${ganan}`);
+  const vivo = $('mmVivo'); if (vivo) vivo.innerHTML = `<b>${esc(prim.c.n)}</b> ${esc(prim.c.d)}`;
+  sumarTiempo(P.modo === 'infinito' ? 2 : 1); vibrar(25);
+  if (P.hechas === P.cfg.p) { if (P.modo === 'infinito') return siguienteTablero(); P.bloq = true; setTimeout(() => terminar(true), 450); return; }
+  revisarLimite();
+}
+// Sin movimientos: pierdes (se revisa después de cada movimiento que no terminó el tablero)
+function revisarLimite() {
+  if (!P || !P.cfg.limite || P.fin || P.hechas === P.cfg.p) return true;
+  if (P.mov >= P.cfg.limite) { P.bloq = true; setTimeout(() => terminar(false, 'movs'), 800); return false; }
+  return true;
 }
 function cerrarPendientes() {
-  clearTimeout(tVuelta); if (!P) return;
-  P.abiertas.forEach((k) => { const e = document.querySelector(`#mmTablero .mm-carta[data-i="${k}"]`); if (e && !e.classList.contains('ok')) { e.classList.remove('ab'); e.classList.add('mal'); setTimeout(() => e.classList.remove('mal'), 350); } });
+  clearTimeout(tVuelta); if (!P) return; P.pendiente = false;
+  P.abiertas.forEach((k) => { const e = cartaEl(k); if (e && !e.classList.contains('ok')) { e.classList.remove('ab'); e.classList.add('mal'); setTimeout(() => e.classList.remove('mal'), 350); } });
   P.abiertas = [];
 }
+const cerradas = () => P.mazo.map((_, i) => i).filter((i) => { const e = cartaEl(i); return e && !e.classList.contains('ok') && !e.classList.contains('ab'); });
+function reponer(ks) { ks.forEach((k) => { const e = cartaEl(k); const m = P.mazo[k]; e.querySelector('.mm-frente').innerHTML = m.trampa ? TRAMPA : caraHtml(m.c, m.txt); e.classList.remove('mz'); void e.offsetWidth; e.classList.add('mz'); }); }
 function mezclar() {
-  if (!P || P.fin) return;
-  const libres = P.mazo.map((_, i) => i).filter((i) => { const e = document.querySelector(`#mmTablero .mm-carta[data-i="${i}"]`); return e && !e.classList.contains('ok') && !e.classList.contains('ab'); });
-  if (libres.length < 4) return;
-  const [x, y] = barajar(libres).slice(0, 2);
-  [P.mazo[x], P.mazo[y]] = [P.mazo[y], P.mazo[x]];
-  [x, y].forEach((k) => { const e = document.querySelector(`#mmTablero .mm-carta[data-i="${k}"]`); e.querySelector('.mm-frente').innerHTML = caraHtml(P.mazo[k].c, P.mazo[k].txt); e.classList.remove('mz'); void e.offsetWidth; e.classList.add('mz'); });
-  const cb = $('mmCombo'); cb.innerHTML = '<b>¡Se mezclaron 2 cartas!</b>'; cb.classList.remove('pop'); void cb.offsetWidth; cb.classList.add('pop');
+  if (!P || P.fin) return; const libres = cerradas(); if (libres.length < 4) return;
+  const [x, y] = barajar(libres).slice(0, 2); [P.mazo[x], P.mazo[y]] = [P.mazo[y], P.mazo[x]]; reponer([x, y]);
+  aviso('<b>¡Se mezclaron 2 cartas!</b>');
+}
+function terremoto() {
+  if (!P || P.fin) return; const libres = cerradas(); if (libres.length < 3) return;
+  const nuevas = barajar(libres.map((k) => P.mazo[k])); libres.forEach((k, j) => { P.mazo[k] = nuevas[j]; }); reponer(libres);
+  const t = $('mmTablero'); if (t) { t.classList.remove('tiembla'); void t.offsetWidth; t.classList.add('tiembla'); }
+  vibrar([40, 30, 40, 30, 40]); aviso('<b>¡Terremoto!</b> Se revolvieron las cartas boca abajo');
 }
 function pista() {
   if (!P || P.pista || P.bloq || P.fin || P.modo === 'infinito') return;
-  P.pista = true; P.bloq = true; cerrarPendientes();
+  P.pista = true; P.bloq = true; cerrarPendientes(); contarMov(2);
   const bt = document.querySelector('[data-jg="pista"]'); if (bt) bt.disabled = true;
   const cs = [...document.querySelectorAll('#mmTablero .mm-carta:not(.ok)')]; cs.forEach((e) => e.classList.add('ab'));
-  setTimeout(() => { cs.forEach((e) => e.classList.remove('ab')); if (P) P.bloq = false; }, 1100);
+  setTimeout(() => { cs.forEach((e) => e.classList.remove('ab')); if (P) { P.bloq = false; revisarLimite(); } }, 900);
 }
 function siguienteTablero() {
-  P.bloq = true; sumarTiempo(5); P.tablero++;
-  const d = leer(); const p = Math.min(10, 6 + P.tablero - 1);
+  P.bloq = true; sumarTiempo(4); P.tablero++;
+  const d = leer(); const p = Math.min(14, 6 + (P.tablero - 1) * 2);
   setTimeout(() => {
     if (!P || P.fin) return;
+    const g = P.tablero >= 4 ? new Set(['rapido']) : new Set(); P.cfg.g = g;
     const sel = elegirCartas(p, d); guardar(d);
-    const mazo = []; sel.forEach((c, i) => { mazo.push({ id: c.id, c, txt: false, par: i }); mazo.push({ id: c.id, c, txt: false, par: i }); });
-    P.mazo = barajar(mazo); P.hechas = 0; P.cfg.p = p; P.abiertas = [];
+    P.cfg.p = p; P.mazo = armarMazo(sel, P.cfg); P.hechas = 0; P.abiertas = []; P.pendiente = false;
     const ini = P.ini, extra = P.extra; pintarJuego(); P.ini = ini; P.extra = extra;
-    const cb = $('mmCombo'); cb.innerHTML = `<b>¡Tablero ${P.tablero}!</b> +5 s`; cb.classList.add('pop');
+    aviso(`<b>¡Tablero ${P.tablero}!</b> +4 s${P.tablero === 4 ? ' · ahora se voltean más rápido' : ''}`);
     P.bloq = false;
   }, 500);
 }
-function terminar(gano) {
+function terminar(gano, motivo) {
   if (!P || P.fin) return; P.fin = true; pararReloj();
   const T = P; const seg = (Date.now() - T.ini) / 1000; const d = leer(); d.partidas++;
   let tit, sub, chips = [], btns = '';
@@ -245,25 +318,32 @@ function terminar(gano) {
     chips.push(`Récord: ${d.infinito} parejas`, `Mejor combo x${T.mejorCombo}`);
     btns = '<button class="jg-btn" data-jg="infinito">Jugar otra vez</button>';
   } else if (!gano) {
-    tit = 'Se acabó el tiempo'; sub = `Encontraste ${T.hechas} de ${T.cfg.p} parejas. ¡Inténtalo de nuevo!`;
-    btns = `<button class="jg-btn" data-jg="jugar" data-l="${T.L}">Reintentar nivel ${T.L}</button>`;
+    tit = motivo === 'movs' ? 'Sin movimientos' : 'Se acabó el tiempo';
+    sub = `Encontraste ${T.hechas} de ${T.cfg.p} ${T.cfg.trio ? 'tríos' : 'parejas'}${motivo === 'movs' ? ` con ${T.cfg.limite} movimientos` : ''}. ¡Inténtalo de nuevo!`;
+    chips.push(motivo === 'movs' ? 'Tip: abre primero cartas que no has visto y recuerda su lugar' : 'Tip: no pierdas tiempo; si no recuerdas, abre una carta nueva');
+    btns = T.modo === 'nivel' ? `<button class="jg-btn" data-jg="jugar" data-l="${T.L}">Reintentar nivel ${T.L}</button>` : '<button class="jg-btn" data-jg="diario">Reintentar reto</button>';
   } else {
-    const est = estrellasDe(T.cfg.p, T.mov, T.pista); const bonoT = T.cfg.tiempo ? Math.round(T.resta) * 10 : Math.max(0, Math.round((T.cfg.p * 6 - seg) * 5));
-    const tot = T.pts + est * 100 + bonoT;
-    sub = `${'★'.repeat(est)}${'☆'.repeat(3 - est)} · ${T.mov} movimientos · ${mmss(seg)} · ${fmt(tot)} pts`;
+    const est = estrellasDe(T.cfg, T.mov, T.pista); const bonoT = T.cfg.tiempo ? Math.round(T.resta) * 15 : 0; const bonoM = Math.max(0, T.cfg.limite - T.mov) * 40;
+    const tot = T.pts + est * 150 + bonoT + bonoM;
+    sub = `${'★'.repeat(est)}${'☆'.repeat(3 - est)} · ${T.mov} de ${T.cfg.limite} movimientos · ${mmss(seg)} · ${fmt(tot)} pts`;
+    if (est < 3) chips.push(`3★ con ${Math.ceil(T.cfg.limite * 0.72)} movimientos o menos${T.pista ? ' y sin pista' : ''}`);
     if (T.modo === 'nivel') {
-      const nuevo = !d.estrellas[T.L];
+      const nuevo = !d.estrellas[T.L], antes = estrellasMundo(d, T.cfg.w);
       d.estrellas[T.L] = Math.max(d.estrellas[T.L] || 0, est);
-      const m = d.mejor[T.L]; if (!m || T.mov < m.mov || (T.mov === m.mov && seg < m.t)) d.mejor[T.L] = { mov: T.mov, t: Math.round(seg) };
+      const m = d.mejor[T.L]; if (!m || T.mov < m.mov) d.mejor[T.L] = { mov: T.mov, t: Math.round(seg) };
       if (nuevo) { d.puntos += tot; d.nivel = Math.max(d.nivel, Math.min(NIVELES, T.L + 1)); }
-      tit = T.L === NIVELES && nuevo ? '¡Memoria de élite!' : `Nivel ${T.L} superado`;
-      if (est < 3) chips.push(`3★ con ${Math.ceil(T.cfg.p * 1.6)} movimientos o menos${T.pista ? ' y sin pista' : ''}`);
-      if (nuevo && T.L < NIVELES) { chips.push(`Desbloqueaste el nivel ${T.L + 1}`); const ni = nivelInfo(T.L + 1); if (ni.w !== T.cfg.w) chips.push(`Nuevo mundo: ${MUNDOS[ni.w].n}`); }
-      btns = (T.L < NIVELES ? `<button class="jg-btn" data-jg="jugar" data-l="${T.L + 1}">Siguiente nivel</button>` : '') + `<button class="jg-btn jg-sec" data-jg="jugar" data-l="${T.L}">Repetir</button>`;
+      tit = T.L === NIVELES && nuevo ? '¡Leyenda del memorama!' : `Nivel ${T.L} superado`;
+      const ahora = estrellasMundo(d, T.cfg.w), sig = T.L + 1;
+      if (T.L < NIVELES) {
+        const nw = Math.floor((sig - 1) / POR_MUNDO);
+        if (nw !== T.cfg.w) { if (ahora >= ESTRELLAS_MUNDO) chips.push(antes < ESTRELLAS_MUNDO || nuevo ? `¡Abriste el mundo ${nw + 1}: ${MUNDOS[nw].n}!` : `Mundo ${nw + 1}: ${MUNDOS[nw].n}`); else chips.push(`Necesitas ${ESTRELLAS_MUNDO}★ en este mundo para abrir el siguiente (llevas ${ahora})`); }
+        else if (nuevo) chips.push(`Desbloqueaste el nivel ${sig}`);
+      }
+      btns = (T.L < NIVELES && nivelAbierto(d, sig) ? `<button class="jg-btn" data-jg="jugar" data-l="${sig}">Siguiente nivel</button>` : '') + `<button class="jg-btn ${T.L < NIVELES && nivelAbierto(d, sig) ? 'jg-sec' : ''}" data-jg="jugar" data-l="${T.L}">Repetir${est < 3 ? ' por más ★' : ''}</button>`;
     } else {
       tit = '¡Reto diario completado!'; const prev = d.diario[hoy()];
       if (!prev || T.mov < prev.mov) d.diario[hoy()] = { mov: T.mov, t: Math.round(seg), est };
-      if (d.ultimoDiario !== hoy()) { const ayer = (() => { const x = new Date(hoy() + 'T12:00:00'); x.setDate(x.getDate() - 1); return x.toISOString().slice(0, 10); })(); d.racha = d.ultimoDiario === ayer ? d.racha + 1 : 1; d.ultimoDiario = hoy(); }
+      if (d.ultimoDiario !== hoy()) { const x = new Date(hoy() + 'T12:00:00'); x.setDate(x.getDate() - 1); const ayer = x.toISOString().slice(0, 10); d.racha = d.ultimoDiario === ayer ? d.racha + 1 : 1; d.ultimoDiario = hoy(); }
       const ks = Object.keys(d.diario).sort(); if (ks.length > 60) ks.slice(0, ks.length - 60).forEach((k) => delete d.diario[k]);
       chips.push(`🔥 Racha de ${d.racha} ${d.racha === 1 ? 'día' : 'días'}`, 'Mañana hay un tablero nuevo');
     }
@@ -279,7 +359,7 @@ function terminar(gano) {
 }
 function confeti() { for (let i = 0; i < 22; i++) { const g = document.createElement('i'); g.className = 'tv-confeti'; g.style.left = Math.random() * 100 + '%'; g.style.background = ['#c9a84c', '#7fd8ff', '#3fb37f', '#e5484d'][i % 4]; g.style.animationDelay = Math.random() * 0.5 + 's'; document.body.appendChild(g); setTimeout(() => g.remove(), 3200); } }
 function salir() {
-  if (P && !P.fin && P.modo !== 'infinito' && P.hechas > 0 && !confirm('¿Salir de la partida? No se guarda el avance de este tablero.')) return;
+  if (P && !P.fin && P.modo !== 'infinito' && P.mov > 0 && !confirm('¿Salir de la partida? No se guarda el avance de este tablero.')) return;
   if (P && P.modo === 'infinito' && !P.fin && P.totalPares > 0) return terminar(false);
   ir('memo');
 }
@@ -290,7 +370,8 @@ document.addEventListener('click', async (ev) => {
   const a = el.dataset.jg;
   if (a === 'carta') return voltear(Number(el.dataset.i));
   if (a === 'hub') return ir('hub');
-  if (['memo', 'album'].includes(a)) { try { await cargarCartas(); } catch (e) { toast('Sin conexión.'); return; } return ir(a); }
+  if (['memo', 'album'].includes(a)) { try { await cargarCartas(); } catch (e) { toast('Sin conexión.'); return; } if (a === 'memo' && V === 'hub') mundoVisto = null; return ir(a); }
+  if (a === 'mundo') { mundoVisto = Number(el.dataset.w); return pintar(); }
   if (a === 'jugar') return empezar('nivel', Number(el.dataset.l));
   if (a === 'diario') { const d = leer(); if (d.diario[hoy()] && !confirm('Ya hiciste el reto de hoy. ¿Quieres intentar mejorar tus movimientos?')) return; return empezar('diario'); }
   if (a === 'infinito') return empezar('infinito');
@@ -306,7 +387,8 @@ window.juegosSub = function () { return V !== 'hub'; };
 window.juegosVolver = function () { if (V === 'juego') { salir(); return true; } if (V === 'album' || V === 'fin') { ir('memo'); return true; } if (V === 'memo') { ir('hub'); return true; } return false; };
 window.memoResumen = function () { const d = leer(); return { nivel: Math.min(d.nivel, NIVELES), estrellas: Object.values(d.estrellas).reduce((a, x) => a + x, 0), album: Object.keys(d.album).length }; };
 window.memoFusion = function (R, L) {
-  R = R || {}; L = L || {}; const rec = (L.t || 0) >= (R.t || 0) ? L : R;
+  R = R || {}; L = L || {};
+  const v1 = (x) => x.v !== 2 ? Object.assign({}, x, { v: 2, nivel: 1, estrellas: {}, mejor: {}, puntos: 0 }) : x; R = v1(R); L = v1(L); const rec = (L.t || 0) >= (R.t || 0) ? L : R;
   const maxMapa = (a, b) => { const o = {}; new Set([...Object.keys(a || {}), ...Object.keys(b || {})]).forEach((k) => { o[k] = Math.max(Number((a || {})[k]) || 0, Number((b || {})[k]) || 0); }); return o; };
   const uni = (a, b) => Object.assign({}, b || {}, a || {});
   return Object.assign({}, rec, { nivel: Math.max(R.nivel || 1, L.nivel || 1), estrellas: maxMapa(R.estrellas, L.estrellas), album: uni(R.album, L.album), diario: uni(R.diario, L.diario), mejor: uni(R.mejor, L.mejor),
@@ -417,6 +499,20 @@ css.textContent = `
 #juegosApp .mm-nueva .mm-cara{width:58px;height:58px;flex:none;border-radius:12px}
 #juegosApp .mm-nueva b{color:var(--blanco,#fff);font-size:14px}
 #juegosApp .mm-nueva p{margin:.2rem 0 0;font-size:12.5px;line-height:1.45;color:var(--texto,#ddd)}
+#juegosApp .mm-tit small{display:block;font-size:10.5px;letter-spacing:.04em;color:var(--jg);margin-top:2px}
+#juegosApp .mm-hud b i{font-style:normal;font-size:12px;color:var(--gris);font-weight:600}
+#juegosApp .mm-hud .poco b{color:#e5484d}#juegosApp .mm-hud .poco{border-color:rgba(229,72,77,.5)}
+#juegosApp .mm-mbarra i{background:#7fd8ff}
+#juegosApp .mm-trampa{background:linear-gradient(160deg,#4a1416,#1c0708);border:2px solid #e5484d;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#juegosApp .mm-trampa svg{width:62%;height:62%}#juegosApp .mm-trampa b{color:#ff8a8d;font-size:clamp(8px,2.3vw,11px);font-family:var(--font-ui);font-weight:800}
+#juegosApp .mm-combo b.mal{color:#ff8a8d}
+#juegosApp .mm-tablero.tiembla{animation:mmtiembla .5s}
+@keyframes mmtiembla{20%{transform:translate(-5px,2px) rotate(-1deg)}40%{transform:translate(5px,-2px) rotate(1deg)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,0)}}
+#juegosApp .mm-mundo-cab{width:100%;background:none;border:0;padding:0;text-align:left;cursor:pointer;font-family:var(--font-ui);color:inherit}
+#juegosApp .mm-mundo-cab em{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:800;color:var(--jg);white-space:nowrap}
+#juegosApp .mm-mundo:not(.on) .mm-mundo-cab{margin-bottom:0}
+#juegosApp .mm-mundo.on{border-color:rgba(201,168,76,.35)}
+#juegosApp .mm-nvs{grid-template-columns:repeat(5,1fr)!important}
 @media (min-width:700px){#juegosApp .mm-alb{grid-template-columns:repeat(6,1fr)}}
 @media (prefers-reduced-motion:reduce){#juegosApp .mm-in{transition:none}#juegosApp *{animation:none!important}}
 `;
