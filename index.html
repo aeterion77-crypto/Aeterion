@@ -2764,26 +2764,7 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
   <div class="app-screen" id="app-screen-trivia"><div id="triviaApp"></div></div>
 
   <!-- EDUCACIÓN -->
-  <div class="app-screen" id="app-screen-educacion">
-    <h2 class="app-titulo">Educación</h2>
-    <p class="app-subtitulo">Recetas, protocolos y guías con evidencia</p>
-    <button class="app-card" onclick="abrirCalculadora('recetas')">
-      <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
-      <div class="app-card-desc">Cocina mexicana, ensaladas, postres, snacks y comidas saludables — con ingredientes y pasos.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('protocolos-avanzados', 'Protocolos Avanzados')">
-      <div class="app-card-top"><span class="app-card-titulo">Protocolos Avanzados</span><span class="app-card-meta">7 protocolos</span></div>
-      <div class="app-card-desc">Reparación intestinal, testosterona, longevidad, células madre y más.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('salud', 'Salud &amp; Biohacking')">
-      <div class="app-card-top"><span class="app-card-titulo">Salud &amp; Biohacking</span><span class="app-card-meta">6 temas</span></div>
-      <div class="app-card-desc">Grasas, sueño, microbioma, ayuno intermitente y más — con evidencia real.</div>
-    </button>
-    <button class="app-card" onclick="abrirContenidoApp('guias-educacion', 'Educación')">
-      <div class="app-card-top"><span class="app-card-titulo">Guías de educación</span><span class="app-card-meta">Guías</span></div>
-      <div class="app-card-desc">Energía diaria y otras guías con base científica, sin vender nada.</div>
-    </button>
-  </div>
+  <div class="app-screen" id="app-screen-educacion"><div id="eduApp"></div></div>
 
   <!-- CUENTA -->
   <div class="app-screen" id="app-screen-cuenta">
@@ -6281,7 +6262,7 @@ const SYNC_CLAVES = new Set([
   'mma_completados','mma2_completados','mma3_completados','mma_1rm','mma_historial_semanas',
   'dieta_sano','dieta_sii','dieta_diabetes',
   'gym_dia_h5','gym_dia_h3','gym_dia_m5','mma_semana','mma2_semana','mma3_semana',
-  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos','aet_inicio','aet_mente','aet_trivia','aet_memo'
+  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos','aet_inicio','aet_mente','aet_trivia','aet_memo','aet_edu'
 ]);
 const SYNC_KEY = 'aeterion_sync';
 let _sync = { owner: null, ver: {}, sucias: {} };
@@ -7387,6 +7368,7 @@ const RESPALDO_VALIDADORES = {
   aet_programa: v => _esObj(v), aet_perfil_agua: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
   aet_inicio: v => _esObj(v) && (v.estado === 'hecho' || v.estado === 'saltado'),
+  aet_edu: v => _esObj(v) && _esObj(v.leidos),
   aet_memo: v => _esObj(v) && Number.isInteger(v.nivel) && v.nivel >= 1 && v.nivel <= 100 && _esObj(v.estrellas) && _esObj(v.album),
   aet_trivia: v => _esObj(v) && Number.isFinite(v.puntos) && v.puntos >= 0 && Number.isInteger(v.nivel) && v.nivel >= 1 && v.nivel <= 15 && _esObj(v.estrellas),
   aet_mente: v => _esObj(v) && ['checkins', 'practicas', 'retos', 'diario', 'evals', 'fichas'].every(c => v[c] == null || _esObj(v[c])),
@@ -7753,6 +7735,7 @@ function _atrasCapas() {
   else if (id === 'mente' && window.menteSub && menteSub()) { L.push('pantalla'); L.push('mente'); }
   else if (id === 'trivia' && window.triviaSub && triviaSub()) { L.push('pantalla'); L.push('trivia'); }
   else if (id === 'juegos' && window.juegosSub && juegosSub()) { L.push('pantalla'); L.push('juegos'); }
+  else if (id === 'educacion' && window.eduSub && eduSub()) { L.push('pantalla'); L.push('educacion'); }
   else if (id === 'gym' && window.gymSub && gymSub()) { L.push('pantalla'); L.push('gym'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
@@ -7783,6 +7766,7 @@ function _atrasCerrarCapa() {
   else if (top === 'mente') menteVolver();
   else if (top === 'trivia') triviaVolver();
   else if (top === 'juegos') juegosVolver();
+  else if (top === 'educacion') eduVolver();
   else if (top === 'gym') gymVolver();
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
@@ -7833,6 +7817,7 @@ function cambiarPantallaApp(pantalla, btn) {
   if (pantalla === 'mente' && window.menteRender) menteRender();
   if (pantalla === 'trivia' && window.triviaRender) triviaRender();
   if (pantalla === 'juegos' && window.juegosRender) juegosRender();
+  if (pantalla === 'educacion' && window.eduRender) eduRender();
   if (pantalla === 'gym' && window.gymRender) gymRender();
   window.scrollTo(0, 0);
 }
@@ -10480,5 +10465,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 <script src="mente.js?v=1" defer></script>
 <script src="trivia.js?v=3" defer></script>
 <script src="juegos.js?v=3" defer></script>
+<script src="educacion.js?v=1" defer></script>
 </body>
 </html>
