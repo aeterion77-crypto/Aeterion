@@ -2753,7 +2753,6 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     </button>
   </div>
 
-  <div class="app-screen" id="app-screen-gym"><div id="gymApp"></div></div>
 
   <!-- MENTE (salud mental: módulo propio, avance separado) -->
   <div class="app-screen" id="app-screen-mente"><div id="menteApp"></div></div>
@@ -2799,14 +2798,6 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     <button class="app-card continuar" onclick="aetPerfilVer()">
       <div class="app-card-top"><span class="app-card-titulo">👤 Mi perfil</span><span class="app-card-meta" id="appPerfilMeta">Completar</span></div>
       <div class="app-card-desc">Tus datos, metas y lo que falta para dejar la app lista para ti. Puedes cambiarlo cuando quieras.</div>
-    </button>
-    <button class="app-card gym-entrada" onclick="aetGymEntrar('g-hoy')">
-      <div class="app-card-top"><span class="app-card-titulo">🏢 Aeterion Gym</span><span class="app-card-meta" id="appGymMeta">Mi gimnasio</span></div>
-      <div class="app-card-desc">Socios, vencimientos, entradas con QR, pagos y tu equipo.</div>
-    </button>
-    <button class="app-card socio-entrada" onclick="aetGymEntrar('s-mio')">
-      <div class="app-card-top"><span class="app-card-titulo">🎫 Mi gimnasio</span><span class="app-card-meta" id="appSocioMeta">Vincular</span></div>
-      <div class="app-card-desc">Tu membresía, cuándo vence y tu QR para entrar.</div>
     </button>
     <button class="app-card" onclick="recAbrir()">
       <div class="app-card-top"><span class="app-card-titulo">🔔 Recordatorios</span><span class="app-card-meta">Pocos y útiles</span></div>
@@ -7738,9 +7729,7 @@ function detectarModoApp() {
     aetRefrescar();
     renderPerfilResumenApp();
     const irParam = new URLSearchParams(location.search).get('ir');
-    // Membresía de gimnasio (?socio=CODIGO): igual, se vincula al tener sesión
-    const socioInv = (new URLSearchParams(location.search).get('socio') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 12);
-    if (socioInv) { try { localStorage.setItem('aet_socio_inv', socioInv.toUpperCase()); } catch (e) {} setTimeout(() => { if (sesionActiva && window.gymEstado) gymEstado(); }, 1300); }
+    // Aeterion Gym está en pausa: gym.js y gym-pos.js siguen en el repositorio pero la app no los carga.
     if (irParam) setTimeout(() => aetIrDestino(irParam), 700);
     if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', ev => { if (ev.data && ev.data.tipo === 'aet-ir') aetIrDestino(ev.data.ir); });
     aetAtrasIniciar();
@@ -10486,7 +10475,5 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 </script>
 <script src="mente.js?v=1" defer></script>
 <script src="trivia.js?v=1" defer></script>
-<script src="gym.js?v=4" defer></script>
-<script src="gym-pos.js?v=2" defer></script>
 </body>
 </html>
