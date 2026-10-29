@@ -2758,10 +2758,17 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
   <!-- MENTE (salud mental: módulo propio, avance separado) -->
   <div class="app-screen" id="app-screen-mente"><div id="menteApp"></div></div>
 
+  <!-- TRIVIA (juego de preguntas: módulo propio, avance separado) -->
+  <div class="app-screen" id="app-screen-trivia"><div id="triviaApp"></div></div>
+
   <!-- EDUCACIÓN -->
   <div class="app-screen" id="app-screen-educacion">
     <h2 class="app-titulo">Educación</h2>
     <p class="app-subtitulo">Recetas, protocolos y guías con evidencia</p>
+    <button class="app-card continuar tv-entrada" onclick="aetIr('trivia')">
+      <div class="app-card-top"><span class="app-card-titulo">⚡ Trivia Aeterion</span><span class="app-card-meta" id="appTriviaMeta">15 niveles</span></div>
+      <div class="app-card-desc">Pon a prueba lo que sabes de salud, nutrición, entrenamiento y fisiología. Con tiempo, rayos de energía y estrellas.</div>
+    </button>
     <button class="app-card" onclick="abrirCalculadora('recetas')">
       <div class="app-card-top"><span class="app-card-titulo">Recetas</span><span class="app-card-meta">41 recetas</span></div>
       <div class="app-card-desc">Cocina mexicana, ensaladas, postres, snacks y comidas saludables — con ingredientes y pasos.</div>
@@ -6283,7 +6290,7 @@ const SYNC_CLAVES = new Set([
   'mma_completados','mma2_completados','mma3_completados','mma_1rm','mma_historial_semanas',
   'dieta_sano','dieta_sii','dieta_diabetes',
   'gym_dia_h5','gym_dia_h3','gym_dia_m5','mma_semana','mma2_semana','mma3_semana',
-  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos','aet_inicio','aet_mente'
+  'aet_actividad','aet_log_entreno','aet_dia','aet_metas','aet_composicion','aet_programa','aet_perfil_agua','aet_habitos','aet_inicio','aet_mente','aet_trivia'
 ]);
 const SYNC_KEY = 'aeterion_sync';
 let _sync = { owner: null, ver: {}, sucias: {} };
@@ -6305,6 +6312,7 @@ function _fusionAet(k, a, b) {
   if (/^(gym_completados_|mma\d?_completados$)/.test(k)) return JSON.stringify(_unirProfundo(R, L));
   if (/^gym_perfil_/.test(k)) return JSON.stringify(((L && L.t) || 0) >= ((R && R.t) || 0) ? L : R);   // el más reciente
   if (k === 'aet_mente' && window.menteFusion) return JSON.stringify(window.menteFusion(R, L));
+  if (k === 'aet_trivia' && window.triviaFusion) return JSON.stringify(window.triviaFusion(R, L));
   if (k === 'gym_registro_series') {
     const o = {};
     new Set([...Object.keys(R || {}), ...Object.keys(L || {})]).forEach(n => {
@@ -7387,6 +7395,7 @@ const RESPALDO_VALIDADORES = {
   aet_programa: v => _esObj(v), aet_perfil_agua: v => _esObj(v), aet_actividad: v => _esObj(v), aet_log_entreno: v => Array.isArray(v), aet_dia: v => _esObj(v), aet_metas: v => _esObj(v), aet_composicion: v => Array.isArray(v),
   dieta_sano: v => _esObj(v), dieta_sii: v => _esObj(v), dieta_diabetes: v => _esObj(v),
   aet_inicio: v => _esObj(v) && (v.estado === 'hecho' || v.estado === 'saltado'),
+  aet_trivia: v => _esObj(v) && Number.isFinite(v.puntos) && v.puntos >= 0 && Number.isInteger(v.nivel) && v.nivel >= 1 && v.nivel <= 15 && _esObj(v.estrellas),
   aet_mente: v => _esObj(v) && ['checkins', 'practicas', 'retos', 'diario', 'evals', 'fichas'].every(c => v[c] == null || _esObj(v[c])),
   aet_habitos: v => _esObj(v) && Array.isArray(v.lista) && v.lista.length <= 200 && _esObj(v.reg) &&
     v.lista.every(h => _esObj(h) && /^[a-z0-9]{1,24}$/.test(h.id) && typeof h.n === 'string' && h.n.length <= 60 && typeof h.i === 'string' && h.i.length <= 8 && (h.t === 'c' || h.t === 'n') && /^\d{4}-\d{2}-\d{2}$/.test(h.creado)),
@@ -7751,6 +7760,7 @@ function _atrasCapas() {
   if (id === 'visor') { if (typeof appVisorOrigen !== 'undefined' && appVisorOrigen !== 'tienda') L.push('pantalla'); L.push('visor'); }
   else if (id === 'habitos') { if (aetHabOrigen === 'perfil') L.push('pantalla'); L.push('habitos'); }
   else if (id === 'mente' && window.menteSub && menteSub()) { L.push('pantalla'); L.push('mente'); }
+  else if (id === 'trivia' && window.triviaSub && triviaSub()) { L.push('pantalla'); L.push('trivia'); }
   else if (id === 'gym' && window.gymSub && gymSub()) { L.push('pantalla'); L.push('gym'); }
   else if (id !== 'inicio') L.push('pantalla');
   if (document.querySelector('#appSesion.abierto')) L.push('sesion');
@@ -7779,6 +7789,7 @@ function _atrasCerrarCapa() {
   else if (top === 'visor') volverDeVisorApp();
   else if (top === 'habitos') { aetIr(aetHabOrigen); window.scrollTo(0, 0); }
   else if (top === 'mente') menteVolver();
+  else if (top === 'trivia') triviaVolver();
   else if (top === 'gym') gymVolver();
   else if (top === 'pantalla') { aetIr('inicio'); window.scrollTo(0, 0); }
 }
@@ -7827,6 +7838,8 @@ function cambiarPantallaApp(pantalla, btn) {
   if (pantalla === 'perfil') { renderPerfilResumenApp(); aetRenderProgreso(); }
   if (pantalla === 'habitos') aetRenderHabitos();
   if (pantalla === 'mente' && window.menteRender) menteRender();
+  if (pantalla === 'trivia' && window.triviaRender) triviaRender();
+  if (pantalla === 'educacion' && window.triviaResumen) { const t = triviaResumen(), m = document.getElementById('appTriviaMeta'); if (m) m.textContent = t.superados ? 'Nivel ' + t.nivel + ' · ' + t.puntos.toLocaleString('es-MX') + ' pts' : '15 niveles'; }
   if (pantalla === 'gym' && window.gymRender) gymRender();
   window.scrollTo(0, 0);
 }
@@ -7985,7 +7998,7 @@ const AET = {
   idg: 0,
 };
 let aetHabOrigen = 'inicio';   // Mis hábitos se abre desde Inicio o desde Progreso
-const AET_IR = { mas: 'cuenta' };   // pantallas sin botón propio: qué botón se ilumina
+const AET_IR = { mas: 'cuenta', trivia: 'educacion' };   // pantallas sin botón propio: qué botón se ilumina
 function aetNavBtn(p) { if (p === 'habitos') p = aetHabOrigen; return document.querySelector('.app-nav-btn[data-p="' + (AET_IR[p] || p) + '"]'); }
 function aetIr(p) { if (p === 'mas') p = 'cuenta'; cambiarPantallaApp(p, aetNavBtn(p)); }
 function aetToast(m) {
@@ -8837,7 +8850,7 @@ function aetIrDestino(d) {
   if (d === 'resumen') { aetResumen(habDow(AET.hoy()) === 6 ? 0 : 1); return; }
   if (d === 'ayuda') { aetIr('cuenta'); aetAyuda(); return; }
   if (d === 'premium') { aetIr('cuenta'); setTimeout(() => abrirCuenta(), 300); return; }
-  if (['inicio', 'entrenar', 'nutricion', 'mente', 'educacion', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
+  if (['inicio', 'entrenar', 'nutricion', 'mente', 'educacion', 'trivia', 'mas', 'perfil', 'cuenta', 'habitos'].includes(d)) aetIr(d === 'mas' ? 'cuenta' : d);
 }
 
 /* ============================================================
@@ -10472,6 +10485,7 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 // El Service Worker ya se registra arriba en el <head>, lo antes posible.
 </script>
 <script src="mente.js?v=1" defer></script>
+<script src="trivia.js?v=1" defer></script>
 <script src="gym.js?v=4" defer></script>
 <script src="gym-pos.js?v=2" defer></script>
 </body>
