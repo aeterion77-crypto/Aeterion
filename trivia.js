@@ -174,6 +174,7 @@ function fin(paso) {
     chips.push(`Recuperas 1 rayo cada 3 horas (el siguiente en ${durTxt(faltaRayo(d))})`);
   }
   guardar(d);
+  try { if (window.juegosReportar) juegosReportar(); } catch (e) {}
   try { if (typeof aetEvento === 'function') aetEvento(paso ? 'trivia_nivel' : 'trivia_sin_rayos'); } catch (e) {}
   const puede = !paso && premium() && d.recargaPrem !== hoy();
   raiz().innerHTML = `<div class="tv-fin ${paso ? 'ok' : 'no'}"><div class="tv-fin-cab"><div><h2>${tit}</h2><p>${sub}</p></div><div class="tv-rayos">${rayosHtml(d.rayos)}</div></div>

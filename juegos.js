@@ -101,6 +101,7 @@ function pintar() {
   if (V === 'hub') r.innerHTML = hub();
   else if (V === 'memo') r.innerHTML = memoMenu();
   else if (V === 'album') r.innerHTML = album();
+  else if (V === 'ranking') { r.innerHTML = rankingHtml(); cargarRanking(); }
 }
 
 /* ---------------- HUB ---------------- */
@@ -115,6 +116,8 @@ function hub() {
       <div class="jg-chips"><em>Nivel ${Math.min(d.nivel, NIVELES)}</em><em>★ ${est}/${NIVELES * 3}</em><em>Álbum ${Object.keys(d.album).length}</em></div></div><i>›</i></button>
     <button class="jg-tarjeta jg-diario ${diarioHecho ? 'hecho' : ''}" data-jg="diario"><div class="jg-ico">📅</div><div class="jg-txt"><b>Reto diario</b><span>${diarioHecho ? `Hecho hoy en ${d.diario[hoy()].mov} movimientos · vuelve mañana` : 'El mismo tablero para todos, una vez al día'}</span>
       <div class="jg-chips"><em>🔥 Racha ${d.racha} ${d.racha === 1 ? 'día' : 'días'}</em></div></div><i>›</i></button>
+    <button class="jg-tarjeta jg-rank" data-jg="ranking"><div class="jg-ico">🏆</div><div class="jg-txt"><b>Ranking</b><span>Compite con otros usuarios de Aeterion en Trivia y Memorama</span>
+      <div class="jg-chips"><em>Trivia</em><em>Memorama</em><em>Contrarreloj</em><em>Reto de hoy</em></div></div><i>›</i></button>
     <p class="jg-nota">Más juegos próximamente.</p>`;
 }
 
@@ -349,7 +352,7 @@ function terminar(gano, motivo) {
     }
     if (T.mejorCombo > 1) chips.push(`Mejor combo x${T.mejorCombo}`);
   }
-  guardar(d);
+  guardar(d); window.juegosReportar();
   try { if (typeof aetEvento === 'function') aetEvento('memo_' + T.modo + (gano ? '_ok' : '_fin')); } catch (e) {}
   const nuevas = T.nuevas.length ? `<div class="mm-nuevas"><b>${T.nuevas.length === 1 ? 'Nueva carta en tu álbum' : T.nuevas.length + ' cartas nuevas en tu álbum'}</b>${T.nuevas.map((c) => `<div class="mm-nueva">${caraHtml(c)}<div><b>${esc(c.n)}</b><p>${esc(c.d)}</p></div></div>`).join('')}</div>` : '';
   raiz().innerHTML = `<div class="mm-fin ${gano || T.modo === 'infinito' ? 'ok' : 'no'}"><h2>${tit}</h2><p>${sub}</p><div class="mm-chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</div>
@@ -364,12 +367,65 @@ function salir() {
   ir('memo');
 }
 
+
+/* ---------------- RANKING (en la nube) ---------------- */
+const conSesion = () => { try { return typeof sesionActiva !== 'undefined' && sesionActiva && typeof _rpc === 'function'; } catch (e) { return false; } };
+let _tRep = 0;
+// Sube tus mejores marcas (Trivia + Memorama). Se llama al terminar partidas y al abrir el ranking.
+window.juegosReportar = function (ya) {
+  clearTimeout(_tRep);
+  const enviar = async () => {
+    if (!conSesion()) return;
+    const m = leer(); let t = {}; try { t = JSON.parse(localStorage.getItem('aet_trivia')) || {}; } catch (e) {}
+    const dd = m.diario[hoy()];
+    const p = { trivia_puntos: Math.round(t.puntos || 0), trivia_nivel: Math.min(15, t.nivel || 1), memo_estrellas: Object.values(m.estrellas).reduce((a, x) => a + x, 0), memo_nivel: Math.min(NIVELES, m.nivel || 1),
+      memo_infinito: m.infinito || 0, diario_fecha: dd ? hoy() : null, diario_mov: dd ? dd.mov : null, diario_seg: dd ? dd.t : null };
+    try { await _rpc('juegos_reportar', { p }); } catch (e) {}
+  };
+  if (ya) return enviar(); _tRep = setTimeout(enviar, 1200);
+};
+const TABLAS = [['trivia', 'Trivia', 'pts'], ['memo', 'Memorama', '★'], ['infinito', 'Contrarreloj', 'parejas'], ['diario', 'Reto de hoy', 'mov']];
+let tablaR = 'trivia', RK = null;
+function rankingHtml() {
+  let h = `<button class="app-visor-volver" data-jg="hub">← Volver a Juegos</button><h2 class="app-titulo">Ranking</h2><p class="app-subtitulo">Los mejores jugadores de Aeterion</p>`;
+  if (!conSesion()) return h + `<div class="rk-vacio"><b>Inicia sesión para ver el ranking</b><p>Tus marcas se guardan en tu cuenta y compites con el nombre que pusiste en la app.</p><button class="jg-btn" onclick="abrirCuenta()">Entrar o crear cuenta</button></div>`;
+  h += `<div class="rk-tabs">${TABLAS.map(([k, n]) => `<button class="${k === tablaR ? 'on' : ''}" data-jg="rk-tabla" data-t="${k}">${n}</button>`).join('')}</div><div id="rkCuerpo"><div class="rk-cargando">Cargando…</div></div>`;
+  return h;
+}
+const valorTxt = (t, x) => t === 'trivia' ? fmt(x.valor) + ' pts' : t === 'memo' ? `${x.valor}★` : t === 'infinito' ? `${x.valor} parejas` : `${x.valor} mov`;
+const extraTxt = (t, x) => x.extra == null ? '' : t === 'trivia' ? `nivel ${x.extra}` : t === 'memo' ? `nivel ${x.extra}` : t === 'diario' ? mmss(x.extra) : '';
+async function cargarRanking() {
+  if (!conSesion()) return;
+  await window.juegosReportar(true);
+  const t = tablaR; let r;
+  try { r = await _rpc('juegos_ranking', { p_tabla: t, p_limite: 50 }); } catch (e) { r = { ok: false }; }
+  const c = $('rkCuerpo'); if (!c || t !== tablaR || V !== 'ranking') return;
+  if (!r.ok) { c.innerHTML = `<div class="rk-vacio"><b>No se pudo cargar</b><p>${r.red ? 'Revisa tu conexión.' : 'Inténtalo de nuevo en un momento.'}</p><button class="jg-btn jg-sec" data-jg="rk-tabla" data-t="${t}">Reintentar</button></div>`; return; }
+  RK = r.data; const yo = RK.yo || {};
+  const medalla = (p) => p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : p;
+  let h = '';
+  h += `<div class="rk-yo"><div><small>Tú · ${esc(yo.nombre || '')}</small><b>${yo.valor != null ? valorTxt(t, yo) : t === 'diario' ? 'Aún no juegas el reto de hoy' : 'Sin marca todavía'}</b><span>${!yo.visible ? 'Estás oculto del ranking' : RK.mi_pos ? `Lugar #${RK.mi_pos} de ${RK.total}` : RK.total ? `${RK.total} ${RK.total === 1 ? 'jugador' : 'jugadores'}` : ''}</span></div>${RK.mi_pos && yo.visible ? `<em>#${RK.mi_pos}</em>` : ''}</div>`;
+  h += RK.lista.length ? `<ol class="rk-lista">${RK.lista.map((x) => `<li class="${x.yo ? 'yo' : ''} ${x.pos <= 3 ? 'top' : ''}"><span class="rk-pos">${medalla(x.pos)}</span><span class="rk-av">${esc((x.nombre || '?').slice(0, 1).toUpperCase())}</span><div><b>${esc(x.nombre)}${x.yo ? ' (tú)' : ''}</b><small>${esc(extraTxt(t, x))}</small></div><strong>${valorTxt(t, x)}</strong></li>`).join('')}</ol>`
+    : `<div class="rk-vacio"><b>${t === 'diario' ? 'Nadie ha completado el reto de hoy' : 'Todavía no hay marcas'}</b><p>¡Sé el primero!</p></div>`;
+  h += `<label class="rk-switch"><input type="checkbox" id="rkVisible" ${yo.visible ? 'checked' : ''}><span class="rk-sw"></span><div><b>Aparecer en el ranking</b><small>Apareces como «${esc(yo.nombre || '')}». Cambia tu nombre en Cuenta › Mi perfil.</small></div></label>`;
+  if (yo.oculto_admin) h += '<p class="jg-nota">Tu perfil fue ocultado del ranking por el equipo de Aeterion. Escríbenos en Ayuda si crees que es un error.</p>';
+  c.innerHTML = h;
+}
+document.addEventListener('change', async (e) => {
+  if (!e.target || e.target.id !== 'rkVisible') return;
+  const v = e.target.checked; e.target.disabled = true;
+  try { const r = await _rpc('juegos_visible', { p_visible: v }); if (!r.ok) throw 0; toast(v ? 'Ahora apareces en el ranking' : 'Ya no apareces en el ranking'); } catch (x) { e.target.checked = !v; toast('No se pudo cambiar. Revisa tu conexión.'); }
+  e.target.disabled = false; cargarRanking();
+});
+
 /* ---------------- Eventos ---------------- */
 document.addEventListener('click', async (ev) => {
   const el = ev.target.closest('[data-jg]'); if (!el || !raiz() || !raiz().contains(el) || el.disabled) return;
   const a = el.dataset.jg;
   if (a === 'carta') return voltear(Number(el.dataset.i));
   if (a === 'hub') return ir('hub');
+  if (a === 'ranking') return ir('ranking');
+  if (a === 'rk-tabla') { tablaR = el.dataset.t; return pintar(); }
   if (['memo', 'album'].includes(a)) { try { await cargarCartas(); } catch (e) { toast('Sin conexión.'); return; } if (a === 'memo' && V === 'hub') mundoVisto = null; return ir(a); }
   if (a === 'mundo') { mundoVisto = Number(el.dataset.w); return pintar(); }
   if (a === 'jugar') return empezar('nivel', Number(el.dataset.l));
@@ -382,9 +438,9 @@ document.addEventListener('click', async (ev) => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !P.cfg.tiempo) { /* sin tiempo límite: el cronómetro sigue, sin castigo */ } });
 
 /* ---------------- API para la app ---------------- */
-window.juegosRender = function () { cargarCartas().catch(() => {}); if (!P) { if (V !== 'memo' && V !== 'album') V = 'hub'; pintar(); } };
+window.juegosRender = function () { cargarCartas().catch(() => {}); if (!P) { if (V !== 'memo' && V !== 'album' && V !== 'ranking') V = 'hub'; pintar(); } };
 window.juegosSub = function () { return V !== 'hub'; };
-window.juegosVolver = function () { if (V === 'juego') { salir(); return true; } if (V === 'album' || V === 'fin') { ir('memo'); return true; } if (V === 'memo') { ir('hub'); return true; } return false; };
+window.juegosVolver = function () { if (V === 'juego') { salir(); return true; } if (V === 'album' || V === 'fin') { ir('memo'); return true; } if (V === 'memo' || V === 'ranking') { ir('hub'); return true; } return false; };
 window.memoResumen = function () { const d = leer(); return { nivel: Math.min(d.nivel, NIVELES), estrellas: Object.values(d.estrellas).reduce((a, x) => a + x, 0), album: Object.keys(d.album).length }; };
 window.memoFusion = function (R, L) {
   R = R || {}; L = L || {};
@@ -513,6 +569,35 @@ css.textContent = `
 #juegosApp .mm-mundo:not(.on) .mm-mundo-cab{margin-bottom:0}
 #juegosApp .mm-mundo.on{border-color:rgba(201,168,76,.35)}
 #juegosApp .mm-nvs{grid-template-columns:repeat(5,1fr)!important}
+#juegosApp .jg-rank{--k:#e9b949;background:linear-gradient(135deg,rgba(233,185,73,.18),rgba(20,20,20,1) 60%)}
+#juegosApp .rk-tabs{display:flex;gap:.3rem;overflow-x:auto;scrollbar-width:none;margin-bottom:.9rem}
+#juegosApp .rk-tabs button{flex:none;border:1px solid rgba(255,255,255,.12);background:var(--negro2,#141414);color:var(--texto,#ddd);border-radius:20px;padding:.5rem .9rem;font-family:var(--font-ui);font-weight:700;font-size:13px;cursor:pointer}
+#juegosApp .rk-tabs button.on{background:var(--jg);border-color:var(--jg);color:#16120a}
+#juegosApp .rk-cargando{text-align:center;color:var(--gris);padding:2rem 0}
+#juegosApp .rk-yo{display:flex;align-items:center;gap:.8rem;background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.04));border:1px solid rgba(201,168,76,.45);border-radius:16px;padding:.9rem 1rem;margin-bottom:.8rem}
+#juegosApp .rk-yo > div{flex:1;min-width:0}#juegosApp .rk-yo small{display:block;font-size:11.5px;color:var(--gris)}
+#juegosApp .rk-yo b{display:block;color:var(--blanco,#fff);font-size:18px;margin:.1rem 0}#juegosApp .rk-yo span{font-size:12.5px;color:var(--jg)}
+#juegosApp .rk-yo em{font-style:normal;font-size:26px;font-weight:900;color:var(--jg)}
+#juegosApp .rk-lista{list-style:none;margin:0 0 1rem;padding:0;background:var(--negro2,#141414);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden}
+#juegosApp .rk-lista li{display:flex;align-items:center;gap:.65rem;padding:.65rem .85rem;border-top:1px solid rgba(255,255,255,.06)}
+#juegosApp .rk-lista li:first-child{border-top:0}
+#juegosApp .rk-lista li.yo{background:rgba(201,168,76,.12)}
+#juegosApp .rk-pos{width:26px;text-align:center;font-weight:800;color:var(--gris);font-size:14px;flex:none}
+#juegosApp .rk-lista li.top .rk-pos{font-size:20px}
+#juegosApp .rk-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(201,168,76,.18);color:var(--jg);font-weight:800;flex:none}
+#juegosApp .rk-lista li > div{flex:1;min-width:0}
+#juegosApp .rk-lista b{display:block;color:var(--blanco,#fff);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#juegosApp .rk-lista small{font-size:11.5px;color:var(--gris)}
+#juegosApp .rk-lista strong{color:var(--jg);font-size:14px;white-space:nowrap}
+#juegosApp .rk-vacio{text-align:center;background:var(--negro2,#141414);border-radius:16px;padding:1.4rem 1rem;margin-bottom:1rem}
+#juegosApp .rk-vacio b{display:block;color:var(--blanco,#fff);font-size:15px}#juegosApp .rk-vacio p{color:var(--gris);font-size:13px;margin:.4rem 0 .9rem}
+#juegosApp .rk-switch{display:flex;align-items:center;gap:.8rem;background:var(--negro2,#141414);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:.85rem 1rem;cursor:pointer}
+#juegosApp .rk-switch input{position:absolute;opacity:0;pointer-events:none}
+#juegosApp .rk-sw{flex:none;width:46px;height:28px;border-radius:20px;background:#333;position:relative;transition:background .2s}
+#juegosApp .rk-sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+#juegosApp .rk-switch input:checked + .rk-sw{background:#3fb37f}#juegosApp .rk-switch input:checked + .rk-sw::after{transform:translateX(18px)}
+#juegosApp .rk-switch input:focus-visible + .rk-sw{outline:2px solid var(--jg);outline-offset:2px}
+#juegosApp .rk-switch b{display:block;color:var(--blanco,#fff);font-size:14px}#juegosApp .rk-switch small{display:block;font-size:12px;color:var(--gris);line-height:1.35;margin-top:.15rem}
 @media (min-width:700px){#juegosApp .mm-alb{grid-template-columns:repeat(6,1fr)}}
 @media (prefers-reduced-motion:reduce){#juegosApp .mm-in{transition:none}#juegosApp *{animation:none!important}}
 `;

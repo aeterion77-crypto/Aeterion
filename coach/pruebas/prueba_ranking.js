@@ -1,0 +1,46 @@
+// Pruebas de la migración 010 (ranking de Juegos) en Postgres local.
+const { PGlite } = require('@electric-sql/pglite'); const fs = require('fs'); const path = require('path');
+let ok = 0, mal = 0; const chk = (n, c, x) => { if (c) ok++; else { mal++; console.log('FALLA:', n, x !== undefined ? JSON.stringify(x) : ''); } };
+(async () => {
+  const db = new PGlite(); const L = (f) => db.exec(fs.readFileSync(f, 'utf8'));
+  await L(path.join(__dirname, 'stub_supabase.sql')); await L(path.join(__dirname, '..', 'sql', '010_juegos_ranking.sql'));
+  const U = ['a1', 'a2', 'a3', 'a4', 'a5'].map((x, i) => '00000000-0000-0000-0000-0000000000' + x);
+  const nombres = ['Dylan', 'Ana López', null, 'correo@x.mx', 'Beto'];
+  const su = async (q, p) => { await db.exec('reset role'); return db.query(q, p); };
+  for (let i = 0; i < U.length; i++) { await su('insert into auth.users values ($1,$2)', [U[i], 'u' + i + '@x.mx']); await su('insert into perfiles (id,email,nombre) values ($1,$2,$3)', [U[i], 'u' + i + '@x.mx', nombres[i]]); }
+  await su('insert into admins values ($1)', [U[0]]);
+  const rpc = async (uid, fn, args = []) => { await db.exec('reset role'); await db.query(`select set_config('request.jwt.claims',$1,false)`, [JSON.stringify({ sub: uid })]); await db.exec('set role authenticated');
+    try { return (await db.query(`select public.${fn}(${args.map((_, i) => '$' + (i + 1)).join(',')}) r`, args.map(a => a !== null && typeof a === 'object' ? JSON.stringify(a) : a))).rows[0].r; } finally { await db.exec('reset role'); } };
+  const err = async (...a) => { try { await rpc(...a); return null; } catch (e) { return e.message; } };
+  const hoy = (await su(`select public._juegos_hoy()::text d`)).rows[0].d;
+  chk('anónimo no puede', (await err(null, 'juegos_ranking', ['trivia', 50])) !== null);
+  await rpc(U[0], 'juegos_reportar', [{ trivia_puntos: 5000, trivia_nivel: 4, memo_estrellas: 20, memo_nivel: 9, memo_infinito: 30, diario_fecha: hoy, diario_mov: 22, diario_seg: 90 }]);
+  await rpc(U[1], 'juegos_reportar', [{ trivia_puntos: 9000, trivia_nivel: 6, memo_estrellas: 12, memo_nivel: 6, diario_fecha: hoy, diario_mov: 19, diario_seg: 120 }]);
+  await rpc(U[2], 'juegos_reportar', [{ trivia_puntos: 7000, memo_estrellas: 20, memo_nivel: 11, diario_fecha: hoy, diario_mov: 19, diario_seg: 80 }]);
+  await rpc(U[3], 'juegos_reportar', [{ trivia_puntos: 999999, memo_estrellas: 999, diario_fecha: '2020-01-01', diario_mov: 10 }]);
+  let R = await rpc(U[0], 'juegos_ranking', ['trivia', 50]);
+  chk('trivia ordenado por puntos', R.lista.map((x) => x.valor).join() === '81000,9000,7000,5000', R.lista);
+  chk('topes contra marcas imposibles', R.lista[0].valor === 81000);
+  chk('nombre de la app y sin correos', R.lista[1].nombre === 'Ana López' && R.lista[0].nombre === 'Atleta Aeterion' && R.lista[2].nombre === 'Atleta Aeterion', R.lista.map((x) => x.nombre));
+  chk('mi posición', R.mi_pos === 4 && R.yo.valor === 5000 && R.lista[3].yo === true);
+  R = await rpc(U[0], 'juegos_ranking', ['memo', 50]);
+  chk('memorama: estrellas y luego nivel', R.lista[0].valor === 300 && R.lista[1].valor === 20 && R.lista[1].extra === 11 && R.lista[2].extra === 9, R.lista);
+  R = await rpc(U[0], 'juegos_ranking', ['diario', 50]);
+  chk('reto diario: menos movimientos y luego tiempo; fechas viejas no cuentan', R.lista.length === 3 && R.lista[0].extra === 80 && R.lista[1].extra === 120 && R.lista[2].valor === 22, R.lista);
+  await rpc(U[0], 'juegos_reportar', [{ trivia_puntos: 100, diario_fecha: hoy, diario_mov: 30, diario_seg: 20 }]);
+  R = await rpc(U[0], 'juegos_ranking', ['trivia', 50]);
+  chk('las marcas no bajan', R.yo.valor === 5000);
+  chk('el reto diario guarda el mejor del día', (await rpc(U[0], 'juegos_ranking', ['diario', 50])).yo.valor === 22);
+  await rpc(U[1], 'juegos_visible', [false]);
+  R = await rpc(U[1], 'juegos_ranking', ['trivia', 50]);
+  chk('oculto: no aparece pero ve su marca', !R.lista.some((x) => x.nombre === 'Ana López') && R.yo.visible === false && R.yo.valor === 9000 && R.mi_pos === null, R);
+  await rpc(U[1], 'juegos_visible', [true]);
+  chk('vuelve a aparecer', (await rpc(U[1], 'juegos_ranking', ['trivia', 50])).mi_pos === 2);
+  chk('solo admin oculta', (await err(U[1], 'admin_juegos_ocultar', [U[3], true])) === 'sin_permiso');
+  await rpc(U[0], 'admin_juegos_ocultar', [U[3], true]);
+  R = await rpc(U[0], 'juegos_ranking', ['trivia', 50]);
+  chk('admin oculta marcas imposibles', R.lista[0].valor === 9000 && R.total === 3);
+  chk('tabla inválida', (await err(U[0], 'juegos_ranking', ['pelea', 50])) === 'tipo_invalido');
+  chk('sin rpc: tabla cerrada', /permission denied/.test(await (async () => { await db.exec('set role authenticated'); try { await db.query('select * from juegos_puntajes'); return ''; } catch (x) { return x.message; } finally { await db.exec('reset role'); } })()));
+  console.log(`${ok} bien, ${mal} fallas`); process.exit(mal ? 1 : 0);
+})().catch(e => { console.error('ERROR', e.message, e.where || ''); process.exit(2); });
