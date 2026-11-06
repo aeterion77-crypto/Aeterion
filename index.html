@@ -6715,7 +6715,7 @@ document.addEventListener('DOMContentLoaded', () => {
    Zona 1: CDMX y área metropolitana (Estado de México cercano)
    Zona 2: Ciudades principales a 1 vuelo (Guadalajara, Monterrey, Puebla, etc.)
    Zona 3: Sur, sureste y zonas remotas
-   Envío gratis: subtotal >= $1,500
+   Sin envío gratis: el envío siempre se cobra según el CP
 ============================================================ */
 const ZONAS_ENVIO = {
   // Zona 1 — CDMX y Área Metropolitana
@@ -6933,7 +6933,7 @@ function abrirCheckout() {
   ).join('');
   resumenHTML += `<div class="co-fila total"><span>Subtotal</span><span>$${subtotal.toLocaleString('es-MX')} MXN</span></div>`;
   if (cuponAplicado.codigo && cuponAplicado.descuento > 0) resumenHTML += `<div class="co-fila" style="color:#2ecc71;"><span>Cupón ${cuponAplicado.codigo}</span><span>−$${cuponAplicado.descuento.toLocaleString('es-MX')} MXN</span></div>`;
-  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal, con la paquetería más económica (gratis desde $1,500)</span></div>`;
+  resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal, con la paquetería más económica</span></div>`;
 
   document.getElementById('checkout-resumen').innerHTML = resumenHTML;
   document.getElementById('modal-checkout').classList.add('visible');
@@ -6957,7 +6957,7 @@ function estimarEnvio() {
       const d = await r.json();
       if (seq !== _estSeq) return;
       if (!d.mejor) { el.textContent = 'Calcularemos tu envío al pagar.'; return; }
-      const gratis = (calcularSubtotal() - (cuponAplicado.codigo ? cuponAplicado.descuento : 0)) >= 1500;
+      const gratis = false; // ya no hay envío gratis
       const dias = d.mejor.dias ? ' · ' + d.mejor.dias + (d.mejor.dias === 1 ? ' día' : ' días') + ' hábiles aprox.' : '';
       el.textContent = gratis ? 'Envío GRATIS con ' + d.mejor.paqueteria + dias : 'Envío: $' + d.mejor.precio + ' MXN con ' + d.mejor.paqueteria + dias;
     } catch (e) { if (seq === _estSeq) el.textContent = 'Calcularemos tu envío al pagar.'; }
@@ -10375,7 +10375,7 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
   <div class="carrito-footer" id="carrito-footer" style="display:none;">
 
     <div style="padding:.7rem .8rem; background:rgba(201,168,76,.07); border-radius:4px; border-left:2px solid var(--oro);">
-        <p style="font-size:11px; color:var(--gris); margin:0; line-height:1.5;">📦 El envío se calcula según tu código postal. Gratis en compras desde $1,500.</p>
+        <p style="font-size:11px; color:var(--gris); margin:0; line-height:1.5;">📦 El envío se calcula según tu código postal.</p>
       </div>
 
     <!-- Cupón -->
@@ -10478,6 +10478,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 <script src="trivia.js?v=3" defer></script>
 <script src="juegos.js?v=3" defer></script>
 <script src="educacion.js?v=2" defer></script>
-<script src="web.js?v=2" defer></script>
+<script src="web.js?v=3" defer></script>
 </body>
 </html>

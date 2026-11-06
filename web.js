@@ -90,7 +90,7 @@ function cabeceraPro() {
   const logo = nav.querySelector('.nav-logo'), ul = nav.querySelector('.nav-links'), ham = nav.querySelector('.hamburger');
   const fila = document.createElement('div'); fila.className = 'wb-h1';
   const anuncio = document.createElement('div'); anuncio.className = 'wb-anuncio';
-  anuncio.innerHTML = `<span>${I(IC.envio, 16)} Envío gratis en pedidos desde $1,500</span><span class="wb-an-sep wb-an-2">·</span><span class="wb-an-2">Envíos a todo México</span><span class="wb-an-sep wb-an-2">·</span><span class="wb-an-2">Productos analizados en laboratorio</span>`;
+  anuncio.innerHTML = `<span>${I(IC.envio, 16)} Envíos a todo México</span><span class="wb-an-sep wb-an-2">·</span><span class="wb-an-2">Pago seguro con tarjeta</span><span class="wb-an-sep wb-an-2">·</span><span class="wb-an-2">Productos analizados en laboratorio</span>`;
   const buscar = document.createElement('div'); buscar.className = 'wb-buscar';
   buscar.innerHTML = `<span class="wb-b-ico">${I(IC.buscar, 18)}</span><input id="wbBuscar" type="search" placeholder="Buscar productos, temas, recetas…" autocomplete="off" aria-label="Buscar en Aeterion"><div class="wb-b-res" id="wbBuscarRes" hidden></div>`;
   const acc = document.createElement('div'); acc.className = 'wb-acc';
@@ -163,7 +163,7 @@ function portadaPro() {
   }
   const ini = $('webInicio'); if (!ini) return;
   const confianza = [
-    [IC.envio, 'Envío gratis', 'En pedidos desde $1,500 a todo México'],
+    [IC.envio, 'Envíos a todo México', 'Costo según tu código postal'],
     [IC.pago, 'Pago seguro', 'Tarjeta procesada por Stripe'],
     [IC.lab, 'Laboratorio independiente', 'Analizados por CiDi (NOM, FEUM, USP43)'],
     [IC.ciencia, 'Basado en evidencia', 'Solo ingredientes con respaldo científico'],
