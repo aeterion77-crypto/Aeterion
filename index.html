@@ -806,6 +806,11 @@
 
     .app-screen { display: none; flex: 1; padding: 1.6rem 1.4rem calc(6.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
     .app-screen.activo { display: block; }
+    .mma-aviso { display:block; background:rgba(232,80,74,.08); border:1px solid rgba(232,80,74,.35); border-radius:12px; padding:.75rem .9rem; margin:0 0 .8rem; font-family:var(--font-ui); }
+    .mma-aviso b { display:block; color:var(--blanco); font-size:13.5px; margin-bottom:.2rem; }
+    .mma-aviso span { display:block; color:var(--texto); font-size:12.5px; line-height:1.45; }
+    .app-card.mma-prox { opacity:.75; cursor:default; border-style:dashed; }
+    .mma-prox-chip { color:var(--oro2) !important; border:1px solid rgba(201,168,76,.45); border-radius:20px; padding:.1rem .55rem; }
     .app-titulo { font-family: var(--font-display); font-size: 1.6rem; color: var(--blanco); margin-bottom: .2rem; }
     .app-subtitulo { font-family: var(--font-ui); font-size: 12px; color: var(--gris); margin-bottom: 1.6rem; }
 
@@ -2696,6 +2701,7 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
     </button>
 
     <div class="app-seccion-titulo">Programas MMA — ver detalle y semana</div>
+    <div class="mma-aviso"><b>🥊 Para peleadores enfocados con academia</b><span>Combina gimnasio con trabajo de academia: tapete, saco, compañero y técnica de combate. Si solo entrenas en gimnasio, usa un programa GYM.</span></div>
     <button class="app-card" onclick="aetSetPrograma('mma1');window.scrollTo(0,0)">
       <div class="app-card-top"><span class="app-card-titulo">Nivel 1 — Armadura Estructural</span><span class="app-card-meta">Meses 1–4</span></div>
       <div class="app-card-desc">16 semanas resueltas automáticamente. Bompa/Issurin + Colquhoun et al. 2017.</div>
@@ -2708,6 +2714,10 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
       <div class="app-card-top"><span class="app-card-titulo">Nivel 3 — Fight Ready / Élite</span><span class="app-card-meta">Meses 9–12</span></div>
       <div class="app-card-desc">6 días por semana: isométricos post-fatiga, Complex AETERION y simulación de combate. Issurin 2008.</div>
     </button>
+    <div class="app-card mma-prox" aria-disabled="true">
+      <div class="app-card-top"><span class="app-card-titulo">Preparación física para peleadores</span><span class="app-card-meta mma-prox-chip">Próximamente</span></div>
+      <div class="app-card-desc">Solo en gimnasio: fuerza, potencia, acondicionamiento, cuello y agarre para quien practica un deporte de combate.</div>
+    </div>
 
     <div class="app-seccion-titulo">Referencia</div>
     <button class="app-card" onclick="abrirCalculadora('ciencia')">
@@ -3819,6 +3829,7 @@ body.gym-on .gym-entrada,body.socio-on .socio-entrada{display:block!important}
         <div class="guia-icono-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l4-4 4 4M12 8v8"/></svg></div>
         <h4>Programa MMA — Élite</h4>
         <p>Sistema integral de 12 meses · 3 niveles. Fuerza máxima, explosiva, pliometría, isométricos de élite y periodización por bloques.</p>
+        <p style="font-size:12.5px;color:var(--oro2);margin-top:.4rem;">Para peleadores enfocados que entrenan en academia (tapete, saco, compañero). Próximamente: preparación física para peleadores solo en gimnasio.</p>
         <div class="guia-meta" style="margin-bottom:.8rem;"><span>🥊 MMA</span><span>🧮 Niveles 1, 2 y 3</span></div>
         <button onclick="abrirCalculadora('mma1')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4M9 3h10a2 2 0 0 1 2 2v10M9 3v6h6"/></svg> Abrir Nivel 1</button>
         <button onclick="abrirCalculadora('mma2')" class="btn" style="font-size:10px; padding:.5rem 1rem; width:100%; justify-content:center; margin-top:.5rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4M9 3h10a2 2 0 0 1 2 2v10M9 3v6h6"/></svg> Abrir Nivel 2</button>
@@ -9966,7 +9977,8 @@ function aetSesCerrarEl() {
 
 /* ---------- Entrenar: tarjeta "Hoy" ---------- */
 function aetElegirPrograma() {
-  aetSheet('Elige tu programa', `<div class="aet-ejs">${Object.keys(AET_PROG_NOM).map(k => `<button class="aet-ej" onclick="aetSetPrograma('${k}')"><b>${AET_PROG_NOM[k]}</b><span>${AET_PROGRAMAS[k].dias} días / sem</span></button>`).join('')}</div>
+  aetSheet('Elige tu programa', `<div class="aet-ejs">${Object.keys(AET_PROG_NOM).map(k => `<button class="aet-ej" onclick="aetSetPrograma('${k}')"><b>${AET_PROG_NOM[k]}</b><span>${AET_PROGRAMAS[k].dias} días / sem${k.indexOf('mma') === 0 ? ' · con academia' : ''}</span></button>`).join('')}</div>
+    <p class="aet-nota">Los programas MMA son para peleadores enfocados que entrenan en academia (tapete, saco, compañero). Próximamente: preparación física para peleadores solo en gimnasio.</p>
     <p class="aet-nota">Tu programa define tu meta de entrenos por semana y la tarjeta "Hoy". Puedes cambiarlo cuando quieras.</p>`);
 }
 function aetSetPrograma(t) { AET.guardar('aet_programa', { tipo: t }); aetCerrar(); aetRefrescar(); }
