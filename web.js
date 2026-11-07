@@ -4,7 +4,7 @@
    sección del menú muestra solo lo suyo (con pestañas internas), como
    en la app. No borra ni mueve contenido: solo oculta lo que no toca.
    Solo actúa en la página web (no en la app: body.modo-app).
-   Rutas: #/inicio · #/productos[/laboratorio|/proximamente] ·
+   Rutas: #/inicio · #/productos[/laboratorio|/proximamente|/mayoreo] ·
    #/programas[/guias|/recetas] · #/educacion[/<tema>] · #/nosotros[/comunidad|/contacto]
    Los enlaces viejos (#productos, #salud, #contacto…) siguen funcionando.
 ============================================================ */
@@ -13,7 +13,7 @@
 const $ = (id) => document.getElementById(id);
 const PAGINAS = [
   { k: 'inicio', n: 'Inicio', secs: [['hero', ''], ['webInicio', '']] },
-  { k: 'productos', n: 'Productos', subs: [['productos', 'Productos'], ['laboratorio', 'Análisis de laboratorio'], ['proximamente', 'Próximamente']] },
+  { k: 'productos', n: 'Productos', subs: [['productos', 'Productos'], ['laboratorio', 'Análisis de laboratorio'], ['proximamente', 'Próximamente'], ['mayoreo', 'Mayoreo']] },
   { k: 'programas', n: 'Programas', subs: [['sistema', 'El sistema'], ['guias', 'Programas'], ['recetas', 'Recetas']] },
   { k: 'educacion', n: 'Educación', secs: [['webEduSec', '']] },
   { k: 'nosotros', n: 'Nosotros', subs: [['filosofia', 'Filosofía'], ['comunidad', 'Comunidad'], ['contacto', 'Contacto']] },
@@ -38,6 +38,7 @@ function montar() {
     <a class="wb-card wb-app" href="./?modo=app"><span class="wb-ico">📱</span><div><b>La app Aeterion</b><p>Tu entreno, tu comida, tus hábitos, juegos y progreso en un solo lugar.</p><em>Abrir la app →</em></div></a>
   </div></div>`;
   if (hero && hero.parentNode) hero.parentNode.insertBefore(ini, hero.nextSibling);
+  try { mayoreo(); } catch (e) { console.warn('mayoreo', e); }
   // Biblioteca de educación (la misma de la app)
   const edu = document.createElement('section'); edu.id = 'webEduSec';
   edu.innerHTML = '<div class="contenedor wb-edu"><div id="webEdu" class="ed-raiz"></div></div>';
@@ -52,7 +53,7 @@ function montar() {
   const nm = $('navMobile');
   if (nm) { nm.querySelectorAll('a:not(.nav-cta-m)').forEach((a) => a.remove()); nm.insertAdjacentHTML('beforeend', PAGINAS.map((p) => `<a href="#/${p.k}" data-wp="${p.k}" onclick="toggleNavMobile()">${p.n}</a>`).join('') + '<a href="./?modo=app" onclick="toggleNavMobile()">Abrir app</a>'); }
   const logo = document.querySelector('#nav .nav-logo'); if (logo) { logo.style.cursor = 'pointer'; logo.addEventListener('click', () => { location.hash = '#/inicio'; }); }
-  try { cabeceraPro(); portadaPro(); } catch (e) { console.warn('web pro', e); }
+  try { cabeceraPro(); portadaPro(); bandaMayoreo(); } catch (e) { console.warn('web pro', e); }
   window.addEventListener('hashchange', rutear);
   rutear();
 }
@@ -135,7 +136,7 @@ function indice() {
   });
   [['Recetas', 'Programas', '#/programas/recetas', 'recetas comida cocina desayuno cena'], ['Programas de entrenamiento', 'Programas', '#/programas/guias', 'programas gimnasio gym mma rutina dieta plan'],
    ['Análisis de laboratorio', 'Productos', '#/productos/laboratorio', 'laboratorio analisis cidi metales pureza calidad'], ['Próximos productos', 'Productos', '#/productos/proximamente', 'proximamente nuevos lanzamientos'],
-   ['Comunidad en Discord', 'Nosotros', '#/nosotros/comunidad', 'comunidad discord'], ['Contacto', 'Nosotros', '#/nosotros/contacto', 'contacto correo whatsapp ayuda pedidos envio'],
+   ['Mayoreo para gimnasios y tiendas', 'Productos', '#/productos/mayoreo', 'mayoreo distribuidor gimnasio gym tienda revender negocio coach'], ['Comunidad en Discord', 'Nosotros', '#/nosotros/comunidad', 'comunidad discord'], ['Contacto', 'Nosotros', '#/nosotros/contacto', 'contacto correo whatsapp ayuda pedidos envio'],
    ['La app Aeterion', 'App', './?modo=app', 'app aplicacion entreno habitos juegos trivia memorama']].forEach(([t, s, h, q]) => INDICE.push({ t, s, h, q: sinAc(t + ' ' + q) }));
   return INDICE;
 }
@@ -196,6 +197,52 @@ function portadaPro() {
     window.aetPintarCatalogo = function () { const r = orig.apply(this, arguments); try { pintar(); } catch (e) {} return r; };
     try { window.aetPintarCatalogo(); } catch (e) {}
   }
+}
+
+
+/* ---------- Mayoreo (gimnasios, tiendas, coaches) ---------- */
+const WA = 'https://wa.me/525613241969?text=' + encodeURIComponent('Hola, me interesa vender Aeterion al mayoreo. Mi negocio es: ');
+const IC_WA = '<path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5 5 16a8.4 8.4 0 1 1 15.5-4.4z"/><path d="M8.8 8.3c.2-.5.5-.5.8-.5h.5c.2 0 .4 0 .5.4l.7 1.6c.1.2 0 .4-.1.6l-.5.6c-.1.1-.2.3 0 .5.4.7 1.6 2 3 2.5.2.1.4 0 .5-.1l.6-.7c.2-.2.4-.2.6-.1l1.5.7c.3.1.3.3.3.5 0 .6-.4 1.5-1.4 1.7-.8.2-2.2.1-4.2-1.3-1.7-1.2-2.8-3-3-3.6-.4-1-.2-1.9.2-2.2z"/>';
+function mayoreo() {
+  if ($('mayoreo')) return;
+  const prox = $('proximamente'); if (!prox || !prox.parentNode) return;
+  const s = document.createElement('section'); s.id = 'mayoreo';
+  s.innerHTML = `<div class="contenedor my">
+    <div class="my-hero">
+      <div><span class="my-eye">Mayoreo · Gimnasios, tiendas y coaches</span>
+        <h2>Vende Aeterion <em>en tu negocio.</em></h2>
+        <p>Precio de distribuidor en creatina, magnesio y vitamina D3 con análisis de laboratorio. Tú vendes un producto que se explica solo; nosotros te damos el respaldo de la marca y de la app.</p>
+        <div class="my-btns"><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Cotizar por WhatsApp</a><a class="btn btn-outline" href="#my-como">Cómo funciona</a></div>
+        <small class="my-nota">Te respondemos por WhatsApp al +52 56 1324 1969 con la lista de precios de distribuidor.</small>
+      </div>
+      <img src="img/hero-productos.jpg" alt="Productos Aeterion para mayoreo" loading="lazy" width="1200" height="914">
+    </div>
+    <div class="my-claves">
+      <div><span>${I(IC.bolsa, 26)}</span><b>Compra mínima de $3,000 MXN</b><p>Arma tu pedido con los productos que más se mueven en tu negocio.</p></div>
+      <div><span>${I(IC.pago, 26)}</span><b>Precio de distribuidor</b><p>Margen por pieza para que ganes en cada venta. Te enviamos la lista completa por WhatsApp.</p></div>
+      <div class="my-dest"><span>${I(IC.app, 26)}</span><b>50% en Aeterion Premium para tus socios</b><p>Si eres gimnasio y tu compra es de $3,000 o más, te damos códigos de 50% de descuento en Premium para tus usuarios.</p></div>
+    </div>
+    <div class="my-dos">
+      <div class="my-por"><h3>Por qué se vende</h3><ul>
+        <li>${I(IC.lab, 20)}<span><b>Analizados en laboratorio independiente</b> (CiDi). Tus clientes pueden ver qué contiene cada producto.</span></li>
+        <li>${I(IC.ciencia, 20)}<span><b>Los suplementos con más evidencia:</b> creatina, magnesio glicinato y vitamina D3. Se recompran cada mes.</span></li>
+        <li>${I(IC.pesa, 20)}<span><b>Hechos para quien entrena.</b> Encajan en cualquier gimnasio, box o academia.</span></li>
+        <li>${I(IC.app, 20)}<span><b>Una app que fideliza:</b> programas de gym y MMA, recetas y educación. Tus socios se quedan y regresan.</span></li>
+      </ul></div>
+      <div class="my-como" id="my-como"><h3>Cómo funciona</h3><ol>
+        <li><b>Escríbenos por WhatsApp</b><span>Cuéntanos qué negocio tienes y dónde estás.</span></li>
+        <li><b>Recibe la lista de distribuidor</b><span>Precios, margen por pieza y precio sugerido de venta.</span></li>
+        <li><b>Haz tu pedido</b><span>Desde $3,000 MXN. El envío se cotiza según tu código postal.</span></li>
+        <li><b>Vende y activa a tus socios</b><span>Si eres gimnasio, recibes tus códigos de 50% en Premium.</span></li>
+      </ol></div>
+    </div>
+    <div class="my-final"><div><h3>¿Tienes un gimnasio, tienda o eres coach?</h3><p>Escríbenos y te mandamos la lista de precios de distribuidor hoy mismo.</p></div><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Quiero vender Aeterion</a></div>
+  </div>`;
+  prox.parentNode.insertBefore(s, prox.nextSibling);
+}
+function bandaMayoreo() {
+  const cont = $('webInicio') && $('webInicio').querySelector('.wb-app-banda');
+  if (cont) cont.insertAdjacentHTML('beforebegin', `<a class="my-banda" href="#/productos/mayoreo"><span>${I(IC.bolsa, 30)}</span><div><b>¿Tienes gimnasio o tienda? Vende Aeterion al mayoreo.</b><small>Compra mínima de $3,000 MXN · Precio de distribuidor · 50% en Premium para tus socios</small></div><em>Ver mayoreo ${I(IC.flecha, 16)}</em></a>`);
 }
 
 // Qué mostrar para un hash
@@ -406,6 +453,47 @@ body.web-secciones #carrito-btn{display:none!important}
 .wb-edu-tea small{color:var(--gris);font-size:13.5px;line-height:1.45}
 .wb-edu-tea em{font-style:normal;color:var(--oro);font:600 14px var(--font-ui);display:flex;align-items:center;gap:.3rem;margin-top:auto;padding-top:.4rem}
 @media (max-width:760px){.wb-edu-tea{grid-template-columns:1fr}}
+
+/* ===== Mayoreo ===== */
+#mayoreo{padding:clamp(2rem,5vw,4rem) var(--pad) clamp(3rem,6vw,5rem);background:var(--negro2)}
+.my{max-width:1200px}
+.my-hero{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(1.5rem,4vw,3rem);align-items:center;margin-bottom:2.5rem}
+.my-eye{font:600 12px var(--font-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--oro)}
+.my-hero h2{font-family:var(--font-display);font-weight:400;font-size:clamp(2.3rem,5vw,3.6rem);line-height:1.05;color:var(--blanco);margin:.5rem 0 1rem}
+.my-hero h2 em{color:var(--oro);font-style:italic}
+.my-hero p{color:#d6cebe;font-size:17px;max-width:34rem;margin:0 0 1.5rem}
+.my-hero img{width:100%;max-height:440px;object-fit:cover;border-radius:20px;border:1px solid rgba(201,168,76,.3);box-shadow:0 26px 60px rgba(0,0,0,.55)}
+.my-btns{display:flex;flex-wrap:wrap;gap:.8rem}
+.my-wa{display:inline-flex!important;align-items:center;gap:.55rem}
+.my-nota{display:block;margin-top:1rem;color:var(--gris);font-size:13.5px}
+.my-claves{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2.5rem}
+.my-claves>div{background:#171715;border:1px solid rgba(201,168,76,.22);border-radius:18px;padding:1.4rem}
+.my-claves .my-dest{background:linear-gradient(140deg,#2a2312,#171715 70%);border-color:rgba(201,168,76,.6)}
+.my-claves span{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:var(--oro);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);margin-bottom:.9rem}
+.my-claves b{display:block;color:var(--blanco);font:600 20px var(--font-ui);margin-bottom:.35rem}
+.my-claves p{color:var(--gris);font-size:14.5px;margin:0;line-height:1.5}
+.my-dos{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2.5rem}
+.my-dos>div{background:#151513;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:1.5rem}
+.my-dos h3{font-family:var(--font-display);font-weight:400;font-size:28px;color:var(--blanco);margin:0 0 1rem}
+.my-por ul{list-style:none;margin:0;padding:0;display:grid;gap:.9rem}
+.my-por li{display:flex;gap:.8rem;color:#cfc7b7;font-size:15px;line-height:1.5}
+.my-por li svg{color:var(--oro);flex:none;margin-top:2px}
+.my-por b{color:var(--blanco)}
+.my-como ol{list-style:none;margin:0;padding:0;counter-reset:p;display:grid;gap:1rem}
+.my-como li{counter-increment:p;display:grid;grid-template-columns:38px 1fr;column-gap:.8rem}
+.my-como li::before{content:counter(p);grid-row:span 2;width:34px;height:34px;border-radius:50%;background:var(--oro);color:#16120a;font:700 16px/34px var(--font-ui);text-align:center}
+.my-como b{color:var(--blanco);font:600 16px var(--font-ui)}
+.my-como span{color:var(--gris);font-size:14.5px}
+.my-final{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:clamp(1.4rem,3.5vw,2.2rem);border-radius:20px;border:1px solid rgba(201,168,76,.45);background:radial-gradient(circle at 90% 50%,rgba(201,168,76,.22),transparent 55%),#18160f}
+.my-final h3{font-family:var(--font-display);font-weight:400;font-size:clamp(1.6rem,3vw,2.2rem);color:var(--blanco);margin:0 0 .3rem}
+.my-final p{color:#d4ccbc;margin:0}
+.my-banda{display:flex;align-items:center;gap:1rem;text-decoration:none;margin-bottom:clamp(2.5rem,5vw,3.5rem);padding:1.1rem 1.3rem;border-radius:16px;border:1px dashed rgba(201,168,76,.55);background:#16150f;color:var(--texto)}
+.my-banda:hover{border-style:solid}
+.my-banda>span{color:var(--oro);flex:none}
+.my-banda b{display:block;color:var(--blanco);font:600 17px var(--font-ui)}
+.my-banda small{color:var(--gris);font-size:13.5px}
+.my-banda em{margin-left:auto;font-style:normal;color:var(--oro);font:600 14px var(--font-ui);display:flex;align-items:center;gap:.3rem;white-space:nowrap}
+@media (max-width:860px){.my-hero,.my-dos{grid-template-columns:1fr}.my-hero img{order:-1}.my-claves{grid-template-columns:1fr}.my-final{flex-direction:column;align-items:flex-start}.my-banda{flex-wrap:wrap}.my-banda em{margin-left:0}}
 `;
 document.head.appendChild(css);
 })();
