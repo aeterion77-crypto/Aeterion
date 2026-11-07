@@ -254,6 +254,47 @@ function bandaMayoreo() {
   </div>`);
 }
 
+
+/* ---------- Contador de visitas (anónimo: id aleatorio del navegador, sin datos personales) ---------- */
+const VIS = (() => {
+  const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+  const ss = (k, v) => { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } };
+  let id = ls('aet_vis'), nuevo = false;
+  if (!id || !/^[a-z0-9]{8,40}$/.test(id)) { id = (Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/[^a-z0-9]/g, '').slice(0, 24); ls('aet_vis', id); nuevo = true; }
+  let origen = ss('aet_vis_o');
+  if (origen == null) {
+    let o = '';
+    try {
+      const q = new URLSearchParams(location.search), utm = (q.get('utm_source') || q.get('fbclid') && 'facebook' || q.get('gclid') && 'google' || '').toLowerCase();
+      const ref = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '').toLowerCase() : '';
+      const k = utm || ref;
+      const M = [['instagram', 'Instagram'], ['facebook', 'Facebook'], ['fb.', 'Facebook'], ['whatsapp', 'WhatsApp'], ['wa.me', 'WhatsApp'], ['google', 'Google'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['youtu.be', 'YouTube'], ['bing', 'Bing'], ['t.co', 'X / Twitter'], ['twitter', 'X / Twitter'], ['x.com', 'X / Twitter'], ['discord', 'Discord']];
+      if (ref && ref.endsWith('aeterionlabs.tech') && !utm) o = '';
+      else if (k) { const m = M.find(([a]) => k.includes(a)); o = m ? m[1] : k.slice(0, 40); }
+    } catch (e) {}
+    origen = o; ss('aet_vis_o', o);
+  }
+  const disp = /iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : (/Mobi|Android|iPhone/i.test(navigator.userAgent) || innerWidth < 760) ? 'movil' : 'pc';
+  const activo = () => !navigator.webdriver || window.AET_VIS_PRUEBA;
+  let ultima = '', tUlt = 0;
+  function enviar(t, r) {
+    if (!activo() || typeof SUPABASE_URL === 'undefined') return;
+    const cuerpo = { p: { v: id, t, r: String(r || '').toLowerCase(), o: origen, d: disp, n: nuevo } };
+    if (t === 'vista') nuevo = false;
+    try { fetch(SUPABASE_URL + '/rest/v1/rpc/web_registrar', { method: 'POST', keepalive: true, headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }).catch(() => {}); } catch (e) {}
+  }
+  function vista(r) { const ahora = Date.now(); if (r === ultima && ahora - tUlt < 3000) return; ultima = r; tUlt = ahora; enviar('vista', r); }
+  document.addEventListener('click', (e) => {
+    if (!web()) return;
+    const a = e.target.closest('a,button'); if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (/^https:\/\/wa\.me\//.test(href)) enviar(a.closest('#mayoreo,.my-banda2') ? 'wa_mayoreo' : 'wa', ultima);
+    else if (a.classList.contains('btn-agregar')) enviar('carrito', ultima);
+    else if (/modo=app/.test(href)) enviar('app', ultima);
+  }, true);
+  return { vista };
+})();
+
 // Qué mostrar para un hash
 function resolver(h) {
   h = decodeURIComponent((h || '').replace(/^#/, ''));
@@ -297,6 +338,7 @@ function rutear() {
   if (r.ir && $(r.ir)) setTimeout(() => $(r.ir).scrollIntoView({ block: 'start' }), 50);
   else if (clave !== actual) window.scrollTo({ top: 0, behavior: 'instant' });
   actual = clave;
+  try { VIS.vista(pg.k + (sub && pg.subs && sub !== pg.subs[0][0] ? '/' + sub : (pg.k === 'educacion' && r.sub ? '/' + r.sub : ''))); } catch (e) {}
   try { document.title = (pg.k === 'inicio' ? '' : pg.n + ' · ') + 'Aeterion'; } catch (e) {}
 }
 function iniciar() { setTimeout(montar, 0); }

@@ -1,5 +1,5 @@
 /* Aeterion Admin — service worker: avisos push + apertura rápida. Nunca guarda datos de pedidos. */
-const CACHE = 'aet-admin-v1';
+const CACHE = 'aet-admin-v2';
 self.addEventListener('install', (e) => { self.skipWaiting(); });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))));
