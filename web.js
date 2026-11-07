@@ -281,7 +281,7 @@ const VIS = (() => {
     if (!activo() || typeof SUPABASE_URL === 'undefined') return;
     const cuerpo = { p: { v: id, t, r: String(r || '').toLowerCase(), o: origen, d: disp, n: nuevo } };
     if (t === 'vista') nuevo = false;
-    try { fetch(SUPABASE_URL + '/rest/v1/rpc/web_registrar', { method: 'POST', keepalive: true, headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }).catch(() => {}); } catch (e) {}
+    try { fetch(SUPABASE_URL + '/rest/v1/rpc/web_registrar', { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }).catch(() => {}); } catch (e) {}
   }
   function vista(r) { const ahora = Date.now(); if (r === ultima && ahora - tUlt < 3000) return; ultima = r; tUlt = ahora; enviar('vista', r); }
   document.addEventListener('click', (e) => {
