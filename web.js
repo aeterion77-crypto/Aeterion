@@ -218,9 +218,9 @@ function mayoreo() {
       <img src="img/hero-productos.jpg" alt="Productos Aeterion para mayoreo" loading="lazy" width="1200" height="914">
     </div>
     <div class="my-claves">
-      <div><span>${I(IC.bolsa, 26)}</span><b>Compra mínima de $3,000 MXN</b><p>Arma tu pedido con los productos que más se mueven en tu negocio.</p></div>
+      <div><span>${I(IC.bolsa, 26)}</span><b>Compra mínima de $5,000 MXN</b><p>Arma tu pedido con los productos que más se mueven en tu negocio.</p></div>
       <div><span>${I(IC.pago, 26)}</span><b>Precio de distribuidor</b><p>Margen por pieza para que ganes en cada venta. Te enviamos la lista completa por WhatsApp.</p></div>
-      <div class="my-dest"><span>${I(IC.app, 26)}</span><b>50% en Aeterion Premium para tus socios</b><p>Si eres gimnasio y tu compra es de $3,000 o más, te damos códigos de 50% de descuento en Premium para tus usuarios.</p></div>
+      <div class="my-dest"><span>${I(IC.app, 26)}</span><b>50% en Aeterion Premium para tus socios</b><p>Si eres gimnasio y tu compra es de $5,000 o más, te damos códigos de 50% de descuento en Premium para tus usuarios.</p></div>
     </div>
     <div class="my-dos">
       <div class="my-por"><h3>Por qué se vende</h3><ul>
@@ -232,7 +232,7 @@ function mayoreo() {
       <div class="my-como" id="my-como"><h3>Cómo funciona</h3><ol>
         <li><b>Escríbenos por WhatsApp</b><span>Cuéntanos qué negocio tienes y dónde estás.</span></li>
         <li><b>Recibe la lista de distribuidor</b><span>Precios, margen por pieza y precio sugerido de venta.</span></li>
-        <li><b>Haz tu pedido</b><span>Desde $3,000 MXN. El envío se cotiza según tu código postal.</span></li>
+        <li><b>Haz tu pedido</b><span>Desde $5,000 MXN. El envío se cotiza según tu código postal.</span></li>
         <li><b>Vende y activa a tus socios</b><span>Si eres gimnasio, recibes tus códigos de 50% en Premium.</span></li>
       </ol></div>
     </div>
@@ -241,8 +241,17 @@ function mayoreo() {
   prox.parentNode.insertBefore(s, prox.nextSibling);
 }
 function bandaMayoreo() {
-  const cont = $('webInicio') && $('webInicio').querySelector('.wb-app-banda');
-  if (cont) cont.insertAdjacentHTML('beforebegin', `<a class="my-banda" href="#/productos/mayoreo"><span>${I(IC.bolsa, 30)}</span><div><b>¿Tienes gimnasio o tienda? Vende Aeterion al mayoreo.</b><small>Compra mínima de $3,000 MXN · Precio de distribuidor · 50% en Premium para tus socios</small></div><em>Ver mayoreo ${I(IC.flecha, 16)}</em></a>`);
+  const grid = $('webInicio') && $('webInicio').querySelector('.wb-grid');
+  if (!grid) return;
+  grid.insertAdjacentHTML('afterend', `<div class="wb-app-banda my-banda2">
+    <div><span>Mayoreo · Gimnasios, tiendas y coaches</span>
+      <h2>¿Tienes un gimnasio o una tienda? Vende Aeterion.</h2>
+      <p>Precio de distribuidor para que ganes en cada pieza, y si eres gimnasio, códigos de 50% en Aeterion Premium para tus socios.</p>
+      <ul class="my-chips"><li>${I(IC.bolsa, 16)} Compra mínima $5,000 MXN</li><li>${I(IC.pago, 16)} Precio de distribuidor</li><li>${I(IC.app, 16)} 50% en Premium para tus socios</li></ul>
+      <div class="my-btns"><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Cotizar por WhatsApp</a><a class="btn btn-outline" href="#/productos/mayoreo">Ver cómo funciona</a></div>
+    </div>
+    <img class="my-banda-img" src="img/hero-productos.jpg" alt="" loading="lazy" width="1200" height="914">
+  </div>`);
 }
 
 // Qué mostrar para un hash
@@ -455,6 +464,14 @@ body.web-secciones #carrito-btn{display:none!important}
 @media (max-width:760px){.wb-edu-tea{grid-template-columns:1fr}}
 
 /* ===== Mayoreo ===== */
+.my-banda2{align-items:center}
+.my-banda2>div{flex:1}
+.my-chips{list-style:none;display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.4rem;padding:0}
+.my-chips li{display:flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border-radius:20px;border:1px solid rgba(201,168,76,.45);background:rgba(201,168,76,.08);color:var(--blanco);font:600 13.5px var(--font-ui);letter-spacing:.02em}
+.my-chips svg{color:var(--oro)}
+.my-banda-img{width:min(40%,440px);height:340px;object-fit:cover;border-radius:16px;border:1px solid rgba(201,168,76,.3);flex:none}
+@media (max-width:760px){.my-banda2{flex-direction:column-reverse;align-items:stretch}.my-banda-img{width:100%;max-height:220px;object-fit:cover}}
+
 #mayoreo{padding:clamp(2rem,5vw,4rem) var(--pad) clamp(3rem,6vw,5rem);background:var(--negro2)}
 .my{max-width:1200px}
 .my-hero{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(1.5rem,4vw,3rem);align-items:center;margin-bottom:2.5rem}
