@@ -6615,7 +6615,10 @@ async function aetAplicarCupon(silencioso) {
   const items = aetItemsCarrito(); if (!items.length) return;
   try {
     const d = await aetRpcPublico('validar_carrito_publico', { p_items: items, p_codigo: codigo });
-    if (d && d.ok) {
+    if (d && d.ok && !d.cupon && d.promo) {
+      cuponAplicado = { codigo: '', descuento: 0 };
+      if (msg) { msg.style.color = '#e2bf6a'; msg.textContent = 'Tu carrito ya tiene un mejor descuento (' + d.promo + '). Los cupones no se suman a la promoción.'; }
+    } else if (d && d.ok) {
       cuponAplicado = { codigo: d.cupon || codigo, descuento: Number(d.descuento) || 0 };
       if (msg) { msg.style.color = '#2ecc71'; msg.textContent = '✓ Cupón ' + cuponAplicado.codigo + ' aplicado: −$' + cuponAplicado.descuento.toLocaleString('es-MX'); }
     } else {
@@ -6675,15 +6678,17 @@ function aetAplicarTextos() {
   });
 }
 async function aetCargarAjustes() {
-  try { const c = JSON.parse(localStorage.getItem('aet_ajustes_cache') || 'null'); if (c) { if (c.tienda) _tienda = c.tienda; _txtRemoto = c.textos || {}; aetPintarBanner(c.banner); aetAplicarTextos(); } } catch (e) {}
+  try { const c = JSON.parse(localStorage.getItem('aet_ajustes_cache') || 'null'); if (c) { if (c.tienda) _tienda = c.tienda; _txtRemoto = c.textos || {}; if ('promo' in c) window._promoPaq = c.promo; aetPintarBanner(c.banner); aetAplicarTextos(); } } catch (e) {}
   try {
     const [aj, tx] = await Promise.all([aetGetPublico('ajustes_publicos', 'clave,valor'), aetGetPublico('textos_app', 'clave,valor,defecto')]);
     const m = {}; (aj || []).forEach(a => { m[a.clave] = a.valor; });
     const t = {}; (tx || []).forEach(a => { if (a.valor !== a.defecto) t[a.clave] = a.valor; });
     if (m.tienda) _tienda = m.tienda;
     _txtRemoto = t;
-    try { localStorage.setItem('aet_ajustes_cache', JSON.stringify({ banner: m.banner, tienda: m.tienda, textos: t })); } catch (e) {}
+    window._promoPaq = m.promo_paquete || null; window._promoPaqCargado = true;
+    try { localStorage.setItem('aet_ajustes_cache', JSON.stringify({ banner: m.banner, tienda: m.tienda, textos: t, promo: window._promoPaq })); } catch (e) {}
     aetPintarBanner(m.banner); aetAplicarTextos();
+    try { if (window.aetPromoPaqPintar) { aetPromoPaqPintar(); actualizarTotales(true); } } catch (e) {}
     if (typeof aetPintarCatalogo === 'function') aetPintarCatalogo();
   } catch (e) { /* sin conexión: se quedan los valores guardados */ }
 }
@@ -6878,9 +6883,12 @@ function actualizarTotales(sinRevalidar) {
   const subtotal = calcularSubtotal();
   const el = document.getElementById('t-subtotal');
   if (el) el.textContent = '$' + subtotal.toLocaleString('es-MX');
-  const dto = cuponAplicado.codigo ? Math.min(cuponAplicado.descuento, Math.max(0, subtotal - 10)) : 0;
+  const dtoCupon = cuponAplicado.codigo ? Math.min(cuponAplicado.descuento, Math.max(0, subtotal - 10)) : 0;
+  const dtoPromo = typeof aetPromoPaqDesc === 'function' ? aetPromoPaqDesc() : 0;
+  const dto = Math.max(dtoCupon, dtoPromo);
   const fDto = document.getElementById('t-dto-fila');
-  if (fDto) { fDto.style.display = dto > 0 ? 'flex' : 'none'; const v = document.getElementById('t-dto'); if (v) v.textContent = '−$' + dto.toLocaleString('es-MX'); }
+  if (fDto) { fDto.style.display = dto > 0 ? 'flex' : 'none'; const v = document.getElementById('t-dto'); if (v) v.textContent = '−$' + dto.toLocaleString('es-MX'); const et = fDto.querySelector('span'); if (et) et.textContent = dtoPromo > dtoCupon ? 'Promo ' + aetPromoPaqNombre() : 'Descuento'; }
+  try { if (window.aetPromoPaqPista) aetPromoPaqPista(); } catch (e) {}
   const rq = document.getElementById('cupon-quitar'); if (rq) rq.style.display = cuponAplicado.codigo ? 'inline' : 'none';
   const elTotal = document.getElementById('t-total');
   if (elTotal) elTotal.textContent = '$' + (subtotal - dto).toLocaleString('es-MX');
@@ -6931,7 +6939,9 @@ function abrirCheckout() {
     `<div class="co-fila"><span>${p.nombre} × ${cantidad}</span><span>$${(p.precio * cantidad).toLocaleString('es-MX')}</span></div>`
   ).join('');
   resumenHTML += `<div class="co-fila total"><span>Subtotal</span><span>$${subtotal.toLocaleString('es-MX')} MXN</span></div>`;
-  if (cuponAplicado.codigo && cuponAplicado.descuento > 0) resumenHTML += `<div class="co-fila" style="color:#2ecc71;"><span>Cupón ${cuponAplicado.codigo}</span><span>−$${cuponAplicado.descuento.toLocaleString('es-MX')} MXN</span></div>`;
+  const _dPromo = typeof aetPromoPaqDesc === 'function' ? aetPromoPaqDesc() : 0;
+  if (_dPromo > (cuponAplicado.codigo ? cuponAplicado.descuento : 0)) resumenHTML += `<div class="co-fila" style="color:#2ecc71;"><span>Promo ${aetPromoPaqNombre()}</span><span>−$${_dPromo.toLocaleString('es-MX')} MXN</span></div><div class="co-fila total"><span>Total productos</span><span>$${(subtotal - _dPromo).toLocaleString('es-MX')} MXN</span></div>`;
+  else if (cuponAplicado.codigo && cuponAplicado.descuento > 0) resumenHTML += `<div class="co-fila" style="color:#2ecc71;"><span>Cupón ${cuponAplicado.codigo}</span><span>−$${cuponAplicado.descuento.toLocaleString('es-MX')} MXN</span></div>`;
   resumenHTML += `<div class="co-fila" style="font-size:12px; color:var(--gris);"><span>Envío</span><span>Se calcula con tu código postal, con la paquetería más económica</span></div>`;
 
   document.getElementById('checkout-resumen').innerHTML = resumenHTML;
@@ -10478,5 +10488,6 @@ window.addEventListener('DOMContentLoaded', detectarModoApp);
 <script src="juegos.js?v=3" defer></script>
 <script src="educacion.js?v=2" defer></script>
 <script src="web.js?v=7" defer></script>
+<script src="promo.js?v=1" defer></script>
 </body>
 </html>
