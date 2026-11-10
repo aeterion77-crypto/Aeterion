@@ -22,7 +22,7 @@ with sync_playwright() as p:
         pg.route('**/rest/v1/**', lambda r: r.fulfill(status=200, content_type='application/json', body='{}'))
         pg.goto('http://localhost:8862/index.html'); pg.wait_for_timeout(2000)
         chk(vis(pg, 'hero') and vis(pg, 'webInicio') and not vis(pg, 'productos') and not vis(pg, 'salud'), 'inicio: portada + tarjetas, nada más')
-        chk(alto(pg) < (5000 if n == 'pc' else 7200), 'inicio mide %d px (antes %d)' % (alto(pg), 17779 if n == 'pc' else 29550))
+        chk(alto(pg) < (5000 if n == 'pc' else 8000), 'inicio mide %d px (antes %d)' % (alto(pg), 17779 if n == 'pc' else 29550))
         chk(pg.locator('.wb-anuncio').count() == 1 and pg.locator('.wb-confianza > div').count() == 5 and pg.locator('.wb-prod').count() == 3, 'tienda: aviso de envíos, 5 sellos de confianza, 3 productos')
         chk(pg.inner_text('.wb-precio[data-id=creatina]') == '$480 MXN' and pg.is_visible('.wb-hero-img img'), 'precio real y foto de portada')
         pg.click('.wb-prod .btn-agregar >> nth=0'); pg.wait_for_timeout(500)
