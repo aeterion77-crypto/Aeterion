@@ -47,7 +47,7 @@ function fechaFin(c) {
 function tarjeta(c, clase) {
   const b = base(c), a = ahorro(c), pct = b ? Math.round(a / b * 100) : 0;
   return `<div class="pq ${clase || ''}" data-promo-paquete>
-    <div class="pq-img"><img src="img/hero-productos.jpg" alt="Creatina, magnesio y vitamina D3 Aeterion" loading="lazy" width="1200" height="914">${pct ? `<span class="pq-sello">−${pct}%</span>` : ''}</div>
+    <div class="pq-img"><img src="img/paquete-real.jpg" alt="Creatina, magnesio y vitamina D3 Aeterion reales" loading="lazy" width="1216" height="602">${pct ? `<span class="pq-sello">−${pct}%</span>` : ''}</div>
     <div class="pq-info">
       <span class="pq-eye">⏳ Promoción hasta el ${fechaFin(c)}</span>
       <h3>${c.nombre}</h3>

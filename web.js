@@ -215,7 +215,7 @@ function mayoreo() {
         <div class="my-btns"><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Cotizar por WhatsApp</a><a class="btn btn-outline" href="#my-como">Cómo funciona</a></div>
         <small class="my-nota">Te respondemos por WhatsApp al +52 56 1324 1969 con la lista de precios de distribuidor.</small>
       </div>
-      <img src="img/hero-productos.jpg" alt="Productos Aeterion para mayoreo" loading="lazy" width="1200" height="914">
+      <img src="img/mayoreo-inventario.jpg" alt="Inventario real de creatina Aeterion en cajas" loading="lazy" width="1080" height="602">
     </div>
     <div class="my-claves">
       <div><span>${I(IC.bolsa, 26)}</span><b>Compra mínima de $5,000 MXN</b><p>Arma tu pedido con los productos que más se mueven en tu negocio.</p></div>
@@ -250,7 +250,7 @@ function bandaMayoreo() {
       <ul class="my-chips"><li>${I(IC.bolsa, 16)} Compra mínima $5,000 MXN</li><li>${I(IC.pago, 16)} Precio de distribuidor</li><li>${I(IC.app, 16)} 50% en Premium para tus socios</li></ul>
       <div class="my-btns"><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Cotizar por WhatsApp</a><a class="btn btn-outline" href="#/productos/mayoreo">Ver cómo funciona</a></div>
     </div>
-    <img class="my-banda-img" src="img/hero-productos.jpg" alt="" loading="lazy" width="1200" height="914">
+    <img class="my-banda-img" src="img/mayoreo-cajas.jpg" alt="Cajas de inventario Aeterion listas para distribuidores" loading="lazy" width="1080" height="602">
   </div>`);
 }
 
