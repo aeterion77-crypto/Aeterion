@@ -76,6 +76,8 @@ css.textContent = `
 @media (max-width:760px){.pq{grid-template-columns:1fr}.pq-img img{max-height:220px}.pq-btn{max-width:none}}
 body.modo-app .pq{margin:0 0 18px;padding:14px}
 body.modo-app .pq h3{font-size:30px}
+.pq-an-c{display:none!important}
+@media (max-width:760px){.pq-an-l{display:none!important}.pq-an-c{display:inline!important}}
 .pq-pista{margin:8px 0 2px;padding:10px 12px;border-radius:12px;border:1px dashed rgba(201,168,76,.6);background:rgba(201,168,76,.08);font-size:13px;color:#e2d8c2;line-height:1.4}
 .pq-pista button{background:none;border:0;color:#e2bf6a;font-weight:700;text-decoration:underline;cursor:pointer;padding:0;font-size:13px}
 `;
@@ -87,7 +89,7 @@ function pintar() {
   const an = document.querySelector('.wb-anuncio');
   if (an) {
     if (!an.dataset.orig) an.dataset.orig = an.innerHTML;
-    an.innerHTML = c ? `<span>🔥 ${c.nombre}: creatina + magnesio + vitamina D3 por ${fmt(c.precio)} · hasta el ${fechaFin(c)}</span>` : an.dataset.orig;
+    an.innerHTML = c ? `<span class="pq-an-l">🔥 ${c.nombre}: creatina + magnesio + vitamina D3 por ${fmt(c.precio)} · hasta el ${fechaFin(c)}</span><span class="pq-an-c">🔥 Las 3 por ${fmt(c.precio)} · hasta el ${fechaFin(c)}</span>` : an.dataset.orig;
     an.style.cursor = c ? 'pointer' : '';
     an.onclick = c ? () => { location.hash = '#/productos'; } : null;
   }

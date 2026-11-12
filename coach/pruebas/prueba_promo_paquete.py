@@ -30,7 +30,7 @@ with sync_playwright() as p:
         pg.route('**/rest/v1/**', ruta(PROMO, env))
         pg.goto('http://localhost:8864/index.html'); pg.wait_for_timeout(2200)
         chk(pg.locator('#webInicio .pq').count() == 1 and '$849' in pg.inner_text('#webInicio .pq') and '$1,058' in pg.inner_text('#webInicio .pq'), 'inicio: tarjeta del paquete $849 (antes $1,058)')
-        chk('Paquete Aeterion' in pg.inner_text('.wb-anuncio') and '12 de diciembre' in pg.inner_text('.wb-anuncio'), 'barra de aviso con la promo y la fecha')
+        chk(('Paquete Aeterion' in pg.inner_text('.wb-anuncio') or 'Las 3 por $849' in pg.inner_text('.wb-anuncio')) and '12 de diciembre' in pg.inner_text('.wb-anuncio'), 'barra de aviso con la promo y la fecha')
         pg.locator('#webInicio .pq').scroll_into_view_if_needed(); pg.wait_for_timeout(200)
         pg.screenshot(path=os.path.join(CAP, '107_promo_inicio_' + n + '.png'))
         pg.click('#webInicio .pq-btn'); pg.wait_for_timeout(500)
