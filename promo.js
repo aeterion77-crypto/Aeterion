@@ -47,7 +47,7 @@ function fechaFin(c) {
 function tarjeta(c, clase) {
   const b = base(c), a = ahorro(c), pct = b ? Math.round(a / b * 100) : 0;
   return `<div class="pq ${clase || ''}" data-promo-paquete>
-    <div class="pq-img"><img src="img/paquete-real.jpg" alt="Creatina, magnesio y vitamina D3 Aeterion reales" loading="lazy" width="1216" height="602">${pct ? `<span class="pq-sello">−${pct}%</span>` : ''}</div>
+    <div class="pq-img"><img src="img/ad-paquete.jpg" alt="Las 3 por $849: creatina, magnesio y vitamina D3 Aeterion" loading="lazy" width="864" height="1080"></div>
     <div class="pq-info">
       <span class="pq-eye">⏳ Promoción hasta el ${fechaFin(c)}</span>
       <h3>${c.nombre}</h3>
@@ -60,9 +60,9 @@ function tarjeta(c, clase) {
 
 const css = document.createElement('style');
 css.textContent = `
-.pq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(1rem,3vw,2.2rem);align-items:center;padding:clamp(1rem,2.5vw,1.6rem);border-radius:20px;border:1px solid rgba(201,168,76,.65);background:radial-gradient(circle at 12% 20%,rgba(201,168,76,.22),transparent 55%),linear-gradient(135deg,#221d10,#141412 70%);box-shadow:0 20px 50px rgba(0,0,0,.45);margin:0 0 clamp(2rem,4vw,3rem);color:#e9e2d2}
+.pq{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(1rem,3vw,2.2rem);align-items:center;padding:clamp(1rem,2.5vw,1.6rem);border-radius:20px;border:1px solid rgba(201,168,76,.65);background:radial-gradient(circle at 12% 20%,rgba(201,168,76,.22),transparent 55%),linear-gradient(135deg,#221d10,#141412 70%);box-shadow:0 20px 50px rgba(0,0,0,.45);margin:0 0 clamp(2rem,4vw,3rem);color:#e9e2d2}
 .pq-img{position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(201,168,76,.3)}
-.pq-img img{display:block;width:100%;height:auto;max-height:340px;object-fit:cover}
+.pq-img img{display:block;width:100%;height:auto}
 .pq-sello{position:absolute;top:12px;left:12px;background:#c9a84c;color:#16120a;font:700 15px var(--font-ui,sans-serif);padding:.35rem .75rem;border-radius:20px;letter-spacing:.03em}
 .pq-eye{display:inline-block;font:600 12.5px var(--font-ui,sans-serif);letter-spacing:.12em;text-transform:uppercase;color:#16120a;background:#e2bf6a;border-radius:20px;padding:.3rem .8rem}
 .pq h3{font-family:var(--font-display,serif);font-weight:400;font-size:clamp(2rem,4.4vw,3rem);line-height:1.05;color:#fff;margin:.7rem 0 .5rem}
@@ -73,7 +73,7 @@ css.textContent = `
 .pq-precio em{font-style:normal;color:#2ecc71;font:600 15px var(--font-ui,sans-serif)}
 .pq-btn{display:inline-block;width:100%;max-width:380px;text-align:center;font-size:15px!important;padding:1rem 1.2rem!important;cursor:pointer}
 .pq small{display:block;margin-top:.6rem;color:#8f887a;font-size:12.5px}
-@media (max-width:760px){.pq{grid-template-columns:1fr}.pq-img img{max-height:220px}.pq-btn{max-width:none}}
+@media (max-width:760px){.pq{grid-template-columns:1fr}.pq-img{max-width:380px;width:100%;margin:0 auto}.pq-btn{max-width:none}}
 body.modo-app .pq{margin:0 0 18px;padding:14px}
 body.modo-app .pq h3{font-size:30px}
 .pq-an-c{display:none!important}

@@ -77,9 +77,9 @@ const IC = {
   flecha: '<path d="M5 12h14M13 6l6 6-6 6"/>',
 };
 const PROD = [
-  { id: 'creatina', img: 'img/prod-creatina.jpg', n: 'Creatine Monohydrate', s: '450 g · Micronizada', d: 'Rendimiento físico y cognitivo', tag: 'Más estudiado', p: 'Protocolo 01 — Energía', q: 'creatina creatine monohidrato fuerza energia rendimiento musculo' },
-  { id: 'magnesio', img: 'img/prod-magnesio.jpg', n: 'Magnesium Glycinate', s: '100 cápsulas · 450 mg', d: 'Recuperación y sistema nervioso', tag: 'Alta absorción', p: 'Protocolo 02 — Recuperación', q: 'magnesio glicinato magnesium sueno recuperacion estres' },
-  { id: 'vitd', img: 'img/prod-vitamina.jpg', n: 'Vitamin D3 Liposomal', s: '50 ml · 5000 UI', d: 'Salud general y longevidad', tag: 'Liposomal', p: 'Protocolo 03 — Bienestar', q: 'vitamina d3 vitamin liposomal huesos inmunidad sol' },
+  { id: 'creatina', img: 'img/ad-creatina.jpg', n: 'Creatine Monohydrate', s: '450 g · Micronizada', d: 'Rendimiento físico y cognitivo', tag: 'Más estudiado', p: 'Protocolo 01 — Energía', q: 'creatina creatine monohidrato fuerza energia rendimiento musculo' },
+  { id: 'magnesio', img: 'img/ad-magnesio.jpg', n: 'Magnesium Glycinate', s: '100 cápsulas · 450 mg', d: 'Recuperación y sistema nervioso', tag: 'Alta absorción', p: 'Protocolo 02 — Recuperación', q: 'magnesio glicinato magnesium sueno recuperacion estres' },
+  { id: 'vitd', img: 'img/ad-vitamina.jpg', n: 'Vitamin D3 Liposomal', s: '50 ml · 5000 UI', d: 'Salud general y longevidad', tag: 'Liposomal', p: 'Protocolo 03 — Bienestar', q: 'vitamina d3 vitamin liposomal huesos inmunidad sol' },
 ];
 const precio = (id) => { try { return (typeof PRODUCTOS !== 'undefined' && PRODUCTOS[id]) ? PRODUCTOS[id].precio : null; } catch (e) { return null; } };
 const fmt = (n) => n == null ? '' : '$' + Number(n).toLocaleString('es-MX') + ' MXN';
@@ -176,7 +176,7 @@ function portadaPro() {
     <div class="wb-confianza">${confianza.map(([i, t, s]) => `<div><span>${I(i, 26)}</span><p><b>${t}</b><small>${s}</small></p></div>`).join('')}</div>
     <div class="wb-tit"><div><span>Tienda</span><h2>Nuestros productos</h2></div><a href="#/productos">Ver todo ${I(IC.flecha, 16)}</a></div>
     <div class="wb-prods">${PROD.map((p) => `<article class="wb-prod">
-      <a class="wb-prod-img" href="#/productos"><img src="${p.img}" alt="Aeterion ${p.n}" loading="lazy" width="600" height="600"><em>${p.tag}</em></a>
+      <a class="wb-prod-img" href="#/productos"><img src="${p.img}" alt="Aeterion ${p.n}" loading="lazy" width="864" height="1080"><em>${p.tag}</em></a>
       <div class="wb-prod-info"><small>${p.p}</small><h3>${p.n}</h3><p>${p.d} · ${p.s}</p>
       <div class="wb-prod-pie"><b class="wb-precio" data-id="${p.id}">${fmt(precio(p.id))}</b><a href="#/productos">Detalles</a></div>
       <button class="btn-agregar" onclick="agregarAlCarrito('${p.id}')">Agregar al carrito</button></div></article>`).join('')}</div>
@@ -215,7 +215,7 @@ function mayoreo() {
         <div class="my-btns"><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Cotizar por WhatsApp</a><a class="btn btn-outline" href="#my-como">Cómo funciona</a></div>
         <small class="my-nota">Te respondemos por WhatsApp al +52 56 1324 1969 con la lista de precios de distribuidor.</small>
       </div>
-      <img src="img/mayoreo-inventario.jpg" alt="Inventario real de creatina Aeterion en cajas" loading="lazy" width="1080" height="602">
+      <img src="img/mayoreo-productos.jpg" alt="Creatina, magnesio y vitamina D3 Aeterion" loading="lazy" width="1000" height="650">
     </div>
     <div class="my-claves">
       <div><span>${I(IC.bolsa, 26)}</span><b>Compra mínima de $5,000 MXN</b><p>Arma tu pedido con los productos que más se mueven en tu negocio.</p></div>
@@ -250,7 +250,7 @@ function bandaMayoreo() {
       <ul class="my-chips"><li>${I(IC.bolsa, 16)} Compra mínima $5,000 MXN</li><li>${I(IC.pago, 16)} Precio de distribuidor</li><li>${I(IC.app, 16)} 50% en Premium para tus socios</li></ul>
       <div class="my-btns"><a class="btn my-wa" href="${WA}" target="_blank" rel="noopener">${I(IC_WA, 20)} Cotizar por WhatsApp</a><a class="btn btn-outline" href="#/productos/mayoreo">Ver cómo funciona</a></div>
     </div>
-    <img class="my-banda-img" src="img/mayoreo-cajas.jpg" alt="Cajas de inventario Aeterion listas para distribuidores" loading="lazy" width="1080" height="602">
+    <img class="my-banda-img" src="img/mayoreo-productos.jpg" alt="Productos Aeterion para distribuidores" loading="lazy" width="1000" height="650">
   </div>`);
 }
 
@@ -472,10 +472,10 @@ body.web-secciones #carrito-btn{display:none!important}
 .wb-prods{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:clamp(2.5rem,5vw,3.5rem)}
 .wb-prod{background:#171715;border:1px solid rgba(201,168,76,.2);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .2s,box-shadow .2s}
 .wb-prod:hover{border-color:rgba(201,168,76,.6);transform:translateY(-3px);box-shadow:0 20px 40px rgba(0,0,0,.45)}
-.wb-prod-img{position:relative;display:block;aspect-ratio:1/1;overflow:hidden;background:#0d0d0c}
+.wb-prod-img{position:relative;display:block;aspect-ratio:4/5;overflow:hidden;background:#efe9df}
 .wb-prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
 .wb-prod:hover .wb-prod-img img{transform:scale(1.04)}
-.wb-prod-img em{position:absolute;top:.8rem;left:.8rem;font:600 11.5px var(--font-ui);font-style:normal;letter-spacing:.08em;text-transform:uppercase;background:rgba(12,12,11,.85);color:var(--oro);border:1px solid rgba(201,168,76,.45);border-radius:20px;padding:.25rem .7rem}
+.wb-prod-img em{position:absolute;top:.8rem;right:.8rem;font:600 11.5px var(--font-ui);font-style:normal;letter-spacing:.08em;text-transform:uppercase;background:rgba(12,12,11,.85);color:var(--oro);border:1px solid rgba(201,168,76,.45);border-radius:20px;padding:.25rem .7rem}
 .wb-prod-info{padding:1rem 1.1rem 1.15rem;display:flex;flex-direction:column;flex:1}
 .wb-prod-info small{color:var(--oro);font:600 11.5px var(--font-ui);letter-spacing:.12em;text-transform:uppercase}
 .wb-prod-info h3{font:600 21px var(--font-ui);color:var(--blanco);margin:.25rem 0 .15rem;letter-spacing:.02em}
@@ -485,7 +485,7 @@ body.web-secciones #carrito-btn{display:none!important}
 .wb-prod-pie a{color:var(--texto);font-size:14px;text-decoration:underline;text-underline-offset:3px}
 .wb-prod .btn-agregar{border-radius:10px;padding:.85rem 1rem;font-size:13px}
 @media (max-width:900px){.wb-prods{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.wb-prods{grid-template-columns:1fr}.wb-prod{flex-direction:row}.wb-prod-img{width:40%;aspect-ratio:auto;flex:none}.wb-prod-info{padding:.8rem .9rem}.wb-prod-info h3{font-size:18px}.wb-prod-info p{font-size:13px;margin-bottom:.5rem}.wb-precio{font-size:18px}.wb-prod .btn-agregar{font-size:11px;padding:.65rem .5rem;letter-spacing:.04em}.wb-prod-img em{font-size:10px;top:.5rem;left:.5rem}}
+@media (max-width:560px){.wb-prods{grid-template-columns:1fr}.wb-prod{flex-direction:row}.wb-prod-img{width:40%;aspect-ratio:4/5;flex:none;align-self:center}.wb-prod-info{padding:.8rem .9rem}.wb-prod-info h3{font-size:18px}.wb-prod-info p{font-size:13px;margin-bottom:.5rem}.wb-precio{font-size:18px}.wb-prod .btn-agregar{font-size:11px;padding:.65rem .5rem;letter-spacing:.04em}.wb-prod-img em{display:none}}
 /* ===== Banda app ===== */
 .wb-app-banda{display:flex;align-items:center;justify-content:space-between;gap:2rem;border-radius:20px;padding:clamp(1.5rem,4vw,2.6rem);margin-bottom:clamp(2.5rem,5vw,3.5rem);background:radial-gradient(circle at 85% 50%,rgba(201,168,76,.25),transparent 55%),linear-gradient(120deg,#1d1a12,#121211);border:1px solid rgba(201,168,76,.4)}
 .wb-app-banda h2{font-family:var(--font-display);font-size:clamp(1.7rem,3.4vw,2.4rem);font-weight:400;color:var(--blanco);margin:.3rem 0 .5rem;line-height:1.15;max-width:36rem}
@@ -511,7 +511,7 @@ body.web-secciones #carrito-btn{display:none!important}
 .my-chips{list-style:none;display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.4rem;padding:0}
 .my-chips li{display:flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border-radius:20px;border:1px solid rgba(201,168,76,.45);background:rgba(201,168,76,.08);color:var(--blanco);font:600 13.5px var(--font-ui);letter-spacing:.02em}
 .my-chips svg{color:var(--oro)}
-.my-banda-img{width:min(40%,440px);height:340px;object-fit:cover;border-radius:16px;border:1px solid rgba(201,168,76,.3);flex:none}
+.my-banda-img{width:min(40%,440px);height:340px;object-fit:contain;background:#efe9df;border-radius:16px;border:1px solid rgba(201,168,76,.3);flex:none}
 @media (max-width:760px){.my-banda2{flex-direction:column-reverse;align-items:stretch}.my-banda-img{width:100%;max-height:220px;object-fit:cover}}
 
 #mayoreo{padding:clamp(2rem,5vw,4rem) var(--pad) clamp(3rem,6vw,5rem);background:var(--negro2)}
